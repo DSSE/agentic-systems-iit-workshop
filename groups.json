@@ -1,0 +1,9 @@
+{
+  "instructors": ["Tahmid12Khan", "fahmidf3053", "jsureka", "TasmiaZerin1128"],
+  "groups": {
+    "1": { "project": "CampusDesk",  "members": ["student-a1", "student-a2", "student-a3", "student-a4", "student-a5"] },
+    "2": { "project": "SprintBoard", "members": ["student-b1", "student-b2", "student-b3", "student-b4", "student-b5"] },
+    "3": { "project": "ClubOps",     "members": ["student-c1", "student-c2", "student-c3", "student-c4", "student-c5"] },
+    "4": { "project": "LabLend",     "members": ["student-d1", "student-d2", "student-d3", "student-d4", "student-d5"] }
+  }
+}

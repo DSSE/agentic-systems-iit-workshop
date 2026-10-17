@@ -1,0 +1,35 @@
+name: PR guard
+
+# pull_request_target runs this workflow and its script from the default
+# branch, so a PR cannot edit the rules to pass its own check. The PR's
+# commits are fetched only as data for git diff; none of its code runs.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-guard:
+    name: pr-guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the default branch (trusted rules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch the PR's commits (read only, not executed)
+        run: git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      - name: Check branch name, author and changed paths
+        run: node .github/scripts/pr-guard.mjs
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
