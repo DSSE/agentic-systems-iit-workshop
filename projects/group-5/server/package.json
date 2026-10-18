@@ -1,0 +1,19 @@
+{
+  "name": "campusdesk-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CampusDesk API: list_rooms, check_availability, create_booking, backed by shared domain validation and data.json.",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
