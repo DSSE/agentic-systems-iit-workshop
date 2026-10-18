@@ -36,11 +36,11 @@ if (isFork) {
 if (lower(config.instructors).includes(author)) {
   notes.push(`@${author} is an instructor, so the group rules are skipped.`);
 } else {
-  const match = /^group-([1-9][0-9]*)\/[a-z0-9][a-z0-9._-]*$/.exec(branch);
+  const match = /^group-([1-9][0-9]*)\/[A-Za-z0-9][A-Za-z0-9._-]*$/.exec(branch);
   if (!match) {
     errors.push(
       `Branch "${branch}" is not named correctly. Use group-<N>/<short-name>, ` +
-        `for example group-3/add-check-tool (lowercase, no spaces).`
+        `for example group-3/add-check-tool (no spaces).`
     );
   } else {
     const n = match[1];
