@@ -1,7 +1,7 @@
 import { renderAssistantContent } from './chat-format.js';
 
 const $ = (id) => document.getElementById(id);
-const state = { csrf: '', equipment: [], proposal: null, busy: false, studentId: '' };
+const state = { csrf: '', equipment: [], proposal: null, busy: false, studentId: '', filter: 'all', availabilityReady: false, editing: null };
 let shelfRevision = 0;
 const text = (tag, value, className) => {
   const node = document.createElement(tag);
@@ -48,6 +48,7 @@ function busy(value) {
   state.busy = value;
   for (const button of document.querySelectorAll('button')) button.disabled = value;
   $('request-form')?.setAttribute('aria-busy', String(value));
+  if (!value) syncEquipmentControls();
 }
 const run = async (operation) => {
   if (state.busy) return;
@@ -56,12 +57,60 @@ const run = async (operation) => {
   finally { busy(false); }
 };
 
+function equipmentCategory(item) {
+  const name = `${item.id} ${item.name}`.toLowerCase();
+  if (/sensor|thermometer|detector/.test(name)) return 'sensors';
+  if (/kit|arduino|raspberry|breadboard/.test(name)) return 'kits';
+  if (/tool|multimeter|solder|pliers|screwdriver|oscilloscope|wrench/.test(name)) return 'tools';
+  return 'other';
+}
+
+function equipmentIcon(item) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  for (const [key, value] of Object.entries({ viewBox: '0 0 48 48', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) svg.setAttribute(key, value);
+  const category = equipmentCategory(item);
+  const paths = /temperature|thermometer/i.test(`${item.id} ${item.name}`)
+    ? ['M20 28V12a4 4 0 0 1 8 0v16a9 9 0 1 1-8 0Z', 'M24 18v16', 'M24 34h.01', 'M33 14h5m-5 7h3']
+    : category === 'sensors' ? ['M8 14h32v22H8z', 'M18 25a5 5 0 1 0-10 0 5 5 0 0 0 10 0', 'M40 25a5 5 0 1 0-10 0 5 5 0 0 0 10 0', 'M18 36v5m6-5v5m6-5v5', 'M18 8q6-6 12 0']
+    : category === 'kits' ? ['M10 10h28v28H10z', 'M18 18h12v12H18z', 'M16 5v5m8-5v5m8-5v5M16 38v5m8-5v5m8-5v5M5 16h5m-5 8h5m-5 8h5m28-16h5m-5 8h5m-5 8h5', 'M14 34h.01M34 14h.01']
+    : category === 'tools' ? ['M29 8a10 10 0 0 0-12 12L6 31a6 6 0 0 0 8 8l11-11A10 10 0 0 0 39 16l-8 7-6-6 7-8Z']
+    : ['M10 14l14-7 14 7v21l-14 7-14-7Z', 'M10 14l14 7 14-7M24 21v21'];
+  for (const d of paths) {
+    const path = document.createElementNS(svg.namespaceURI, 'path');
+    path.setAttribute('d', d); svg.append(path);
+  }
+  return svg;
+}
+
+function filterEquipment() {
+  let count = 0;
+  for (const card of document.querySelectorAll('.equipment-card')) {
+    card.hidden = state.filter !== 'all' && card.dataset.category !== state.filter;
+    if (!card.hidden) count++;
+  }
+  if ($('equipment-count')) $('equipment-count').textContent = `${count} of ${state.equipment.length} types`;
+  if ($('equipment-empty')) $('equipment-empty').hidden = count !== 0;
+  for (const button of document.querySelectorAll('[data-category-filter]')) button.setAttribute('aria-pressed', String(button.dataset.categoryFilter === state.filter));
+}
+
+function syncEquipmentControls() {
+  for (const button of document.querySelectorAll('[data-add-equipment]')) {
+    const item = state.equipment.find((entry) => entry.id === button.dataset.addEquipment);
+    const selectedQuantity = Number(button.closest('.equipment-card').querySelector('input').value);
+    button.disabled = state.busy || !state.availabilityReady || (!item?.available_quantity && !selectedQuantity);
+    button.textContent = selectedQuantity ? 'Edit' : item?.available_quantity ? 'Add +' : 'Unavailable';
+  }
+  if ($('equipment-dialog')?.open) syncQuantityModal();
+}
+
 function renderEquipment() {
   $('equipment-count').textContent = `${state.equipment.length} types`;
   $('equipment').replaceChildren();
   state.equipment.forEach((item, index) => {
     const card = text('article', '', 'equipment-card');
-    const mark = text('span', ['{ }', '≋', '°C'][index % 3], 'equipment-mark');
+    card.dataset.category = equipmentCategory(item);
+    const mark = text('span', '', `equipment-mark mark-${equipmentCategory(item)}`);
+    mark.append(equipmentIcon(item));
     mark.setAttribute('aria-hidden', 'true');
     const info = text('div', '', 'equipment-info');
     const stock = text('span', `${item.available_quantity} available · ${item.total_quantity} total`, 'equipment-stock');
@@ -72,20 +121,41 @@ function renderEquipment() {
     const input = document.createElement('input');
     input.id = `quantity-${index}`;
     input.type = 'number'; input.min = '0'; input.step = '1'; input.value = '0';
+    input.max = String(item.available_quantity); input.readOnly = true;
     input.dataset.equipmentId = item.id;
     input.setAttribute('form', 'request-form');
     input.setAttribute('aria-label', `${item.name} quantity`);
     label.htmlFor = input.id;
     input.addEventListener('input', updateCount);
-    quantity.append(label, input);
+    const add = text('button', 'Add +', 'secondary add-equipment');
+    add.type = 'button'; add.dataset.addEquipment = item.id;
+    add.setAttribute('aria-label', `Choose quantity for ${item.name}`);
+    add.addEventListener('click', () => run(async () => {
+      await loadEquipment();
+      if (!state.availabilityReady) return;
+      const current = state.equipment.find((entry) => entry.id === item.id);
+      if (!current || (!current.available_quantity && input.value === '0')) return;
+      state.editing = item.id;
+      $('equipment-modal-heading').textContent = current.name;
+      $('equipment-modal-description').textContent = current.description;
+      $('equipment-modal-icon').replaceChildren(equipmentIcon(current));
+      $('equipment-quantity').value = input.value === '0' ? '1' : input.value;
+      $('equipment-dialog').showModal();
+      syncQuantityModal();
+    }));
+    quantity.append(label, input, add);
     card.append(mark, info, quantity);
     $('equipment').append(card);
   });
+  filterEquipment();
+  syncEquipmentControls();
 }
 
 async function loadEquipment() {
   if (!$('equipment')) return;
   const revision = ++shelfRevision;
+  state.availabilityReady = false;
+  syncEquipmentControls();
   const start_date = $('start-date').value;
   const due_date = $('due-date').value;
   const labels = document.querySelectorAll('[data-stock-id]');
@@ -98,11 +168,16 @@ async function loadEquipment() {
     const result = await api(`/api/equipment?${new URLSearchParams({ start_date, due_date })}`);
     if (revision !== shelfRevision) return;
     state.equipment = result.equipment;
+    state.availabilityReady = true;
     if (!$('equipment').children.length) renderEquipment();
     else for (const label of labels) {
       const item = result.equipment.find((entry) => entry.id === label.dataset.stockId);
       label.textContent = item ? `${item.available_quantity} available · ${item.total_quantity} total` : 'Equipment unavailable';
     }
+    for (const input of document.querySelectorAll('[data-equipment-id]')) {
+      input.max = String(result.equipment.find((item) => item.id === input.dataset.equipmentId)?.available_quantity ?? 0);
+    }
+    syncEquipmentControls();
   } catch (error) {
     if (revision !== shelfRevision) return;
     for (const label of labels) label.textContent = 'Availability unavailable — try refreshing';
@@ -118,7 +193,54 @@ function selected() {
 function updateCount() {
   const count = selected().reduce((sum, item) => sum + item.quantity, 0);
   if ($('selected-count')) $('selected-count').textContent = `${count} ${count === 1 ? 'unit' : 'units'}`;
+  for (const button of document.querySelectorAll('[data-add-equipment]')) {
+    const input = [...document.querySelectorAll('[data-equipment-id]')].find((entry) => entry.dataset.equipmentId === button.dataset.addEquipment);
+    button.textContent = Number(input?.value) > 0 ? 'Edit' : 'Add +';
+    button.closest('.equipment-card').classList.toggle('is-selected', Number(input?.value) > 0);
+  }
 }
+
+function syncQuantityModal() {
+  const item = state.equipment.find((entry) => entry.id === state.editing);
+  if (!item) return;
+  const input = $('equipment-quantity');
+  input.max = String(item.available_quantity);
+  const quantity = Number(input.value);
+  const existing = selected().find((entry) => entry.equipment_id === state.editing)?.quantity ?? 0;
+  $('remove-equipment').hidden = !existing;
+  $('save-equipment').textContent = existing ? 'Update request' : 'Add to request +';
+  const valid = state.availabilityReady && Number.isInteger(quantity) && quantity >= 1 && quantity <= item.available_quantity;
+  $('equipment-modal-stock').textContent = state.availabilityReady
+    ? `${item.available_quantity} available for ${$('start-date').value} → ${$('due-date').value}` : 'Choose valid dates to check availability.';
+  $('equipment-quantity-error').textContent = valid ? '' : item.available_quantity ? `Enter a whole number from 1 to ${item.available_quantity}.` : 'No units available. Remove this selection or choose different dates.';
+  $('save-equipment').disabled = state.busy || !valid;
+  $('decrease-quantity').disabled = state.busy || quantity <= 1;
+  $('increase-quantity').disabled = state.busy || quantity >= item.available_quantity;
+}
+
+for (const button of document.querySelectorAll('[data-category-filter]')) button.addEventListener('click', () => {
+  state.filter = button.dataset.categoryFilter; filterEquipment();
+});
+$('equipment-quantity')?.addEventListener('input', syncQuantityModal);
+for (const [id, delta] of [['decrease-quantity', -1], ['increase-quantity', 1]]) $(id)?.addEventListener('click', () => {
+  $('equipment-quantity').value = String(Number($('equipment-quantity').value) + delta); syncQuantityModal();
+});
+for (const id of ['close-equipment', 'cancel-equipment']) $(id)?.addEventListener('click', () => $('equipment-dialog').close());
+$('equipment-quantity-form')?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  run(async () => {
+    await loadEquipment();
+    const item = state.equipment.find((entry) => entry.id === state.editing);
+    const quantity = Number($('equipment-quantity').value);
+    if (!state.availabilityReady || !Number.isInteger(quantity) || quantity < 1 || quantity > item.available_quantity) return;
+    const input = [...document.querySelectorAll('[data-equipment-id]')].find((entry) => entry.dataset.equipmentId === state.editing);
+    input.value = String(quantity); updateCount(); $('equipment-dialog').close();
+  });
+});
+$('remove-equipment')?.addEventListener('click', () => {
+  const input = [...document.querySelectorAll('[data-equipment-id]')].find((entry) => entry.dataset.equipmentId === state.editing);
+  if (input) input.value = '0'; updateCount(); $('equipment-dialog').close();
+});
 async function identify() {
   const result = await api('/api/session', { student_id: $('student-id').value.trim() });
   if (state.studentId !== result.student_id) {

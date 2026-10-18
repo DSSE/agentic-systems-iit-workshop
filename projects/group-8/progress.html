@@ -97,6 +97,11 @@
     <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/UI</code>. Added homepage Chat agent navigation and a Chat with LabLend launcher. Moved the conversation to <code>/chat</code>, with its own student context, existing loans, safe structured output, loading state, and explicit proposal approval. The main page retains the equipment shelf and form. Both pages use the same session, tools, and shared UI behavior.</p>
     <p>Verification: browser navigation tests confirm the homepage has no embedded chat form, the selected student ID carries over, chat approval persists a loan, and returning to the equipment shelf shows reduced availability. Existing chat clarification, cancellation, formatting, spinner cleanup, guardrails, and desktop/mobile overflow checks pass. API tests cover direct navigation to <code>/chat</code>. Saved demonstration loans are preserved.</p>
   </article>
+  <article>
+    <h2>UI update — equipment selection and lab theme</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/UI</code>. Added Add/Edit quantity dialogs with date-specific stock limits, stepper controls, cancellation and removal. Stock refreshes before opening and confirming a selection; invalid or changed stock requires the user to adjust the request explicitly. Added category filters that retain selections, equipment-specific SVG icons, empty-category feedback, and a lab graph-paper background. Categories are inferred from equipment names and IDs; no demonstration inventory was changed.</p>
+    <p>Verification: all 47 automated tests pass. The real-browser suite checks category filters, selection retention, integer and maximum limits, cancellation, removal, refreshed availability after approval, and stock changing before selection confirmation. Existing approval, policy rejection, chat, and injection checks pass. Desktop/mobile shelf and modal layouts were checked for overflow and visually inspected using screenshots. These checks use temporary inventory and no live model calls.</p>
+  </article>
   <p>At the end of each later phase, update its status and append a dated entry with changes, actual verification results, remaining issues, and next steps.</p>
 </body>
 </html>
