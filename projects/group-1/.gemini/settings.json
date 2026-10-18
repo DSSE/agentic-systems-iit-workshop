@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "campusdesk": {
+      "command": "backend/.venv/Scripts/python.exe",
+      "args": ["backend/mcp_stdio.py"],
+      "timeout": 30000,
+      "trust": false
+    }
+  }
+}

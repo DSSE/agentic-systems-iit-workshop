@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pytest)",
+      "Bash(pytest:*)",
+      "Bash(uvicorn:*)",
+      "Bash(.venv/Scripts/python -m pytest:*)",
+      "Bash(.venv/Scripts/python -m uvicorn:*)",
+      "Bash(pip install -r requirements.txt)",
+      "Bash(npm install)",
+      "Bash(npm test)",
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(git diff:*)",
+      "Bash(git status)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Edit(./data.json)",
+      "Write(./data.json)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(git push --force:*)",
+      "Bash(rm -rf:*)"
+    ]
+  }
+}
