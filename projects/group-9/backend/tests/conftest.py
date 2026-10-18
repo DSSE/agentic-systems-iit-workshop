@@ -49,3 +49,8 @@ def desk(data_file: Path, clock: FakeClock) -> CampusDesk:
 def client(data_file: Path, clock: FakeClock) -> TestClient:
     settings = Settings(data_file=data_file, timezone=DHAKA, proposal_ttl=timedelta(minutes=15))
     return TestClient(create_app(settings, clock))
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"
