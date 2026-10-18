@@ -50,6 +50,8 @@ cd backend && uv run python -m evals.run       # agent evals, needs LLM_API_KEY
 ```
 
 ## Demo cases
+Reset the data first: `cp backend/data.seed.json backend/data.json`.
+
 | # | Case | Try | Expected |
 |---|---|---|---|
 | 1 | Normal | "Book a lab for 3 people Thursday afternoon." | A proposal; saved only after Approve |
