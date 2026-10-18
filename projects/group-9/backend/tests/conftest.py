@@ -5,6 +5,10 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from app.proposals import ProposalStore
+from app.store import Store
+from app.tools import CampusDesk
+
 SEED = Path(__file__).resolve().parents[1] / "data.seed.json"
 DHAKA = ZoneInfo("Asia/Dhaka")
 FIXED_NOW = datetime(2026, 10, 18, 10, 0, tzinfo=DHAKA)  # a Sunday
@@ -31,3 +35,8 @@ def data_file(tmp_path: Path) -> Path:
 @pytest.fixture
 def clock() -> FakeClock:
     return FakeClock(FIXED_NOW)
+
+
+@pytest.fixture
+def desk(data_file: Path, clock: FakeClock) -> CampusDesk:
+    return CampusDesk(Store(data_file), ProposalStore(timedelta(minutes=15)), clock)
