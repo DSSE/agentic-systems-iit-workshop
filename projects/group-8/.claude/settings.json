@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Bash(npm run check:harness)",
+      "Bash(npm.cmd run check:harness)",
       "Bash(npm test)",
       "Bash(npm start)",
       "Bash(git diff:*)",

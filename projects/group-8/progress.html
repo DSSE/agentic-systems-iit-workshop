@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LabLend | Group 8 development progress</title>
+  <style>
+    body { max-width: 960px; margin: 2rem auto; padding: 0 1rem; font: 16px/1.6 system-ui, sans-serif; color: #192b38; background: #f7fafc; }
+    table { border-collapse: collapse; width: 100%; background: white; }
+    th, td { text-align: left; vertical-align: top; border: 1px solid #c7d3dc; padding: .7rem; }
+    a { color: #075b9b; } article { margin: 2rem 0; }
+    code { overflow-wrap: anywhere; } caption { text-align: left; font-weight: bold; margin-bottom: .5rem; }
+  </style>
+</head>
+<body>
+  <h1>LabLend development progress</h1>
+  <p>Group 8: Debug Detectives. Project integration branch: <code>group-8/development</code>.</p>
+  <p><a href="README.md">Project README</a> · <a href="specs/agent.md">Agent specification</a></p>
+  <table>
+    <caption>Workshop development phases</caption>
+    <thead><tr><th scope="col">Phase</th><th scope="col">Status</th><th scope="col">Completion evidence required</th></tr></thead>
+    <tbody>
+      <tr><td>1. Set up the harness</td><td>Complete</td><td>Project instructions, spec, configuration, seed data, progress log, and passing harness check.</td></tr>
+      <tr><td>2. Build backend and frontend</td><td>Pending</td><td>Shared domain rules, three tools, API, and UI; only Approve saves a loan.</td></tr>
+      <tr><td>3. Test behavior</td><td>Pending</td><td>Cases 1–3 pass in the UI and automated tests.</td></tr>
+      <tr><td>4. Make MCP server and connect agents</td><td>Pending</td><td>Shared tools exposed through MCP and two distinct clients connected.</td></tr>
+      <tr><td>5. Add the agent to the UI</td><td>Pending</td><td>Plain-language valid request and clarification for an unclear request.</td></tr>
+      <tr><td>6. Write prompt evaluations (advanced)</td><td>Pending</td><td>All five cases evaluated using two prompt versions; comparison recorded.</td></tr>
+      <tr><td>7. Add guardrails (advanced)</td><td>Pending</td><td>Injection and bypass attempts blocked across every client.</td></tr>
+      <tr><td>8. Prepare the demo</td><td>Pending</td><td>Repeatable fixtures, commands, and evidence for completed milestones.</td></tr>
+    </tbody>
+  </table>
+  <article>
+    <h2>Phase 1 — harness setup</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/harnessing</code>.</p>
+    <p>Completed LabLend coding-agent instructions and shared AGENTS entry point, retained the project specification, configured a private Node.js ES module package, and added a dependency-free harness check. Added an empty model configuration template and demonstration inventory with one historical returned loan. Claude permissions include the harness command; private environment files remain ignored.</p>
+    <p>Verification: <code>npm.cmd run check:harness</code> and <code>git diff --check</code>. The harness check validates readable project documents, JSON configuration, empty model placeholders, equipment identifiers, and seed loan fields. It performs no writes and makes no network or model calls.</p>
+    <p>Remaining issues: no application, runtime approval enforcement, business-rule tests, MCP connections, or model integration exists yet. Harness validation is not evidence of runtime acceptance criteria. Team role assignments remain pending.</p>
+    <p>Next step: phase 2 — implement the shared domain validator and approved create operation, then connect the API and frontend. Use temporary fixtures for tests and keep runtime loan writes behind <code>create_loan</code>.</p>
+  </article>
+  <p>At the end of each later phase, update its status and append a dated entry with changes, actual verification results, remaining issues, and next steps.</p>
+</body>
+</html>
