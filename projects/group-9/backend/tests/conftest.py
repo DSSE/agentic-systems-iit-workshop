@@ -4,7 +4,10 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pytest
+from fastapi.testclient import TestClient
 
+from app.config import Settings
+from app.main import create_app
 from app.proposals import ProposalStore
 from app.store import Store
 from app.tools import CampusDesk
@@ -40,3 +43,9 @@ def clock() -> FakeClock:
 @pytest.fixture
 def desk(data_file: Path, clock: FakeClock) -> CampusDesk:
     return CampusDesk(Store(data_file), ProposalStore(timedelta(minutes=15)), clock)
+
+
+@pytest.fixture
+def client(data_file: Path, clock: FakeClock) -> TestClient:
+    settings = Settings(data_file=data_file, timezone=DHAKA, proposal_ttl=timedelta(minutes=15))
+    return TestClient(create_app(settings, clock))
