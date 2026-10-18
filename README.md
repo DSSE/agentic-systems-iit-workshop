@@ -8,7 +8,7 @@ All groups work in this one repo. Each group has its own folder, works on its ow
 |---|---|
 | Your folder is `projects/group-<N>/` | `projects/group-3/` |
 | Your branches start with `group-<N>/` | `group-3/add-check-tool` |
-| Branch names are lowercase, no spaces | `group-3/approval-prompt` ✅ `Group3 Approval` ❌ |
+| Branch names have no spaces | `group-3/approval-prompt` ✅ `Group3 Approval` ❌ |
 | Your group picks one feature branch, any `group-<N>/<name>` | `group-3/feature`, `group-3/dev` |
 | Work PRs target your feature branch; only the feature branch opens a PR into `main` | |
 | A PR may only change files inside your folder | |
