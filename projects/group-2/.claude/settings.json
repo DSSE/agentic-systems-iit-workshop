@@ -3,6 +3,8 @@
     "allow": [
       "Bash(npm test)",
       "Bash(npm start)",
+      "Bash(npm run mcp)",
+      "Bash(node --test:*)",
       "Bash(git diff:*)",
       "Bash(git status)"
     ],
@@ -13,6 +15,19 @@
       "Bash(wget:*)",
       "Bash(git push --force:*)",
       "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-data.js\""
+          }
+        ]
+      }
     ]
   }
 }
