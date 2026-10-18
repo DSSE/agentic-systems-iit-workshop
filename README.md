@@ -14,6 +14,7 @@ All groups work in this one repo. Each group has its own folder, works on its ow
 | A PR may only change files inside your folder | |
 | Nobody pushes to `main` or your feature branch; everything goes through a PR | |
 | A teammate from your group must approve your PR | You can't approve your own |
+| Your teammates are requested as reviewers automatically | Done by the `Request reviewers` workflow when the PR opens (or leaves draft) |
 
 Every PR runs a check called **pr-guard**. If it fails, open the check's details: it tells you exactly what is wrong (branch name, wrong group, or files outside your folder).
 

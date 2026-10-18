@@ -1,0 +1,31 @@
+name: Request reviewers
+
+# Asks the PR author's teammates (from groups.json) to review. Like pr-guard,
+# it runs with pull_request_target from the default branch; nothing from the
+# PR is checked out or executed.
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request-reviewers:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the default branch (trusted groups.json)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Request reviews from teammates
+        run: node .github/scripts/request-reviewers.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
