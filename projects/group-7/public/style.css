@@ -1,0 +1,32 @@
+:root {
+  --bg: #fff; --fg: #1b1f24; --muted: #57606a; --card: #f6f8fa; --line: #d0d7de;
+  --saved: #1f6feb; --pending: #d29922; --ok: #1f883d; --bad: #cf222e;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --card: #161b22; --line: #30363d; --saved: #58a6ff; --pending: #e3b341; --ok: #3fb950; --bad: #ff7b72; }
+}
+* { box-sizing: border-box; }
+body { margin: 0 auto; max-width: 960px; padding: 1rem 16px 3rem; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+h1 { margin: 0; }
+h2 { font-size: 1.1rem; margin: 1.25rem 0 .5rem; }
+.muted { color: var(--muted); margin: .25rem 0; }
+.bar { display: flex; height: 18px; border-radius: 9px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+.seg { height: 100%; }
+.seg.spent, .dot.spent { background: var(--saved); }
+.seg.pending, .dot.pending { background: var(--pending); }
+.legend { color: var(--muted); font-size: .85rem; margin: .25rem 0; }
+.dot { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; margin: 0 .25rem 0 .75rem; }
+.dot:first-child { margin-left: 0; }
+#message { padding: .6rem .8rem; border-radius: 6px; border: 1px solid var(--line); }
+#message.error { border-color: var(--bad); color: var(--bad); }
+#message.ok { border-color: var(--ok); color: var(--ok); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+.cards { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+.cards li { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; }
+.row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-top: .4rem; }
+.terms { color: var(--muted); font-size: .85rem; margin: .2rem 0 0; }
+input[type=number] { width: 5.5rem; padding: .3rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+button { padding: .35rem .8rem; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+button.primary { background: var(--ok); border-color: var(--ok); color: #fff; }
+.status { font-size: .8rem; color: var(--muted); }

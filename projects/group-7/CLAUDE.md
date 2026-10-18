@@ -11,7 +11,13 @@ Plans a club event's expenses with an agent; total spending never goes over the 
 - `specs/agent.md`: the spec; build from it
 - `src/domain.js`: the hard rule; the only place that decides if an expense fits
 - `src/tools.js`: list_vendors, check_budget and add_expense tools
-- `src/agent.js`: the agent
+- `src/proposals.js`: create, approve and reject proposals (only approve can save)
+- `src/approval.js`: one-time approval tokens, issued only by the approve flow
+- `src/store.js`: reads and writes data.json, holds pending proposals in memory
+- `src/server.js`: Express API under `/api`, serves `public/`
+- `public/`: the UI
+- `test/`: node:test suites; they use a temp copy of data.json (`CLUBOPS_DATA`)
+- `src/agent.js`: the agent (not built yet)
 - `progress.html`: one entry per development phase
 
 ## Conventions

@@ -23,8 +23,15 @@
   <p>Template copied to projects/group-7. Spec written in specs/agent.md (cap, tools, 5 cases, suggest-a-smaller-order policy). CLAUDE.md filled in. Added data.json, package.json and .env.example.</p>
 </div>
 
-<div class="entry todo"><h2>Phase 2: Backend and frontend (todo)</h2></div>
-<div class="entry todo"><h2>Phase 3: Test the behaviour (todo)</h2></div>
+<div class="entry">
+  <h2>Phase 2: Backend and frontend (done)</h2>
+  <p>domain.js holds the rule; tools.js has list_vendors, check_budget and add_expense. Express API under /api (vendors, budget, check, proposals, approve, reject). Static UI with vendor list, budget bar, proposals and an Approve button. Approval tokens mean only the Approve flow can save.</p>
+</div>
+
+<div class="entry">
+  <h2>Phase 3: Test the behaviour (done)</h2>
+  <p>node:test suite (18 tests): cases 1 to 3, exact-cap and cap + 1 boundary, add_expense refusing without a token or over the cap, nothing written without approval, and the case 5 injection text staying inert.</p>
+</div>
 
 <div class="entry todo"><h2>Phase 4: MCP server and agents (todo)</h2></div>
 <div class="entry todo"><h2>Phase 5: Agent in the UI (todo)</h2></div>

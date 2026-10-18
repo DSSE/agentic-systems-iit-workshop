@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClubOps</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>ClubOps</h1>
+  <p id="event" class="muted"></p>
+</header>
+
+<section id="budget" aria-label="Budget">
+  <div class="bar" role="img" aria-label="Budget used">
+    <div id="bar-spent" class="seg spent"></div>
+    <div id="bar-pending" class="seg pending"></div>
+  </div>
+  <p id="budget-text"></p>
+  <p class="legend"><span class="dot spent"></span> Saved <span class="dot pending"></span> Pending approval</p>
+</section>
+
+<p id="message" role="alert" hidden></p>
+
+<div class="cols">
+  <section aria-label="Vendors">
+    <h2>Vendors</h2>
+    <ul id="vendors" class="cards"></ul>
+  </section>
+
+  <section aria-label="Proposals">
+    <h2>Proposals</h2>
+    <p class="muted">Nothing is saved until you press Approve.</p>
+    <ul id="proposals" class="cards"></ul>
+
+    <h2>Saved expenses</h2>
+    <ul id="expenses" class="cards"></ul>
+  </section>
+</div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
