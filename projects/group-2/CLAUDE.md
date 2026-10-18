@@ -3,9 +3,10 @@
 Proposes assignments of backlog tasks to team members; no member ever goes over 8 story points, and nothing is saved until a person clicks Approve.
 
 ## Commands
-- Run: `npm start` (web app + API, from Phase 2)
-- MCP server: `npm run mcp` (from Phase 4)
-- Test: `npm test` (Node built-in `node:test`)
+- Run: `npm start` (web app + API on http://localhost:3000)
+- MCP server: `npm run mcp` (registered in `.mcp.json`)
+- Agent in the terminal: `npm run agent`
+- Test: `npm test` (Node built-in `node:test`); `npm run test:live` calls the real model in `.env`
 
 ## Structure
 - `sprintboard.md`: the original brief
@@ -15,7 +16,9 @@ Proposes assignments of backlog tasks to team members; no member ever goes over 
 - `src/domain/rules.js`: the hard rule; the only place it is implemented
 - `src/store.js`: the only module that touches the data file (`DATA_FILE` env var)
 - `src/tools.js`: `list_tasks`, `check_capacity`, `assign_task`, `approve`
-- `src/server.js` + `public/`: API and UI; `src/mcp/`: MCP server; `src/agent/`: chat agent
+- `src/proposals.js`: pending proposals in `proposals.json`, shared by the web and MCP servers
+- `src/server.js` + `public/`: API, UI and `/api/chat`
+- `src/mcp/server.js`: MCP over stdio (no SDK); `src/agent/`: LLM client, MCP client, tool loop, `prompts/`
 - `tests/fixtures/`: seed, boundary and injection data; tests run on temp copies
 - `progress.html`: one entry per finished phase
 

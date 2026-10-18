@@ -3,10 +3,9 @@
 import { randomUUID } from 'node:crypto';
 import { checkAssignments, memberLoads } from './domain/rules.js';
 import { createStore } from './store.js';
+import { createProposalStore, defaultProposalsFile } from './proposals.js';
 
-export function createTools(store = createStore()) {
-  const proposals = new Map();
-
+export function createTools(store = createStore(), proposals = createProposalStore(defaultProposalsFile(store.path))) {
   function listTasks({ status = 'all' } = {}) {
     const data = store.load();
     const tasks = data.tasks.filter((t) =>
@@ -29,14 +28,14 @@ export function createTools(store = createStore()) {
       loads: result.loads,
       createdAt: new Date().toISOString(),
     };
-    proposals.set(proposal.id, proposal);
+    proposals.add(proposal);
     return { ok: true, proposal };
   }
 
-  const listProposals = () => [...proposals.values()];
+  const listProposals = () => proposals.list();
 
   function reject({ proposalId } = {}) {
-    if (!proposals.delete(proposalId)) return { ok: false, code: 'PROPOSAL_NOT_FOUND', details: { proposalId } };
+    if (!proposals.remove(proposalId)) return { ok: false, code: 'PROPOSAL_NOT_FOUND', details: { proposalId } };
     return { ok: true };
   }
 
@@ -44,7 +43,7 @@ export function createTools(store = createStore()) {
   function approve({ proposalId } = {}) {
     const proposal = proposals.get(proposalId);
     if (!proposal) return { ok: false, code: 'PROPOSAL_NOT_FOUND', details: { proposalId } };
-    proposals.delete(proposalId);
+    proposals.remove(proposalId);
 
     const data = store.load();
     const result = checkAssignments(data, proposal.assignments);

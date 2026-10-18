@@ -17,8 +17,10 @@ Spec: [specs/agent.md](specs/agent.md) · Progress: [progress.html](progress.htm
 ```bash
 npm install
 cp .env.example .env   # set LLM_BASE_URL, LLM_API_KEY, LLM_MODEL
-npm start              # web app + API (from Phase 2)
-npm run mcp            # MCP server (from Phase 4)
+npm start              # web app + API + chat on http://localhost:3000
+npm run mcp            # MCP server on stdio (Claude Code picks it up from .mcp.json)
+npm run agent          # chat with the agent in the terminal
+npm run test:live      # live checks of cases 1 and 4 against the model in .env
 npm test
 ```
 
@@ -26,10 +28,10 @@ npm test
 | # | Phase | Status |
 |---|---|---|
 | 1 | Set up the harness | Done |
-| 2 | Build the backend and the frontend | |
-| 3 | Test the behaviour | |
-| 4 | Make the MCP server and connect any agent | |
-| 5 | Add the agent to the UI | |
+| 2 | Build the backend and the frontend | Done |
+| 3 | Test the behaviour | Done (cases 1–3) |
+| 4 | Make the MCP server and connect any agent | Done |
+| 5 | Add the agent to the UI | Done |
 | 6 | Write evals for the prompts | |
 | 7 | Add guardrails | |
 | 8 | Prepare the demo | |

@@ -14,8 +14,8 @@ export function setup(fixture = 'seed') {
   return { file, store, tools: createTools(store), raw: () => readFileSync(file, 'utf8') };
 }
 
-export async function startServer(tools) {
-  const server = createServer(tools);
+export async function startServer(tools, options) {
+  const server = createServer(tools, options);
   await new Promise((r) => server.listen(0, r));
   const base = `http://localhost:${server.address().port}`;
   const call = async (method, path, body) => {

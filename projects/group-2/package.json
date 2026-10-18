@@ -5,11 +5,13 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.9"
   },
   "scripts": {
-    "start": "node src/server.js",
-    "mcp": "node src/mcp/server.js",
-    "test": "node --test"
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "mcp": "node --env-file-if-exists=.env src/mcp/server.js",
+    "agent": "node --env-file-if-exists=.env src/agent/cli.js",
+    "test": "node --test",
+    "test:live": "node --env-file-if-exists=.env --test tests/live.test.js"
   }
 }
