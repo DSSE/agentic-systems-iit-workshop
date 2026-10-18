@@ -18,6 +18,10 @@ export function createApp() {
   app.use(cors({ origin: WEB_ORIGIN }));
   app.use(express.json());
 
+  app.get("/", (req, res) => {
+    res.json({ service: "campusdesk-api", ok: true });
+  });
+
   app.get("/api/rooms", async (req, res, next) => {
     try {
       const rooms = await listRoomsTool({ group_size: req.query.group_size });
