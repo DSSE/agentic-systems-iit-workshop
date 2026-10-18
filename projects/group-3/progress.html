@@ -49,30 +49,30 @@
   {
     "phase": 4,
     "title": "Make the MCP server and connect any agent",
-    "status": "todo",
-    "date": "",
-    "note": ""
+    "status": "done",
+    "date": "2026-10-18",
+    "note": "ClubOps MCP server exposes list_vendors, check_budget, and add_expense; planner and read-only budget reviewer share it."
   },
   {
     "phase": 5,
     "title": "Add the agent to the UI",
-    "status": "todo",
-    "date": "",
-    "note": ""
+    "status": "done",
+    "date": "2026-10-18",
+    "note": "Chat popup uses the planner and budget reviewer; no-key mock chat is available locally."
   },
   {
     "phase": 6,
     "title": "Write evals for the prompts",
-    "status": "todo",
-    "date": "",
-    "note": ""
+    "status": "doing",
+    "date": "2026-10-18",
+    "note": "Six checks cover all five scenarios, including both boundary edges. Prompt A/B, AI judging, JSON traces, and a Markdown report are implemented. Mock plumbing passes 6/6 for each prompt; live Gemini comparison is blocked by HTTP 429 quota exhaustion and is not reported as a prompt-quality result."
   },
   {
     "phase": 7,
     "title": "Add guardrails",
-    "status": "todo",
-    "date": "",
-    "note": ""
+    "status": "done",
+    "date": "2026-10-18",
+    "note": "Screen vendor terms before MCP/API/UI delivery; agent receives catalog data only through MCP, never direct data.json access. Domain validation returns BUDGET_CAP_EXCEEDED, and approval remains UI-only. Case 5 regression and Cases 1–3 tests pass; npm run verify passes 36 tests."
   },
   {
     "phase": 8,

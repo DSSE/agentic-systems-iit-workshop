@@ -26,7 +26,7 @@ export function buildMcpServer(store = createStore()) {
   }, async ({ amount }) => asText(store.checkBudget(amount)));
 
   server.registerTool('add_expense', {
-    description: 'Propose an expense for one vendor item. This only CREATES A PROPOSAL; nothing is saved until a person presses Approve in the UI. The price is taken from vendor data. If it would exceed the budget cap it is refused with code OVER_BUDGET.',
+    description: 'Propose an expense for one vendor item. This only CREATES A PROPOSAL; nothing is saved until a person presses Approve in the UI. The price is taken from vendor data. If it would exceed the budget cap it is refused with code BUDGET_CAP_EXCEEDED.',
     inputSchema: {
       vendor_id: z.string().describe('Vendor id from list_vendors'),
       item_id: z.string().describe('Item id from list_vendors'),

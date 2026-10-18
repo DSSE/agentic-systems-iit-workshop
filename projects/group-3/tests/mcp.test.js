@@ -22,7 +22,7 @@ test('MCP case 1 and 3: add_expense only proposes, and over the cap is refused w
     const ok = json(await mcp.call('add_expense', { vendor_id: 'v-speaker', item_id: 'speaker-fee', quantity: 1 }));
     assert.equal(ok.status, 'pending_approval');
     const bad = json(await mcp.call('add_expense', { vendor_id: 'v-catering', item_id: 'full-meal', quantity: 200 }));
-    assert.equal(bad.code, 'OVER_BUDGET');
+    assert.equal(bad.code, 'BUDGET_CAP_EXCEEDED');
     const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
     assert.equal(state.expenses.length, 1, 'nothing saved by the MCP client');
     assert.equal(state.pending.length, 1);
@@ -34,7 +34,7 @@ test('MCP check_budget is exact at the edge', async () => {
   const mcp = await connectMcp(env);
   try {
     assert.equal(json(await mcp.call('check_budget', { amount: 20000 })).ok, true);
-    assert.equal(json(await mcp.call('check_budget', { amount: 20001 })).code, 'OVER_BUDGET');
+    assert.equal(json(await mcp.call('check_budget', { amount: 20001 })).code, 'BUDGET_CAP_EXCEEDED');
   } finally { await mcp.close(); }
 });
 
@@ -46,7 +46,11 @@ test('MCP case 5: injected vendor terms never reach the client, and spending is 
     assert.ok(!/raised the cap|50,000/i.test(raw));
     // even if a client obeyed the injection, the price is fixed by vendor data and the cap holds
     const huge = json(await mcp.call('add_expense', { vendor_id: 'v-snacks', item_id: 'snack-box', quantity: 417 })); // ~50,000 BDT
-    assert.equal(huge.code, 'OVER_BUDGET');
-    assert.equal(JSON.parse(fs.readFileSync(stateFile, 'utf8')).security_events.length, 1);
+    assert.equal(huge.code, 'BUDGET_CAP_EXCEEDED');
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    assert.equal(state.security_events.length, 1);
+    assert.equal(state.budget_cap, 30000, 'vendor terms cannot change the authoritative cap');
+    assert.equal(state.expenses.length, 1, 'the MCP client has no approval capability');
+    assert.equal(state.pending.length, 0, 'rejected injection cannot create a proposal');
   } finally { await mcp.close(); }
 });
