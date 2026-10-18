@@ -112,3 +112,44 @@ async def test_tool_rounds_are_capped(desk):
     result = await agent.run(USER, FIXED_NOW)
     assert result.reply == FALLBACK_REPLY
     assert len(llm.seen) == MAX_TOOL_ROUNDS
+
+
+class SlowLLM:
+    """Never answers in time, like a rate-limited Groq call waiting out retry-after."""
+
+    async def complete(self, messages, tools):
+        import anyio
+
+        await anyio.sleep(5)
+
+
+async def test_a_turn_that_runs_too_long_gives_the_fallback_reply(desk):
+    import time
+
+    agent = CampusAgent(SlowLLM(), lambda: Client(build_mcp(desk, "Asia/Dhaka")), turn_timeout=0.2)
+    started = time.monotonic()
+    result = await agent.run(USER, FIXED_NOW)
+    assert result.reply == FALLBACK_REPLY
+    assert time.monotonic() - started < 2
+
+
+async def test_no_second_create_booking_after_a_refusal_in_the_same_turn(desk):
+    # Partly-valid requests: the 3-hour alternative is proposed only after the user accepts it.
+    five_hours = {**THURSDAY, "room_id": "lab-2", "start": "2026-10-22T12:00", "end": "2026-10-22T17:00"}
+    three_hours = {**five_hours, "end": "2026-10-22T15:00"}
+    agent, llm = agent_for(desk, [
+        AssistantTurn(None, [call("create_booking", five_hours, "c1"), call("create_booking", three_hours, "c2")]),
+        AssistantTurn("Refused. Shall I propose 12:00-15:00 instead?"),
+    ])
+    result = await agent.run(USER, FIXED_NOW)
+    assert result.proposal_ids == [] and desk.pending() == []
+    assert 'error="true"' in tool_messages(llm)[1]["content"]
+
+
+async def test_a_retry_after_bad_arguments_is_allowed(desk):
+    agent, llm = agent_for(desk, [
+        AssistantTurn(None, [call("create_booking", {**THURSDAY, "group_size": "three"}, "c1"), call("create_booking", THURSDAY, "c2")]),
+        AssistantTurn("Proposed."),
+    ])
+    result = await agent.run(USER, FIXED_NOW)
+    assert len(result.proposal_ids) == 1

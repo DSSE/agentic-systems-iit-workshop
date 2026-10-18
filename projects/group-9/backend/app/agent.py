@@ -13,6 +13,7 @@ from pathlib import Path
 from string import Template
 from typing import Any, Protocol
 
+import anyio
 from mcp import Client
 from openai import AsyncOpenAI
 
@@ -44,6 +45,8 @@ def wrap_tool_data(name: str, payload: str, is_error: bool) -> str:
 
 
 MAX_TOOL_ROUNDS = 6
+# Under the Next.js proxy's 30-second cut-off, so a slow or rate-limited LLM still gets the fallback reply.
+TURN_TIMEOUT_SECONDS = 25.0
 AGENT_TOOLS = frozenset({"list_rooms", "check_availability", "create_booking"})
 FALLBACK_REPLY = "Sorry, I could not finish that. Please try again."
 
@@ -71,6 +74,12 @@ class AgentReply:
     proposal_ids: list[str]
 
 
+@dataclass
+class _Turn:
+    proposal_ids: list[str] = field(default_factory=list)
+    create_answered: bool = False  # create_booking gave a proposal or a rule refusal this turn
+
+
 def _openai_tool(tool: Any) -> dict[str, Any]:
     return {
         "type": "function",
@@ -96,10 +105,12 @@ def _error(name: str, message: str) -> str:
 class CampusAgent:
     def __init__(
         self, llm: LLM, connect: Callable[[], AbstractAsyncContextManager[Client]], prompt_version: str = "v1",
+        turn_timeout: float = TURN_TIMEOUT_SECONDS,
     ) -> None:
         self.llm = llm
         self.connect = connect
         self.prompt_version = prompt_version
+        self.turn_timeout = turn_timeout
 
     async def run(self, history: Sequence[dict[str, str]], now: datetime) -> AgentReply:
         """One chat turn. Never raises: failures become the fallback reply."""
@@ -107,30 +118,34 @@ class CampusAgent:
             {"role": "system", "content": render_prompt(self.prompt_version, now)},
             *history,
         ]
-        proposal_ids: list[str] = []
+        state = _Turn()
         try:
-            async with self.connect() as client:
-                tools = [_openai_tool(t) for t in (await client.list_tools()).tools if t.name in AGENT_TOOLS]
-                for _ in range(MAX_TOOL_ROUNDS):
-                    turn = await self.llm.complete(messages, tools)
-                    if not turn.tool_calls:
-                        return AgentReply(turn.content or FALLBACK_REPLY, proposal_ids)
-                    messages.append(_assistant_message(turn))
-                    for tool_call in turn.tool_calls:
-                        content = await self._call_tool(client, tool_call, proposal_ids)
-                        messages.append({"role": "tool", "tool_call_id": tool_call.id, "content": content})
+            with anyio.fail_after(self.turn_timeout):
+                async with self.connect() as client:
+                    tools = [_openai_tool(t) for t in (await client.list_tools()).tools if t.name in AGENT_TOOLS]
+                    for _ in range(MAX_TOOL_ROUNDS):
+                        turn = await self.llm.complete(messages, tools)
+                        if not turn.tool_calls:
+                            return AgentReply(turn.content or FALLBACK_REPLY, state.proposal_ids)
+                        messages.append(_assistant_message(turn))
+                        for tool_call in turn.tool_calls:
+                            content = await self._call_tool(client, tool_call, state)
+                            messages.append({"role": "tool", "tool_call_id": tool_call.id, "content": content})
         except Exception:  # rate limit, timeout, MCP failure: the chat must not crash
             logger.exception("chat agent turn failed")
-        return AgentReply(FALLBACK_REPLY, proposal_ids)
+        return AgentReply(FALLBACK_REPLY, state.proposal_ids)
 
-    async def _call_tool(self, client: Client, tool_call: ToolCall, proposal_ids: list[str]) -> str:
+    async def _call_tool(self, client: Client, tool_call: ToolCall, state: _Turn) -> str:
         if tool_call.name not in AGENT_TOOLS:
             return _error(
                 "unknown",
                 f"There is no tool named {tool_call.name!r}. Use list_rooms, check_availability or create_booking.",
             )
-        if tool_call.name == "create_booking" and proposal_ids:
-            return _error(tool_call.name, "Only one proposal per user message. Tell the user about the first one.")
+        if tool_call.name == "create_booking" and state.create_answered:
+            return _error(
+                tool_call.name,
+                "Only one create_booking per user message. Tell the user the result and wait for their answer.",
+            )
         try:
             arguments = json.loads(tool_call.arguments or "{}")
         except json.JSONDecodeError:
@@ -143,9 +158,11 @@ class CampusAgent:
             payload = json.dumps(data, ensure_ascii=False)
         else:
             payload = "\n".join(getattr(part, "text", "") for part in result.content)
-        created = tool_call.name == "create_booking" and not result.is_error and data and data.get("status") == "pending_approval"
-        if created:
-            proposal_ids.append(data["proposal_id"])
+        if tool_call.name == "create_booking" and not result.is_error:
+            # A proposal or a rule refusal both count; a call with bad arguments may be retried.
+            state.create_answered = True
+            if data and data.get("status") == "pending_approval":
+                state.proposal_ids.append(data["proposal_id"])
         return wrap_tool_data(tool_call.name, payload, result.is_error)
 
 
