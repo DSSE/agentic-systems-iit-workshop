@@ -1,5 +1,46 @@
 # Agentic Systems in Action: Day 2 Workshop Repo
 
+This is the shared repository for the **Agentic Systems in Action** hands-on workshop (Day 2). Participants are split into **9 teams**, and the teams build **4 projects** with AI coding agents (such as Claude Code). Each project is assigned to two or three teams, who build it independently in this repo.
+
+For the workshop details, visit [dsse.iit.du.ac.bd/workshops/agentic-software-engineering](https://dsse.iit.du.ac.bd/workshops/agentic-software-engineering).
+
+## What is in this repo
+
+| Path | Purpose |
+|---|---|
+| `project-specifications/` | PDF specifications for the 4 projects |
+| `projects/group-<N>/` | Each team's own working folder (start from `projects/_template`) |
+| `projects/_template/` | Starter folder to copy for a new team |
+| `groups.json`, `groups-list.md` | Team membership, project assignment and team names |
+| `.github/`, `scripts/` | Workflows, rulesets and CODEOWNERS that enforce the rules below (instructors only) |
+
+## The 4 projects
+
+Specifications are in [project-specifications/](project-specifications/).
+
+| # | Project | Spec | Teams |
+|---|---|---|---|
+| 1 | CampusDesk | [PDF](project-specifications/Project-1-CampusDesk.pdf) | 1, 5, 9 |
+| 2 | SprintBoard | [PDF](project-specifications/Project-2-SprintBoard.pdf) | 2, 6 |
+| 3 | ClubOps | [PDF](project-specifications/Project-3-ClubOps.pdf) | 3, 7 |
+| 4 | LabLend | [PDF](project-specifications/Project-4-LabLend.pdf) | 4, 8 |
+
+## The 9 teams
+
+| Team | Name | Project |
+|---|---|---|
+| 1 | Data Dynamos | CampusDesk |
+| 2 | Photon Pioneers | SprintBoard |
+| 3 | Circuit Catalysts | ClubOps |
+| 4 | Matrix Makers | LabLend |
+| 5 | Vector Voyagers | CampusDesk |
+| 6 | API Astronauts | SprintBoard |
+| 7 | Cyber Sentinels | ClubOps |
+| 8 | Debug Detectives | LabLend |
+| 9 | Quantum Architects | CampusDesk |
+
+## Working in the repo
+
 All groups work in this one repo. Each group has its own folder, works on its own branches, and merges through pull requests.
 
 ## The rules
