@@ -19,6 +19,8 @@ Product rules and acceptance criteria are in `agent.md`. This file says where th
   `memberLoads(data)`, `checkAssignments(data, assignments)` → `{ ok, code, details, loads }`.
 - **`src/store.js`**: the only module that reads or writes the data file. Path comes from
   `DATA_FILE` (default `./data.json`) so tests run on copies of `tests/fixtures/*.json`.
+  `data.json` is live, git-ignored state, created from the committed `data.seed.json` on
+  first run; `npm run reset` restores it.
 - **`src/tools.js`**: `listTasks`, `checkCapacity`, `assignTask`, `approve`, plus the
   in-memory proposal store. Each tool calls `rules.checkAssignments` itself.
 - **`src/server.js`**: HTTP API + static UI. Node `http` module, no framework.

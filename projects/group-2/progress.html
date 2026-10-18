@@ -41,6 +41,23 @@
   </ol>
 
   <article>
+    <h2>Harness hardening and UI refresh</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>.claude/hooks/guard.js</code> replaces <code>protect-data.js</code>. It now also blocks Bash writes to <code>data.json</code>, Bash reads of <code>.env</code>, and file edits outside this folder.</li>
+      <li><code>.claude/hooks/require-tests.js</code> (Stop): a turn with uncommitted code changes can't end while <code>npm test</code> fails.</li>
+      <li><code>data.json</code> is now live, git-ignored state. <code>data.seed.json</code> is committed and the store creates <code>data.json</code> from it; <code>npm run reset</code> restores a clean board.</li>
+      <li><code>CLAUDE.md</code> brought up to date with Milestone 3 and the hooks. <code>tests/hooks.test.js</code> checks that the hooks block what they should, and nothing else.</li>
+      <li>UI: light/dark toggle (follows the system until you choose, then remembered), two-column layout, sprint summary, member avatars and load colours, suggestion chips for the demo cases.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>The Bash guard is conservative: a command that mentions <code>data.json</code> must be a plain read, otherwise it is blocked. False positives are cheap; a silent write to live data is not.</li>
+    </ul>
+  </article>
+
+  <article>
     <h2>Phase 7: Add guardrails</h2>
     <time datetime="2026-10-18">18 Oct 2026</time>
     <h3>Done</h3>

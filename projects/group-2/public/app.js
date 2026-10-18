@@ -42,18 +42,58 @@ function showMessage(kind, title, text = '') {
   box.replaceChildren(el('strong', { textContent: title }), text ? ' ' + text : '');
 }
 
+// Theme: light/dark toggle, remembered per browser. index.html sets the first value before paint.
+const root = document.documentElement;
+function applyTheme(theme) {
+  root.dataset.theme = theme;
+  $('theme-toggle').setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+}
+$('theme-toggle').addEventListener('click', () => {
+  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('sprintboard-theme', next); } catch {}
+});
+applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+
+// A stable colour per member, from their id.
+const hues = [250, 330, 170, 30, 200, 120, 280, 10];
+const hueFor = (id) => hues[[...id].reduce((s, c) => s + c.charCodeAt(0), 0) % hues.length];
+const avatar = (id, small = false) =>
+  el('span', {
+    className: small ? 'avatar sm' : 'avatar',
+    textContent: memberName(id).slice(0, 2).toUpperCase(),
+    style: `background:hsl(${hueFor(id)} 62% 52%)`,
+    ariaHidden: 'true',
+  });
+
 function renderMembers() {
   $('members').replaceChildren(
     ...state.members.map((m) => {
       const pct = Math.min(100, (m.points / m.limit) * 100);
+      const level = m.remaining <= 0 ? ' full' : pct >= 75 ? ' near' : '';
       return el(
         'div',
-        { className: 'member' + (m.remaining === 0 ? ' full' : '') },
-        el('div', { className: 'member-head' }, el('span', { textContent: m.name }), el('span', { className: 'pts', textContent: `${m.points} / ${m.limit}` })),
-        el('div', { className: 'bar' }, el('div', { className: 'fill', style: `width:${pct}%` })),
+        { className: 'member' + level },
+        avatar(m.id),
+        el(
+          'div',
+          { className: 'member-body' },
+          el('div', { className: 'member-head' }, el('span', { textContent: m.name }), el('span', { className: 'pts', textContent: `${m.points} / ${m.limit}` })),
+          el('div', { className: 'bar' }, el('div', { className: 'fill', style: `width:${pct}%` })),
+          el('div', { className: 'member-foot', textContent: m.remaining <= 0 ? 'At the limit' : `${m.remaining} points free` }),
+        ),
       );
     }),
   );
+}
+
+function renderStats(proposals) {
+  const open = state.tasks.filter((t) => !t.assignee);
+  $('stat-unassigned').textContent = String(open.length);
+  $('stat-points').textContent = String(open.reduce((s, t) => s + t.points, 0));
+  $('stat-capacity').textContent = String(state.members.reduce((s, m) => s + Math.max(0, m.remaining), 0));
+  $('stat-pending').textContent = String(proposals.length);
+  $('pending-count').textContent = String(proposals.length);
 }
 
 function renderTasks() {
@@ -61,7 +101,7 @@ function renderTasks() {
     ...state.tasks.map((t) => {
       let cell;
       if (t.assignee) {
-        cell = el('span', { className: 'assigned', textContent: memberName(t.assignee) });
+        cell = el('span', { className: 'assigned' }, avatar(t.assignee, true), memberName(t.assignee));
       } else {
         cell = el('select', { name: t.id, ariaLabel: `Assign ${t.title}` }, el('option', { value: '', textContent: '—' }));
         for (const m of state.members) cell.append(el('option', { value: m.id, textContent: `${m.name} (${m.remaining} left)` }));
@@ -74,8 +114,14 @@ function renderTasks() {
       return el(
         'tr',
         { className: flagged ? 'flagged' : '' },
-        el('td', {}, el('div', { className: 'title', textContent: `${t.id} · ${t.title}` }), el('div', { className: 'desc', textContent: t.description ?? '' }), warning),
-        el('td', { className: 'num', textContent: String(t.points) }),
+        el(
+          'td',
+          {},
+          el('div', { className: 'title' }, el('span', { className: 'task-id', textContent: t.id }), t.title),
+          el('div', { className: 'desc', textContent: t.description ?? '' }),
+          warning,
+        ),
+        el('td', { className: 'num' }, el('span', { className: 'points', textContent: String(t.points) })),
         el('td', {}, cell),
       );
     }),
@@ -86,10 +132,16 @@ function renderProposals(proposals) {
   if (!proposals.length) return $('proposals').replaceChildren(el('p', { className: 'empty', textContent: 'No pending proposals.' }));
   $('proposals').replaceChildren(
     ...proposals.map((p) => {
-      const list = el('ul', {}, ...p.assignments.map((a) => el('li', { textContent: `${taskTitle(a.taskId)} → ${memberName(a.memberId)}` })));
+      const list = el(
+        'ul',
+        {},
+        ...p.assignments.map((a) =>
+          el('li', {}, avatar(a.memberId, true), el('span', { textContent: taskTitle(a.taskId) }), el('span', { className: 'arrow', textContent: '→' }), memberName(a.memberId)),
+        ),
+      );
       const after = p.loads.filter((l) => p.assignments.some((a) => a.memberId === l.id)).map((l) => `${l.name} ${l.points}/${l.limit}`).join(' · ');
-      const approve = el('button', { textContent: 'Approve', onclick: () => decide(p.id, 'approve') });
-      const reject = el('button', { className: 'secondary', textContent: 'Reject', onclick: () => decide(p.id, 'reject') });
+      const approve = el('button', { className: 'btn approve', textContent: 'Approve', onclick: () => decide(p.id, 'approve') });
+      const reject = el('button', { className: 'btn secondary', textContent: 'Reject', onclick: () => decide(p.id, 'reject') });
       return el('div', { className: 'proposal' }, list, el('p', { className: 'after', textContent: `After approve: ${after}` }), el('div', { className: 'actions' }, approve, reject));
     }),
   );
@@ -101,6 +153,7 @@ async function refresh() {
   renderMembers();
   renderTasks();
   renderProposals(pending.proposals);
+  renderStats(pending.proposals);
 }
 
 function selectedAssignments() {
@@ -137,6 +190,14 @@ function addBubble(role, text) {
   log.append(el('div', { className: `bubble ${role}`, textContent: text }));
   log.scrollTop = log.scrollHeight;
 }
+
+// Suggestion chips fill the input with a demo request.
+$('chips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  $('chat-input').value = chip.textContent;
+  $('chat-input').focus();
+});
 
 $('chat-form').addEventListener('submit', async (e) => {
   e.preventDefault();

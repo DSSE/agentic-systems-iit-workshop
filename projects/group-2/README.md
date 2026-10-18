@@ -22,6 +22,7 @@ npm run mcp            # MCP server on stdio (Claude Code picks it up from .mcp.
 npm run agent          # chat with the agent in the terminal
 npm run test:live      # live checks of cases 1 and 4 against the model in .env
 npm run eval           # evals: C1-C5 x prompt v1 vs v2 (-- --runs 5, --cases C5, --no-guardrails)
+npm run reset          # clean board from data.seed.json (data.json is live and git-ignored)
 npm test
 ```
 

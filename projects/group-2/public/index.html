@@ -4,52 +4,90 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SprintBoard</title>
+<script>
+  // Set the theme before first paint: saved choice, else the system setting.
+  (() => {
+    let saved = null;
+    try { saved = localStorage.getItem('sprintboard-theme'); } catch {}
+    const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  })();
+</script>
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<main>
-  <header>
-    <h1>SprintBoard</h1>
-    <p class="rule">Hard rule: no member has more than <strong>8 story points</strong>. Nothing is saved until you click Approve.</p>
-  </header>
-
-  <section>
-    <h2>Team</h2>
-    <div id="members" class="members"></div>
-  </section>
-
-  <section>
-    <h2>Backlog</h2>
-    <form id="assign-form">
-      <table>
-        <thead><tr><th>Task</th><th class="num">Points</th><th>Assign to</th></tr></thead>
-        <tbody id="tasks"></tbody>
-      </table>
-      <div class="actions">
-        <button type="button" id="check-btn" class="secondary">Check capacity</button>
-        <button type="submit" id="propose-btn">Propose</button>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">SB</span>
+      <div>
+        <h1>SprintBoard</h1>
+        <p class="rule">No member over <strong>8 story points</strong>. Nothing is saved until you click Approve.</p>
       </div>
-    </form>
-    <div id="message" class="message" role="status" hidden></div>
-  </section>
-
-  <section>
-    <h2>Pending proposals</h2>
-    <div id="proposals"><p class="empty">No pending proposals.</p></div>
-  </section>
-
-  <section>
-    <h2>Ask the agent</h2>
-    <div class="chat">
-      <div id="chat-log" class="chat-log" aria-live="polite">
-        <p class="empty">Try “Assign the login and payment tasks for this sprint.” The agent only proposes; you approve above.</p>
-      </div>
-      <form id="chat-form" class="chat-form">
-        <input id="chat-input" autocomplete="off" placeholder="Ask in plain words…" aria-label="Message the agent">
-        <button type="submit" id="chat-send">Send</button>
-      </form>
     </div>
-  </section>
+    <button type="button" id="theme-toggle" class="icon-btn" aria-label="Switch to dark mode" title="Switch theme">
+      <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="stats" aria-label="Sprint summary">
+    <div class="stat"><span class="stat-value" id="stat-unassigned">–</span><span class="stat-label">Unassigned tasks</span></div>
+    <div class="stat"><span class="stat-value" id="stat-points">–</span><span class="stat-label">Backlog points left</span></div>
+    <div class="stat"><span class="stat-value" id="stat-capacity">–</span><span class="stat-label">Team capacity free</span></div>
+    <div class="stat"><span class="stat-value" id="stat-pending">–</span><span class="stat-label">Pending proposals</span></div>
+  </div>
+
+  <div class="layout">
+    <div class="col">
+      <section class="card">
+        <div class="card-head"><h2>Team</h2><span class="hint">Points / limit</span></div>
+        <div id="members" class="members"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>Backlog</h2><span class="hint">Pick members, then Propose</span></div>
+        <form id="assign-form">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Task</th><th class="num">Pts</th><th>Assign to</th></tr></thead>
+              <tbody id="tasks"></tbody>
+            </table>
+          </div>
+          <div class="actions">
+            <button type="button" id="check-btn" class="btn secondary">Check capacity</button>
+            <button type="submit" id="propose-btn" class="btn">Propose</button>
+          </div>
+        </form>
+        <div id="message" class="message" role="status" hidden></div>
+      </section>
+    </div>
+
+    <div class="col side">
+      <section class="card">
+        <div class="card-head"><h2>Pending proposals</h2><span class="badge" id="pending-count">0</span></div>
+        <div id="proposals"><p class="empty">No pending proposals.</p></div>
+      </section>
+
+      <section class="card chat">
+        <div class="card-head"><h2>Ask the agent</h2><span class="hint">Proposes only</span></div>
+        <div id="chat-log" class="chat-log" aria-live="polite">
+          <p class="empty">The agent only proposes; you approve. Try one:</p>
+        </div>
+        <div class="chips" id="chips">
+          <button type="button" class="chip">Assign the login and payment tasks for this sprint.</button>
+          <button type="button" class="chip">Assign all 6 tasks to Rafi.</button>
+          <button type="button" class="chip">Assign the remaining tasks.</button>
+        </div>
+        <form id="chat-form" class="chat-form">
+          <input id="chat-input" autocomplete="off" placeholder="Ask in plain words…" aria-label="Message the agent">
+          <button type="submit" id="chat-send" class="btn">Send</button>
+        </form>
+      </section>
+    </div>
+  </div>
 </main>
 <script type="module" src="/app.js"></script>
 </body>

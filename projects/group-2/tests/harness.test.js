@@ -1,7 +1,7 @@
 // Phase 1: checks the harness itself (data, fixtures, spec), not the app.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 const root = new URL('../', import.meta.url);
 const readJson = (p) => JSON.parse(readFileSync(new URL(p, root), 'utf8'));
@@ -39,7 +39,14 @@ function validateData(data, name) {
   }
 }
 
-test('data.json is valid and already obeys the hard rule', () => {
+test('data.seed.json is valid, obeys the hard rule and matches the seed fixture', () => {
+  validateData(readJson('data.seed.json'), 'data.seed.json');
+  assert.deepEqual(readJson('data.seed.json'), readJson('tests/fixtures/seed.json'));
+});
+
+// data.json is live, git-ignored state: a fresh clone doesn't have it until the store creates it.
+test('data.json, if present, is valid and obeys the hard rule', (t) => {
+  if (!existsSync(new URL('data.json', root))) return t.skip('no data.json yet');
   validateData(readJson('data.json'), 'data.json');
 });
 
