@@ -5,8 +5,8 @@ export type AssignTaskResult =
   | { ok: true; task: Task }
   | { ok: false; reason: string };
 
-// Called only after the human approves in the UI (or, later, after the
-// agent's own approval gate). Re-checks the hard rule itself even though
+// Internal commit, called only by the protected proposal approval service.
+// Re-checks the hard rule itself even though
 // the caller likely already called check_capacity — never trust that a
 // prior check still holds by the time this writes.
 export function assignTask(taskId: string, memberId: string): AssignTaskResult {
@@ -16,8 +16,13 @@ export function assignTask(taskId: string, memberId: string): AssignTaskResult {
 
   if (!task) return { ok: false, reason: `Unknown task: ${taskId}` };
   if (!member) return { ok: false, reason: `Unknown member: ${memberId}` };
-  if (task.assignee) {
+  if (task.assignee !== null) {
     return { ok: false, reason: `Task "${task.title}" is already assigned to ${task.assignee}` };
+  }
+
+  if (!Number.isSafeInteger(task.points) || task.points < 0
+    || !Number.isSafeInteger(member.points) || member.points < 0) {
+    return { ok: false, reason: "Stored story points must be nonnegative safe integers" };
   }
 
   const result = checkCapacity(member.points, task.points);

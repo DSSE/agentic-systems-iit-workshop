@@ -85,5 +85,64 @@
   </p>
 </div>
 
+<div class="phase">
+  <h2>Step 4: MCP implementation evaluated; client/browser demo pending</h2>
+  <p class="date">2026-10-18</p>
+  <p>
+    Added the local TypeScript stdio adapter in <code>mcp-server/</code>
+    with exactly <code>list_tasks</code>, <code>check_capacity</code>, and
+    pending-only <code>assign_task</code>. Each client starts its own adapter;
+    all adapters call one backend, which owns the shared capacity rule and
+    board writer. Assignments now require a protected human approval session
+    and explicit approval of a pending proposal. The old direct-write route
+    is retired. Claude Code and Gemini CLI project configurations and Windows
+    setup instructions are included. The adapter requires no model API key.
+  </p>
+  <p>
+    Independent evaluator PASS for the implemented MCP server: backend build
+    and 41 tests passed; MCP build and 26 actual SDK stdio-client tests passed;
+    frontend production build passed. Tests use ephemeral ports and temporary
+    boards, exercising exactly 8 allowed/exactly 9 refused, pending/rejected
+    proposals without writes, authenticated approval, stale/repeated approval,
+    strict tool inputs, two adapters sharing one backend, no overload or lost
+    updates, outages, timeout, and stdio shutdown. The real
+    <code>backend/data.json</code> SHA256 remained
+    <code>B0C09A93AC4E754F2BFBE231DEACAEFE6B427B6893D08A5C11974FFB1AEF8B27</code>.
+    Injected backlog text remains data in these deterministic checks; no live
+    model resistance result is claimed.
+  </p>
+  <p>
+    Development Phase 4 and Milestone 2 are still open. Real browser approval
+    could not be exercised because no browser automation surface was available
+    and the required UI port was already in use; existing services were
+    preserved. Claude Code 2.1.175 discovers the project server as Pending
+    approval; Gemini CLI 0.46.0 reports Disabled in an untrusted folder.
+    Project trust, model access, and the live two-client demonstration remain
+    manual checks. The parallel UI/chat implementation has its own pending
+    evaluation. See <code>harness/state.md</code> for the remaining gates.
+  </p>
+</div>
+
+<div class="step">
+  <h2>Step 5: Sprint assistant interface — awaiting review</h2>
+  <p class="date">2026-10-18</p>
+  <p>The local UI now opens as a responsive sprint-planning conversation with
+    prompt cards, live team capacity, backlog, manual assignment requests, and
+    proposal review. Board content is server-rendered. Browser calls use a
+    same-origin proxy with bounded timeouts and retry states, replacing the
+    loading-only entry screen. Existing human-session, CSRF, and final capacity
+    checks remain in the approval path.</p>
+  <p>A clearly labeled local planner handles workshop commands immediately.
+    The backend also supports a configurable model tool loop through
+    LLM_BASE_URL, LLM_MODEL, and LLM_API_KEY in its ignored .env file. Chat tools
+    can only read, check capacity, and propose; they cannot approve or save.</p>
+  <p>Generator checks: backend build and frontend production build passed;
+    67 tests passed, including new local planner, mocked model, HTTP contract,
+    and proxy tests. Live read-only chat calls succeeded on both local UI hosts.
+    No real board assignments were made. Browser interaction and a real model
+    call remain unverified because no browser surface or model key is connected.
+    Submitted for independent evaluation; this does not close Milestone 2.</p>
+</div>
+
 </body>
 </html>

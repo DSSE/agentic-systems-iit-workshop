@@ -11,7 +11,7 @@ function seedFixture() {
     JSON.stringify({
       tasks: [
         { id: "t1", title: "Login", description: "", points: 3, assignee: null },
-        { id: "t2", title: "Payment", description: "", points: 5, assignee: null },
+        { id: "t2", title: "Payment", description: "", points: 4, assignee: null },
         { id: "t3", title: "Already assigned", description: "", points: 1, assignee: "rafi" },
       ],
       members: [{ id: "rafi", name: "Rafi", points: 5 }],
@@ -43,8 +43,10 @@ describe("assignTask", () => {
 
   it("refuses and does not write when the hard rule would be broken (9 points)", async () => {
     const { assignTask } = await import("./assignTask");
-    const result = assignTask("t2", "rafi"); // 5 + 5 = 10
+    const result = assignTask("t2", "rafi"); // 5 + 4 = 9
     expect(result.ok).toBe(false);
+
+    expect((result as { reason: string }).reason).toContain("9/8");
 
     const { readBoard } = await import("../data/store");
     const board = readBoard();
