@@ -100,3 +100,32 @@ def test_reject(client):
     missing = client.post(f"/api/proposals/{proposal_id}/reject")
     assert missing.status_code == 404
     assert missing.json()["rule_code"] == "PROPOSAL_NOT_FOUND"
+
+
+def test_missing_start_is_a_rule_result(client):
+    payload = body()
+    del payload["start"]
+    response = client.post("/api/proposals", json=payload)
+    assert response.status_code == 422
+    assert response.json() == {
+        "ok": False, "rule_code": "INVALID_TIME_RANGE", "message": response.json()["message"], "suggestion": None,
+    }
+
+
+def test_non_numeric_group_size_is_a_rule_result(client):
+    response = client.post("/api/proposals", json={**body(), "group_size": "3 people"})
+    assert response.status_code == 422
+    assert response.json()["rule_code"] == "INVALID_GROUP_SIZE"
+
+
+def test_missing_room_is_a_rule_result(client):
+    payload = body()
+    del payload["room_id"]
+    response = client.post("/api/proposals", json=payload)
+    assert response.json()["rule_code"] == "ROOM_NOT_FOUND"
+
+
+def test_fractional_group_size_in_availability_is_a_rule_result(client):
+    response = client.post("/api/availability", json={"start": f"{THU}T14:00", "end": f"{THU}T16:00", "group_size": 2.5})
+    assert response.status_code == 422
+    assert response.json()["rule_code"] == "INVALID_GROUP_SIZE"

@@ -20,12 +20,12 @@ def test_add_and_get():
     assert proposal.status == "pending_approval"
     assert proposal.proposal_id.startswith("pr-")
     assert proposal.expires_at == FIXED_NOW + timedelta(minutes=15)
-    assert store.get(proposal.proposal_id, FIXED_NOW) == proposal
+    assert store.take(proposal.proposal_id, FIXED_NOW) == proposal
 
 
 def test_unknown_id():
     with pytest.raises(ProposalNotFound):
-        ProposalStore(timedelta(minutes=15)).get("pr-nope", FIXED_NOW)
+        ProposalStore(timedelta(minutes=15)).take("pr-nope", FIXED_NOW)
 
 
 def test_expired_proposal_is_refused_and_dropped():
@@ -33,9 +33,9 @@ def test_expired_proposal_is_refused_and_dropped():
     proposal = add(store)
     later = FIXED_NOW + timedelta(minutes=15)
     with pytest.raises(ProposalExpired):
-        store.get(proposal.proposal_id, later)
+        store.take(proposal.proposal_id, later)
     with pytest.raises(ProposalNotFound):
-        store.get(proposal.proposal_id, later)
+        store.take(proposal.proposal_id, later)
 
 
 def test_pending_drops_expired_and_sorts_oldest_first():
@@ -51,3 +51,11 @@ def test_remove():
     proposal = add(store)
     assert store.remove(proposal.proposal_id) is True
     assert store.remove(proposal.proposal_id) is False
+
+
+def test_take_removes_the_proposal():
+    store = ProposalStore(timedelta(minutes=15))
+    proposal = add(store)
+    assert store.take(proposal.proposal_id, FIXED_NOW) == proposal
+    with pytest.raises(ProposalNotFound):
+        store.take(proposal.proposal_id, FIXED_NOW)

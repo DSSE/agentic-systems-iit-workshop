@@ -88,3 +88,35 @@ def test_reject(desk):
     assert desk.reject(proposal.proposal_id) is None
     assert desk.pending() == []
     assert desk.reject(proposal.proposal_id).rule_code == RuleCode.PROPOSAL_NOT_FOUND
+
+
+def test_concurrent_approves_save_once_and_the_rest_see_not_found(desk):
+    import threading
+    import time
+
+    proposal = propose(desk)
+    original_add = desk.store.add_booking
+
+    def slow_add(booking):
+        time.sleep(0.05)  # widen the window between claiming a proposal and saving it
+        original_add(booking)
+
+    desk.store.add_booking = slow_add
+    barrier = threading.Barrier(4)
+    results = []
+
+    def click():
+        barrier.wait()
+        results.append(desk.approve(proposal.proposal_id))
+
+    threads = [threading.Thread(target=click) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    saved = [r for r in results if isinstance(r, Booking)]
+    refused = [r.rule_code for r in results if isinstance(r, RuleResult)]
+    assert len(saved) == 1
+    assert refused == [RuleCode.PROPOSAL_NOT_FOUND] * 3
+    assert len(desk.bookings_on(date(2026, 10, 22))) == 3

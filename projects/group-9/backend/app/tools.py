@@ -88,16 +88,17 @@ class CampusDesk:
     def approve(self, proposal_id: str) -> Booking | RuleResult:
         """Save a proposal. Only the UI's Approve button reaches this."""
         now = self.clock()
-        try:
-            proposal = self.proposals.get(proposal_id, now)
-        except ProposalNotFound:
-            return _not_found(proposal_id)
-        except ProposalExpired:
-            return RuleResult(
-                ok=False, rule_code=RuleCode.PROPOSAL_EXPIRED,
-                message="This proposal expired. Please make a new one.",
-            )
         with self.store.lock:
+            # Claim the proposal first: a double click or a racing reject finds it gone.
+            try:
+                proposal = self.proposals.take(proposal_id, now)
+            except ProposalNotFound:
+                return _not_found(proposal_id)
+            except ProposalExpired:
+                return RuleResult(
+                    ok=False, rule_code=RuleCode.PROPOSAL_EXPIRED,
+                    message="This proposal expired. Please make a new one.",
+                )
             rooms, bookings = self.store.load()
             req = BookingRequest(
                 room_id=proposal.room_id, start=proposal.start, end=proposal.end,
@@ -105,8 +106,7 @@ class CampusDesk:
             )
             result = validate_booking(req, rooms, bookings, now)
             if not result.ok:
-                self.proposals.remove(proposal_id)  # it can never pass again
-                return result
+                return result  # already taken out of the queue: it can never pass again
             booking = Booking(
                 id=f"bk-{uuid4().hex[:8]}", room_id=proposal.room_id,
                 start=proposal.start, end=proposal.end, group_size=proposal.group_size,
@@ -114,7 +114,6 @@ class CampusDesk:
                 created_at=now,
             )
             self.store.add_booking(booking)
-        self.proposals.remove(proposal_id)
         return booking
 
     def reject(self, proposal_id: str) -> RuleResult | None:

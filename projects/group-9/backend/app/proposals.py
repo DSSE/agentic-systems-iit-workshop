@@ -53,13 +53,13 @@ class ProposalStore:
             self._items[proposal.proposal_id] = proposal
         return proposal
 
-    def get(self, proposal_id: str, now: datetime) -> Proposal:
+    def take(self, proposal_id: str, now: datetime) -> Proposal:
+        """Remove and return a proposal, so only one caller can ever act on it."""
         with self._lock:
-            proposal = self._items.get(proposal_id)
+            proposal = self._items.pop(proposal_id, None)
             if proposal is None:
                 raise ProposalNotFound(proposal_id)
             if now >= proposal.expires_at:
-                del self._items[proposal_id]
                 raise ProposalExpired(proposal_id)
             return proposal
 

@@ -4,8 +4,9 @@ from collections.abc import Callable
 from datetime import datetime
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 
-from app.api import router
+from app.api import router, validation_refusal
 from app.config import Settings, load_settings
 from app.proposals import ProposalStore
 from app.store import Store
@@ -18,6 +19,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app = FastAPI(title="CampusDesk")
     app.state.desk = CampusDesk(Store(settings.data_file), ProposalStore(settings.proposal_ttl), clock)
     app.include_router(router)
+    app.add_exception_handler(RequestValidationError, validation_refusal)
     return app
 
 

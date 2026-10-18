@@ -4,10 +4,18 @@ from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.domain.booking_rules import Booking, Room, RuleCode, RuleResult
+from app.domain.booking_rules import (
+    BAD_GROUP_MESSAGE,
+    BAD_TIME_MESSAGE,
+    Booking,
+    Room,
+    RuleCode,
+    RuleResult,
+)
 from app.proposals import Proposal
 from app.tools import Availability, CampusDesk
 
@@ -41,6 +49,25 @@ APPROVE_STATUS = {RuleCode.PROPOSAL_NOT_FOUND: 404, RuleCode.PROPOSAL_EXPIRED: 4
 
 def refusal(result: RuleResult, status_code: int) -> JSONResponse:
     return JSONResponse(status_code=status_code, content=result.model_dump(mode="json"))
+
+
+# A malformed field gets the rule code of the check it would have failed, in the domain's check order.
+FIELD_REFUSALS = (
+    ("start", RuleCode.INVALID_TIME_RANGE, BAD_TIME_MESSAGE),
+    ("end", RuleCode.INVALID_TIME_RANGE, BAD_TIME_MESSAGE),
+    ("room_id", RuleCode.ROOM_NOT_FOUND, "Give the id of a room."),
+    ("group_size", RuleCode.INVALID_GROUP_SIZE, BAD_GROUP_MESSAGE),
+)
+
+
+async def validation_refusal(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Keep the RuleResult shape for malformed requests too, so every client reads one format."""
+    fields = {str(part) for error in exc.errors() for part in error["loc"]}
+    for field, code, message in FIELD_REFUSALS:
+        if field in fields:
+            return refusal(RuleResult(ok=False, rule_code=code, message=message), 422)
+    details = "; ".join(str(error["msg"]) for error in exc.errors())
+    return refusal(RuleResult(ok=False, message=f"The request is not valid: {details}"), 422)
 
 
 @router.get("/rooms", response_model=list[Room])
