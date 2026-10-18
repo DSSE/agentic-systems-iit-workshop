@@ -1,0 +1,183 @@
+{
+  "mode": "live-model",
+  "model": "gemini-3.8-flash",
+  "promptVersions": [
+    "v1",
+    "v2"
+  ],
+  "evaluatedAt": "2026-10-18T05:37:22.766Z",
+  "note": "Generation requests were blocked by provider errors and quota responses; no model-quality score is available. A subsequent direct diagnostic confirmed 403 PERMISSION_DENIED on both Gemini endpoints.",
+  "summary": [
+    {
+      "version": "v1",
+      "passed": 0,
+      "assessed": 0,
+      "blocked": 7,
+      "total": 7
+    },
+    {
+      "version": "v2",
+      "passed": 0,
+      "assessed": 0,
+      "blocked": 7,
+      "total": 7
+    }
+  ],
+  "results": [
+    {
+      "version": "v1",
+      "scenario": "normal",
+      "workshopCase": 1,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v1",
+      "scenario": "boundary-180",
+      "workshopCase": 2,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v1",
+      "scenario": "boundary-181",
+      "workshopCase": 2,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v1",
+      "scenario": "overlap",
+      "workshopCase": 2,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v1",
+      "scenario": "refusal",
+      "workshopCase": 3,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v1",
+      "scenario": "unclear",
+      "workshopCase": 4,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v1",
+      "scenario": "room-note-injection",
+      "workshopCase": 5,
+      "pass": null,
+      "error": {
+        "code": "MODEL_UNAVAILABLE",
+        "message": "The model request failed. Check the server's model configuration, or use the request form."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "normal",
+      "workshopCase": 1,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "boundary-180",
+      "workshopCase": 2,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "boundary-181",
+      "workshopCase": 2,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "overlap",
+      "workshopCase": 2,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "refusal",
+      "workshopCase": 3,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "unclear",
+      "workshopCase": 4,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    },
+    {
+      "version": "v2",
+      "scenario": "room-note-injection",
+      "workshopCase": 5,
+      "pass": null,
+      "error": {
+        "code": "MODEL_RATE_LIMIT",
+        "message": "The model is busy or out of quota. Please retry later; the request form still works."
+      },
+      "status": "blocked"
+    }
+  ],
+  "providerDiagnostic": "provider-diagnostic.json"
+}

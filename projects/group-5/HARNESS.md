@@ -63,8 +63,12 @@ recording are defined in shared guidance and skills. The existing `.mcp.json`
 is a documentation connection, not the future CampusDesk booking MCP server;
 Codex MCP servers require their own configuration when needed.
 
-The app is not implemented yet, so `npm start` and `npm test` remain planned.
-Only the harness phase is complete.
+The application is implemented. From this project folder, run `npm run setup`
+once, then `npm start` to launch API and UI. `npm test` runs the backend suite.
+See `DEMO.md` for chat, two-agent and evaluation commands. The stdio MCP bridge
+has opt-in configuration examples in `.codex/campusdesk-mcp.example.toml` and
+`.claude/campusdesk-mcp.example.json`; set student credentials privately before
+enabling it. Live Gemini verification requires an enabled provider project.
 
 ## Conventions checked
 

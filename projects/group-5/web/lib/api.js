@@ -49,5 +49,7 @@ export const submitRequest = (input) => post("/api/requests", input).then((data)
 export const approveRequest = (id, note) => post(`/api/requests/${encodeURIComponent(id)}/approve`, { note });
 export const rejectRequest = (id, note) => post(`/api/requests/${encodeURIComponent(id)}/reject`, { note });
 export const cancelRequest = (id) => post(`/api/requests/${encodeURIComponent(id)}/cancel`);
+export const chatStatus = () => request("/api/chat/status");
+export const sendChat = (input) => post("/api/chat", input);
 
 export { ApiError };

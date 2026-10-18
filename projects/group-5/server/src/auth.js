@@ -43,6 +43,10 @@ export function createAuth(accounts, { now = Date.now } = {}) {
   const dummySalt = randomBytes(16).toString("hex");
   const digest = (token) => createHash("sha256").update(token).digest("hex");
   function tokenFrom(req) {
+    // CLI/MCP clients use the same expiring session token as the browser.
+    // Authorization is still resolved from server-owned sessions, not claims.
+    const bearer = /^Bearer ([a-f0-9]{64})$/.exec(req.headers.authorization || "");
+    if (bearer) return bearer[1];
     const part = (req.headers.cookie || "").split(";").find((item) => item.trim().startsWith(`${SESSION_COOKIE}=`));
     return part ? part.trim().slice(SESSION_COOKIE.length + 1) : "";
   }

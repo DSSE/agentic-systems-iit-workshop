@@ -106,8 +106,57 @@
         implemented. MCP, chat, prompt evaluations and wider injection testing
         remain pending.</p>
     </article>
-    <p>Phases 4–8 are pending. Add a dated entry with delivered behavior,
-      validation evidence, and remaining gaps after each completed phase.</p>
+    <article>
+      <h2>Phases 4 &amp; 5 — MCP and UI chat</h2>
+      <p><time datetime="2026-10-18">18 October 2026</time> · Implemented; live Gemini acceptance blocked</p>
+      <p>Fast-forwarded <code>group-5/tausif</code> to authoritative development
+        commit <code>f768c7d</code>. Preserved its student/staff workflow. Added
+        authenticated Streamable HTTP MCP exposing the three tools, an external
+        stdio bridge, two independent agent clients and a Gemini-compatible
+        bounded tool loop. Chat uses a real in-process MCP client, server-owned
+        history and exact student-bound previews. A student explicitly sends
+        a request; staff independently approves through the MCP create tool
+        with a server-bound review context. Public MCP/model calls cannot supply
+        that context or invent staff approval.</p>
+      <p>Validation: 53 backend tests pass, including two HTTP MCP clients running
+        tool loops, an actual spawned stdio bridge, immutable approval, ownership,
+        conversation expiry/isolation, concurrent turns, rate limits and provider
+        errors. Four Playwright browser tests pass with isolated temporary data
+        and a scripted provider: full chat/clarification/submission/staff approval,
+        duration/injection refusals, mobile rendering, script-text safety and
+        provider-failure recovery. Frontend lint and optimized build pass.</p>
+      <p>Live limitation: the supplied key could list Gemini models but generation
+        on both native and compatible endpoints returned HTTP 403,
+        <code>PERMISSION_DENIED</code>: “Your project has been denied access.”
+        Live UI chat and the two model-backed agent demo remain unverified.
+        No scripted result is claimed as a successful Gemini response.</p>
+    </article>
+    <article>
+      <h2>Phases 6–8 — Evaluations, guardrails and demo</h2>
+      <p><time datetime="2026-10-18">18 October 2026</time> · Implemented; live prompt comparison blocked</p>
+      <p>Added prompt v1/v2 and seven rubric scenarios spanning all five workshop
+        cases. The offline contract fixture scores 7/7 for each version while
+        exercising actual MCP tools. These are plumbing/guardrail checks, not
+        model-quality measurements. The attempted live run encountered provider
+        errors and quota responses. Reports label those assessments blocked;
+        a later direct diagnostic confirmed the project-access denial.</p>
+      <p>Guardrails omit room notes from model tool results, whitelist read-only
+        model tools and reject unauthorized calls. Domain validation rejects
+        overlong bookings even by one millisecond and impossible calendar dates.
+        Existing live availability, capacity, approval and concurrency checks
+        remain authoritative. Browser tests confirm user text is not executed.</p>
+      <p>Added combined project launch scripts, private environment examples,
+        opt-in Codex/Claude MCP configurations and <a href="DEMO.md">demo instructions</a>.
+        Tests use temporary data; the real booking file was not changed.
+        API keys and local accounts remain ignored. Next: enable Gemini access,
+        restart the API and run <code>model:check</code>, <code>demo:agents</code>
+        and the live evaluation runner from <code>server/</code>.</p>
+      <p>Reports: <a href="evals/contract-results.json">contract checks</a>,
+        <a href="evals/live-results.json">live attempts</a>, and
+        <a href="evals/provider-diagnostic.json">provider diagnostic</a>.</p>
+    </article>
+    <p>Historical phase entries above describe the state at that stage. The
+      latest entries and <a href="PLANS.md">delivery plan</a> show current status.</p>
   </main>
 </body>
 </html>

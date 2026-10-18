@@ -32,8 +32,23 @@ Build from `specs/agent.md`; `CampusDesk.md` is the workshop brief. Read
 
 The API is in `server/` (`npm start`, `npm test`) and the Next.js UI is in
 `web/` (`npm run dev`, `npm run lint`, `npm run build`). Both have lockfiles.
+From this project folder, `npm run setup` installs both and `npm start` launches
+them together. Use Node.js 22.9 or later for native environment-file loading.
 Use temporary data for tests; never overwrite user bookings. Local accounts
 and generated development passwords are in the ignored `server/.local/` folder.
+
+MCP is authenticated at `/api/mcp` and uses the existing server session.
+Chat uses an in-process MCP transport and advertises only list/check tools.
+Staff's explicit API approval supplies a server-owned review context to the
+MCP create tool; public MCP clients cannot invent it, even with staff credentials.
+The stdio bridge connects to the running API; never run a second file writer.
+
+Gemini is configured only in `server/.env`. Never expose keys in public Next.js
+variables. Run `npm run model:check` inside `server/` to check live access;
+`npm run eval` there evaluates both prompts with the model.
+`npm run eval -- --offline` tests contracts with a scripted provider, not model
+quality. Browser tests in `web/` use isolated accounts/data and a test provider.
+Record live-provider blockers separately from successful deterministic checks.
 
 For implementation work, use the `campusdesk-build` skill. For behavior checks
 and milestone review, use `campusdesk-verify`. Their maintained sources are in

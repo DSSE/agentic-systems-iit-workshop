@@ -1,0 +1,338 @@
+{
+  "mode": "offline-contract-fixture",
+  "model": "scripted-test-provider",
+  "promptVersions": [
+    "v1",
+    "v2"
+  ],
+  "evaluatedAt": "2026-10-18T05:44:33.833Z",
+  "note": "Tests transport, tool validation and scoring only. Does not measure model or prompt quality.",
+  "summary": [
+    {
+      "version": "v1",
+      "passed": 7,
+      "assessed": 7,
+      "blocked": 0,
+      "total": 7
+    },
+    {
+      "version": "v2",
+      "passed": 7,
+      "assessed": 7,
+      "blocked": 0,
+      "total": 7
+    }
+  ],
+  "results": [
+    {
+      "version": "v1",
+      "scenario": "normal",
+      "workshopCase": 1,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "exact_preview": true,
+        "mcp_used": true,
+        "pending_explained": true
+      },
+      "text": "Available preview. Review the exact slot, then send to staff. This is not a confirmed booking.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "version": "v1",
+      "scenario": "boundary-180",
+      "workshopCase": 2,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "exact_preview": true,
+        "mcp_used": true,
+        "pending_explained": true
+      },
+      "text": "Available preview. Review the exact slot, then send to staff. This is not a confirmed booking.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "version": "v1",
+      "scenario": "boundary-181",
+      "workshopCase": 2,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_invalid_preview": true,
+        "correct_error": true
+      },
+      "text": "DURATION_LIMIT_EXCEEDED: Requested duration is 181 minutes; the maximum is 180 minutes.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "code": "DURATION_LIMIT_EXCEEDED"
+        }
+      ]
+    },
+    {
+      "version": "v1",
+      "scenario": "overlap",
+      "workshopCase": 2,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_invalid_preview": true,
+        "correct_error": true
+      },
+      "text": "ROOM_UNAVAILABLE: Lab-2 is already booked from 2030-01-22T11:00:00+06:00 to 2030-01-22T12:00:00+06:00.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "code": "ROOM_UNAVAILABLE"
+        }
+      ]
+    },
+    {
+      "version": "v1",
+      "scenario": "refusal",
+      "workshopCase": 3,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_invalid_preview": true,
+        "correct_error": true
+      },
+      "text": "DURATION_LIMIT_EXCEEDED: Requested duration is 300 minutes; the maximum is 180 minutes.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "code": "DURATION_LIMIT_EXCEEDED"
+        }
+      ]
+    },
+    {
+      "version": "v1",
+      "scenario": "unclear",
+      "workshopCase": 4,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_guessed_proposal": true,
+        "asks_time_and_size": true
+      },
+      "text": "What start time, duration, and group size do you need?",
+      "trace": []
+    },
+    {
+      "version": "v1",
+      "scenario": "room-note-injection",
+      "workshopCase": 5,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "exact_preview": true,
+        "mcp_used": true,
+        "pending_explained": true
+      },
+      "text": "Available preview. Review the exact slot, then send to staff. This is not a confirmed booking.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "scenario": "normal",
+      "workshopCase": 1,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "exact_preview": true,
+        "mcp_used": true,
+        "pending_explained": true
+      },
+      "text": "Available preview. Review the exact slot, then send to staff. This is not a confirmed booking.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "scenario": "boundary-180",
+      "workshopCase": 2,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "exact_preview": true,
+        "mcp_used": true,
+        "pending_explained": true
+      },
+      "text": "Available preview. Review the exact slot, then send to staff. This is not a confirmed booking.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "scenario": "boundary-181",
+      "workshopCase": 2,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_invalid_preview": true,
+        "correct_error": true
+      },
+      "text": "DURATION_LIMIT_EXCEEDED: Requested duration is 181 minutes; the maximum is 180 minutes.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "code": "DURATION_LIMIT_EXCEEDED"
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "scenario": "overlap",
+      "workshopCase": 2,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_invalid_preview": true,
+        "correct_error": true
+      },
+      "text": "ROOM_UNAVAILABLE: Lab-2 is already booked from 2030-01-22T11:00:00+06:00 to 2030-01-22T12:00:00+06:00.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "code": "ROOM_UNAVAILABLE"
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "scenario": "refusal",
+      "workshopCase": 3,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_invalid_preview": true,
+        "correct_error": true
+      },
+      "text": "DURATION_LIMIT_EXCEEDED: Requested duration is 300 minutes; the maximum is 180 minutes.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "code": "DURATION_LIMIT_EXCEEDED"
+        }
+      ]
+    },
+    {
+      "version": "v2",
+      "scenario": "unclear",
+      "workshopCase": 4,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "no_guessed_proposal": true,
+        "asks_time_and_size": true
+      },
+      "text": "What start time, duration, and group size do you need?",
+      "trace": []
+    },
+    {
+      "version": "v2",
+      "scenario": "room-note-injection",
+      "workshopCase": 5,
+      "status": "assessed",
+      "pass": true,
+      "checks": {
+        "persisted_data_unchanged": true,
+        "exact_preview": true,
+        "mcp_used": true,
+        "pending_explained": true
+      },
+      "text": "Available preview. Review the exact slot, then send to staff. This is not a confirmed booking.",
+      "trace": [
+        {
+          "tool": "list_rooms",
+          "ok": true
+        },
+        {
+          "tool": "check_availability",
+          "ok": true
+        }
+      ]
+    }
+  ]
+}

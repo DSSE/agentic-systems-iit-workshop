@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import * as api from "@/lib/api";
 import { buildIso, formatIso } from "@/lib/campusTime";
+import ChatPanel from "./ChatPanel";
 
 const statuses = { pending: "Pending review", approved: "Approved", rejected: "Rejected", cancelled: "Cancelled" };
 function message(error) {
@@ -164,6 +165,7 @@ function Dashboard({ user, onLogout }) {
     <div className="stats"><div><span>{staff ? "Awaiting your review" : "Awaiting staff review"}</span><strong>{pending.toString().padStart(2, "0")}</strong></div>
       <div><span>Approved bookings</span><strong>{approved.toString().padStart(2, "0")}</strong></div><div><span>{staff ? "Total requests" : "Your requests"}</span><strong>{requests.length.toString().padStart(2, "0")}</strong></div></div>
     <Notice error={error} success={success} />
+    {!staff && ready && <ChatPanel onSubmitted={() => { setSuccess("Chat request sent to staff for review."); refresh().catch((err) => setError(message(err))); }} />}
     {!ready ? <p role="status" className="muted">Loading your workspace…</p> : <div className={staff ? "dashboard-grid staff-grid" : "dashboard-grid"}>
       {!staff && <div><RequestForm rooms={rooms} onRoomChange={setRoomId} onSubmitted={() => { setSuccess("Request sent to staff. You’ll see their decision here."); setError(""); refresh().catch((err) => setError(message(err))); }} />
         <section className="card schedule"><h2>Booked sessions</h2><p className="muted">{rooms.find((room) => room.id === roomId)?.name} · Asia/Dhaka</p>
