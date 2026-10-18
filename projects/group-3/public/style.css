@@ -14,3 +14,102 @@
 .chat-popover{position:fixed;right:24px;bottom:92px;width:min(370px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 124px));z-index:20;overflow:auto;box-shadow:0 18px 55px rgba(22,45,31,.22);border:1px solid #e3e9e2;border-radius:14px}.chat-popover[hidden],.chat-toggle[hidden]{display:none}.assistant-heading{position:relative}.chat-close{margin-left:auto;width:30px;height:30px;flex:none;border:0;border-radius:8px;background:#f1f5f1;color:#536359;font-size:20px;line-height:1}.chat-close:hover{background:#e7eee8}.chat-toggle{position:fixed;right:24px;bottom:24px;z-index:21;width:56px;height:56px;display:grid;place-items:center;border:0;border-radius:50%;background:#176b4b;color:#fff;box-shadow:0 8px 24px rgba(23,107,75,.3);font-size:25px;transition:transform .15s,background .15s}.chat-toggle:hover{background:#114f39;transform:translateY(-2px)}.chat-toggle:focus-visible,.chat-close:focus-visible{outline:3px solid #d4f16d;outline-offset:3px}
 @media(max-width:560px){.chat-popover{right:12px;bottom:78px;width:min(370px,calc(100vw - 24px));max-height:calc(100vh - 96px)}.chat-toggle{right:16px;bottom:16px;width:52px;height:52px}}
 .bubble.review{margin:8px 0 0 auto;border:1px solid #dce9de;background:#f5faf5;color:#385844;font-size:11px}
+
+/* Dark navy / teal palette from the ClubOps workshop reference. Visual-only overrides. */
+:root{
+  color-scheme:dark;
+  --ink:#edf2fb;
+  --muted:#a3b1cc;
+  --line:#2c3857;
+  --paper:#101629;
+  --surface:#19233d;
+  --green:#55d0c0;
+  --green-dark:#36b8ab;
+  --green-soft:#183c43;
+  --amber:#edb64d;
+  --amber-soft:#3b301f;
+  --red:#ff8b82;
+  --shadow:0 10px 30px rgba(0,0,0,.18);
+}
+body{background:var(--paper);color:var(--ink)}
+.sidebar{background:#11182b;color:#edf2fb}
+.brand-icon{background:var(--green);color:#10212b}
+.brand-light{color:#a8b8d4}
+.workspace-label,.eyebrow{color:#9baaca}
+.nav-link{color:#bac6dc}
+.nav-link:hover,.nav-link.active{background:#202d49;color:#fff}
+.nav-link.active{box-shadow:inset 2px 0 var(--green)}
+.nav-icon{color:#a9bad8}
+.nav-count{background:var(--green);color:#10212b}
+.rule-card{border-color:#2c3857;background:#19233d}
+.rule-card strong,.profile strong{color:#edf2fb}
+.rule-card small,.profile small{color:#a3b1cc}
+.rule-check{background:#23404a;color:var(--green)}
+.profile{border-color:#2c3857}
+.avatar{background:#263650;color:#bceee7}
+.profile-dots{color:#a3b1cc}
+.breadcrumb{color:#9baaca}
+.breadcrumb span{color:#5b6883}
+.breadcrumb strong{color:#e0e7f4}
+.page-header h1,.panel h2,.assistant-card h2,.dialog-head h2{color:#edf2fb}
+.event-meta,.panel-subtitle,.assistant-intro,.dialog-copy{color:#a3b1cc}
+.live-pill{background:#193a3e;color:#a6eee4}
+.live-pill i,.online-dot{background:var(--green)}
+.button-quiet{background:#19233d;color:#d7dfef;border-color:#34415f}
+.button-quiet:hover,.button-reject:hover{background:#24304c;color:#fff}
+.budget-card{background:#19233d;color:#edf2fb;border:1px solid var(--line);box-shadow:var(--shadow)}
+.budget-card .eyebrow.light{color:#a3b1cc}
+.cap-badge span{color:#a3b1cc}
+.cap-badge strong{color:#edf2fb}
+.budget-stat strong{color:#edf2fb}
+.stat-label{color:#a3b1cc}
+.budget-stat small,.meter-legend{color:#9eacc6}
+.dot-spent{background:var(--green)}
+.dot-pending{background:var(--amber)}
+.dot-remaining{background:#c3cee2}
+.budget-meter{background:#101729;border:1px solid #2e3a59}
+.meter-spent{background:var(--green)}
+.meter-pending{background:repeating-linear-gradient(135deg,#edb64d 0 5px,#26334d 5px 10px)}
+.panel,.assistant-card{background:var(--surface);border-color:var(--line);box-shadow:var(--shadow)}
+.count-badge,.sample-chip{background:#202b46;border-color:#34415f;color:#c2cee3}
+.proposal-list li,.vendor-grid li,th,td{border-color:#2c3857}
+.proposal-info strong,.proposal-value strong,.vendor-title,td:first-child{color:#edf2fb}
+.proposal-info small,.proposal-value small,.vendor-grid small,td,.table-unit{color:#a3b1cc}
+.item-icon,.vendor-symbol,.plus-mark{background:#22304b;color:#8de5d9}
+.empty-state{background:#131c31;color:#a3b1cc}
+.empty-state span,.trust-note>span,.trust-note strong{color:#81dbcf}
+.trust-note{color:#a3b1cc}
+.quote-preview{color:#a3b1cc}
+.proposal-form>label,.quantity-wrap label,.event-dialog label{color:#c2cde0}
+.proposal-form select,.proposal-form input,.event-dialog input,.chat-form input{background:#10182b;border-color:#34415f;color:#edf2fb}
+.proposal-form select:focus,.proposal-form input:focus,.chat-form input:focus,.event-dialog input:focus{border-color:#73d7cc;box-shadow:0 0 0 3px rgba(85,208,192,.16)}
+.button-primary,.chat-form button,.chat-toggle{background:var(--green-dark);color:#071c24}
+.button-primary:hover,.chat-form button:hover,.chat-toggle:hover{background:var(--green);color:#071c24}
+.button-approve{background:var(--green);color:#09202a}
+.button-approve:hover{background:#75dfd1}
+.button-reject{background:#19233d;color:#d2dced;border-color:#34415f}
+.msg{color:#85dfcf}
+.msg.err,.quote-preview.over-limit{color:var(--red)}
+.assistant-avatar{background:#203c46;color:#8de5d9}
+.online-dot{box-shadow:0 0 0 3px #203c46}
+.log{background:#10182b;border-color:#2c3857}
+.assistant-welcome,.tools{color:#a3b1cc}
+.bubble.user{background:#263650;color:#f3f6fc}
+.bubble.bot{background:#19233d;border-color:#34415f;color:#edf2fb}
+.bubble.review{background:#18383d;border-color:#2b5a5b;color:#b7eee6}
+.assistant-footnote{color:#9baaca}
+.alert{background:#241e31;border-color:#70424e;border-left-color:var(--red);color:#ff9c91}
+.alert strong{color:#ff9c91}
+.page-footer{color:#8e9db9}
+.event-dialog{background:#19233d;color:#edf2fb;border-color:#34415f}
+.event-dialog::backdrop{background:rgba(5,10,20,.72)}
+.dialog-close{background:#24304c;color:#d4deef}
+.dialog-close:hover{background:#303d5a}
+.dialog-copy{color:#a3b1cc}
+.onboarding-card{background:var(--surface);border-color:var(--line);box-shadow:var(--shadow)}
+.onboarding-card:after{border-color:#2c3857;box-shadow:0 0 0 30px #17213a,0 0 0 60px #141e35}
+.onboarding-card>p:not(.eyebrow),.onboarding-card>small{color:#a3b1cc}
+.onboarding-mark{background:#203c46;color:#8de5d9}
+.onboarding-steps span{background:#202b46;color:#c2cee3}
+.onboarding-steps b{color:var(--green)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline-color:#79dfd3}
