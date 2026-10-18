@@ -10,12 +10,12 @@ import type { Proposal, Room, RuleResult, Slot } from "@/lib/types";
 // A convenience warning only. The server decides and always shows its rule code.
 const WARN_OVER_MINUTES = 180;
 
-type Props = { rooms: Room[]; day: string; onProposed: () => void };
+// The form and the schedule share one date, so the schedule shows the day being booked.
+type Props = { rooms: Room[]; day: string; onDayChange: (day: string) => void; onProposed: () => void };
 type Feedback = { result: RuleResult } | { proposal: Proposal } | null;
 
-export default function BookingForm({ rooms, day, onProposed }: Props) {
+export default function BookingForm({ rooms, day, onDayChange, onProposed }: Props) {
   const [roomId, setRoomId] = useState("");
-  const [date, setDate] = useState(day);
   const [start, setStart] = useState("13:00");
   const [end, setEnd] = useState("15:00");
   const [groupSize, setGroupSize] = useState(3);
@@ -26,7 +26,7 @@ export default function BookingForm({ rooms, day, onProposed }: Props) {
 
   const room = roomId || rooms[0]?.id || "";
   const minutes = minutesBetween(start, end);
-  const request = () => ({ room_id: room, start: `${date}T${start}`, end: `${date}T${end}`, group_size: groupSize });
+  const request = () => ({ room_id: room, start: `${day}T${start}`, end: `${day}T${end}`, group_size: groupSize });
 
   async function check() {
     setBusy(true);
@@ -50,7 +50,7 @@ export default function BookingForm({ rooms, day, onProposed }: Props) {
   function applySuggestion(slot: Slot) {
     const from = localParts(slot.start);
     setRoomId(slot.room_id);
-    setDate(from.date);
+    onDayChange(from.date);
     setStart(from.time);
     setEnd(localParts(slot.end).time);
     setFeedback(null);
@@ -70,7 +70,7 @@ export default function BookingForm({ rooms, day, onProposed }: Props) {
         </label>
         <label>
           Date
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          <input type="date" value={day} onChange={(e) => onDayChange(e.target.value)} required />
         </label>
         <div className="row">
           <label>

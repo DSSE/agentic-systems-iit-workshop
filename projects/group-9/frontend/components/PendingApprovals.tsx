@@ -14,6 +14,8 @@ type Props = { version: number; onDecided: () => void };
 export default function PendingApprovals({ version, onDecided }: Props) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [last, setLast] = useState<RuleResult | null>(null);
+  // One decision at a time, so a double click cannot send a second approve.
+  const [deciding, setDeciding] = useState<string | null>(null);
 
   const [tick, setTick] = useState(0);
   const reload = () => setTick((t) => t + 1);
@@ -34,7 +36,9 @@ export default function PendingApprovals({ version, onDecided }: Props) {
   }, [version, tick]);
 
   async function approve(proposal: Proposal) {
+    setDeciding(proposal.proposal_id);
     const outcome = await api.approve(proposal.proposal_id);
+    setDeciding(null);
     setLast(
       outcome.ok
         ? { ok: true, rule_code: null, message: `Saved booking ${outcome.data.id} in ${proposal.room_name}.`, suggestion: null }
@@ -45,7 +49,9 @@ export default function PendingApprovals({ version, onDecided }: Props) {
   }
 
   async function reject(proposal: Proposal) {
+    setDeciding(proposal.proposal_id);
     const outcome = await api.reject(proposal.proposal_id);
+    setDeciding(null);
     if (!outcome.ok) setLast(outcome.refusal);
     reload();
   }
@@ -69,8 +75,12 @@ export default function PendingApprovals({ version, onDecided }: Props) {
                 {fmtTime(p.expires_at)}
               </div>
               <div className="actions">
-                <button type="button" onClick={() => void approve(p)}>Approve</button>
-                <button type="button" className="secondary" onClick={() => void reject(p)}>Reject</button>
+                <button type="button" onClick={() => void approve(p)} disabled={deciding !== null}>
+                  {deciding === p.proposal_id ? "Saving…" : "Approve"}
+                </button>
+                <button type="button" className="secondary" onClick={() => void reject(p)} disabled={deciding !== null}>
+                  Reject
+                </button>
               </div>
             </li>
           ))}

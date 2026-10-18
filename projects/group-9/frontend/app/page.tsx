@@ -31,7 +31,7 @@ export default function Home() {
       </header>
       {error && <p className="banner error">{error}</p>}
       <div className="grid">
-        <BookingForm rooms={rooms} day={day} onProposed={refresh} />
+        <BookingForm rooms={rooms} day={day} onDayChange={setDay} onProposed={refresh} />
         <PendingApprovals version={version} onDecided={refresh} />
         <Schedule rooms={rooms} day={day} onDayChange={setDay} version={version} />
       </div>
