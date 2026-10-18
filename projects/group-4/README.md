@@ -41,10 +41,18 @@ Free options: Ollama (local), Google Gemini, Groq, OpenRouter (`:free` models on
 
 ## Run
 ```bash
-npm install
-npm start      # starts the agent
-npm test
+npm install    # installs the root, backend/ and frontend/
+npm start      # builds the UI and serves app + API on http://localhost:3000
+npm test       # backend unit and API tests (they use a temp copy of the data)
 ```
+
+For development, run `npm run dev:backend` and `npm run dev:frontend` in two terminals. The UI is then on http://localhost:5173.
+
+## Structure
+- `backend/`: NestJS (TypeScript) API. `src/domain/loan-rules.ts` is the one place the hard rule is decided.
+- `frontend/`: React (TypeScript, Vite) UI. Only the Approve button saves a loan.
+- `data.json`: equipment, stock and loans. Written only by `create_loan`.
+- `specs/agent.md`: the spec.
 
 ## Demo cases
 1. **Normal:** "I need two Arduino kits for my project next week." gives a loan proposal, saved only after Approve.

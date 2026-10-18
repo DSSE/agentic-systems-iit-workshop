@@ -1,0 +1,14 @@
+{
+  "name": "lablend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LabLend: lends lab equipment, with the 2 items / 7 days hard rule.",
+  "scripts": {
+    "postinstall": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "start": "npm --prefix frontend run build && npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "test": "npm --prefix backend test"
+  }
+}

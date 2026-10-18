@@ -24,7 +24,7 @@ Lend lab equipment such as Arduino kits and sensors to students through a chat a
 | Tool | Input | Output |
 |---|---|---|
 | `list_equipment` | none (optional `query` to filter by name) | Items with `id`, `name`, and `available` stock. |
-| `check_stock` | `student_id`, `item_id`, `quantity`, `days` | `{ ok: true, proposal }`, or `{ ok: false, code, reason }`. Reads only. |
+| `check_stock` | `student_id`, `item_id`, `quantity`, `days` | `{ ok: true, proposal }`, or `{ ok: false, code, reason, violations }`. Reads only. `code` is the first violation. |
 | `create_loan` (needs approval) | `student_id`, `item_id`, `quantity`, `days`, `approved` | The saved loan, or `{ ok: false, code, reason }`. Writes to `data.json`. |
 
 `create_loan` re-checks the hard rule and stock itself. It saves only when `approved` is true, and `approved` comes from the Approve button in the UI or from the person's reply in the chat, never from the model.
