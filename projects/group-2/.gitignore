@@ -7,3 +7,4 @@ node_modules/
 proposals.json
 *.tmp
 evals/results/
+data.json
