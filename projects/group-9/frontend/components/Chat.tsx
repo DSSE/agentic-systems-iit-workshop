@@ -13,7 +13,17 @@ const EXAMPLES = [
   "Book Lab-2 for 5 hours.",
 ];
 
-type Entry = { message: ChatMessage; proposals: Proposal[] };
+// The backend takes at most 40 messages of 4000 characters; send only the recent part of the conversation.
+const HISTORY_LIMIT = 20;
+const MAX_MESSAGE_LENGTH = 4000;
+
+type Entry = { message: ChatMessage; proposals: Proposal[]; failed?: boolean };
+
+function recentHistory(entries: Entry[], question: ChatMessage): ChatMessage[] {
+  const history = [...entries.filter((e) => !e.failed).map((e) => e.message), question].slice(-HISTORY_LIMIT);
+  const firstUser = history.findIndex((m) => m.role === "user");
+  return history.slice(firstUser);
+}
 type Props = { onProposed: () => void; onDecided: () => void };
 
 export default function Chat({ onProposed, onDecided }: Props) {
@@ -27,13 +37,19 @@ export default function Chat({ onProposed, onDecided }: Props) {
     const content = text.trim();
     if (!content || busy) return;
     const question: ChatMessage = { role: "user", content };
-    const history = [...entries.map((e) => e.message), question];
+    const history = recentHistory(entries, question);
     setEntries((list) => [...list, { message: question, proposals: [] }]);
     setDraft("");
     setBusy(true);
     const outcome = await api.chat(history);
     setBusy(false);
-    const answer = outcome.ok ? outcome.data : { reply: outcome.refusal.message, proposals: [] };
+    if (!outcome.ok) {
+      // Shown, but never sent back to the model as something the assistant said.
+      const notice: ChatMessage = { role: "assistant", content: outcome.refusal.message };
+      setEntries((list) => [...list, { message: notice, proposals: [], failed: true }]);
+      return;
+    }
+    const answer = outcome.data;
     setEntries((list) => [...list, { message: { role: "assistant", content: answer.reply }, proposals: answer.proposals }]);
     if (answer.proposals.length > 0) onProposed();
   }
@@ -55,7 +71,7 @@ export default function Chat({ onProposed, onDecided }: Props) {
       <p className="muted">Ask in plain words. The assistant can only propose; nothing is saved until you click Approve.</p>
       <ul className="chat-log">
         {entries.map((entry, i) => (
-          <li key={i} className={`bubble ${entry.message.role}`}>
+          <li key={i} className={`bubble ${entry.message.role}${entry.failed ? " failed" : ""}`}>
             <p>{entry.message.content}</p>
             {entry.proposals.map((p) => (
               <div key={p.proposal_id} className="card">
@@ -88,7 +104,13 @@ export default function Chat({ onProposed, onDecided }: Props) {
         ))}
       </div>
       <form className="chat-form" onSubmit={(event) => { event.preventDefault(); void send(draft); }}>
-        <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Book a lab for…" aria-label="Message" />
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Book a lab for…"
+          aria-label="Message"
+          maxLength={MAX_MESSAGE_LENGTH}
+        />
         <button type="submit" disabled={busy || !draft.trim()}>Send</button>
       </form>
     </section>

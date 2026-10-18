@@ -103,6 +103,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .bubble p { margin: 0; white-space: pre-wrap; }
 .bubble.user { justify-self: end; background: var(--accent); color: var(--accent-text); }
 .bubble.assistant { justify-self: start; background: var(--bg); border: 1px solid var(--border); }
+.bubble.failed { background: var(--bad-bg); color: var(--bad-text); border-color: transparent; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .chips button { font-size: 0.85rem; padding: 4px 10px; }
 .chat-form { display: flex; gap: 8px; }
