@@ -17,12 +17,14 @@
   <h2>Step 1: Set up the harness</h2>
   <p class="date">2026-10-18</p>
   <p>
-    Set up the harness as its own npm workspace root
-    (<code>harness/package.json</code>) with a TypeScript-ready Express
-    backend workspace and a TypeScript-ready Next.js frontend workspace
-    (<code>harness/backend/</code>, <code>harness/frontend/</code>): package
-    manifests, <code>tsconfig.json</code> files, and <code>.env.example</code>
-    files. No application code yet — that is the next phase.
+    Set up the agentic harness: <code>agents/planner.md</code>,
+    <code>agents/generator.md</code> and <code>agents/evaluator.md</code>
+    define the three roles; <code>harness/workflow.md</code> defines the
+    role sequence, review gates and the failure/resume procedure;
+    <code>harness/state.md</code> tracks the task checklist and current
+    status. Filled in <code>specs/agent.md</code> with the tool contracts,
+    hard rule and acceptance criteria. No backend or frontend code yet —
+    that starts next phase.
   </p>
 </div>
 
