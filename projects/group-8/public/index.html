@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c32">
+  <title>LabLend — Equipment for your next idea</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="LabLend home"><span class="brand-icon" aria-hidden="true">L</span>LabLend<span class="brand-dot">.</span></a><span class="lab-tag">ELECTRONICS LAB <span aria-hidden="true">/</span> GROUP 08</span></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">LESS WAITING. MORE MAKING.</p><h1>Your next idea<br>starts at the lab.</h1><p class="lede">Borrow the tools. Build something great.<br>Pick your equipment and we’ll check the rest.</p></div><aside class="rule-card"><span class="eyebrow">THE BORROWING BASICS</span><div class="rule-numbers"><div><strong>02</strong><span>units at a time</span></div><span class="rule-divider">/</span><div><strong>07</strong><span>days per loan</span></div></div><p>Existing loans count toward your limit.<br>Nothing is saved until you approve.</p></aside></div>
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+    <div class="workspace">
+      <section class="inventory" aria-labelledby="equipment-heading"><div class="section-heading"><div><p class="eyebrow">01 / CHOOSE YOUR TOOLS</p><h2 id="equipment-heading">The equipment shelf</h2></div><span id="equipment-count" class="pill">Loading…</span></div><p class="muted">Select a quantity below. Availability is checked for your exact dates.</p><div id="equipment" class="equipment-list" aria-live="polite"></div></section>
+      <aside class="request-panel" aria-labelledby="request-heading"><p class="eyebrow">02 / PLAN YOUR BUILD</p><h2 id="request-heading">Your loan request</h2><form id="request-form"><label for="student-id">Student ID</label><input id="student-id" name="student_id" placeholder="e.g. student-08" required pattern="[a-zA-Z0-9_-]{1,64}" maxlength="64" autocomplete="username"><p class="field-note">Workshop demo: enter your student ID. No sign-in required.</p><div class="date-grid"><div><label for="start-date">Borrow from</label><input id="start-date" name="start_date" type="date" required></div><div><label for="due-date">Return by</label><input id="due-date" name="due_date" type="date" required></div></div><p id="date-note" class="field-note">Return date is exclusive. The same weekday next week is 7 days.</p><div class="request-summary"><span>Selected equipment</span><strong id="selected-count">0 units</strong></div><button id="check-button" type="submit" class="primary">Check availability <span aria-hidden="true">↗</span></button><p class="approval-note">You’ll review a proposal before approving.</p></form></aside>
+    </div>
+    <section class="loans-section" aria-labelledby="loans-heading"><div class="section-heading"><div><p class="eyebrow">YOUR WORKBENCH</p><h2 id="loans-heading">Existing loans</h2></div><button id="refresh-loans" type="button" class="text-button">Refresh loans ↻</button></div><p id="loan-note" class="muted">Enter a student ID and check a request to see your loans.</p><div id="loans" class="loan-list"></div></section>
+  </main>
+  <footer><span class="brand">LabLend.</span><span>Take care of the tools. Make room for the next idea.</span><span>GROUP 08 · IIT WORKSHOP</span></footer>
+  <dialog id="proposal-dialog" aria-labelledby="proposal-heading"><div class="dialog-top"><span class="eyebrow">03 / ONE LAST LOOK</span><button id="close-proposal" class="icon-button" type="button" aria-label="Close proposal">×</button></div><h2 id="proposal-heading">Ready to borrow?</h2><p class="muted">Review your proposal. Equipment is reserved only after approval succeeds.</p><dl id="proposal-details"></dl><ul id="proposal-items" class="proposal-items"></ul><p class="field-note">Proposals expire after 10 minutes. We’ll check stock and your borrowing limit again when you approve.</p><div class="dialog-actions"><button id="cancel-proposal" type="button" class="secondary">Cancel</button><button id="approve-proposal" type="button" class="primary">Approve loan ↗</button></div></dialog>
+  <noscript><p class="message">Enable JavaScript to browse equipment and approve loans.</p></noscript>
+</body>
+</html>

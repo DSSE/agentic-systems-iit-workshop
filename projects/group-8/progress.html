@@ -21,8 +21,8 @@
     <thead><tr><th scope="col">Phase</th><th scope="col">Status</th><th scope="col">Completion evidence required</th></tr></thead>
     <tbody>
       <tr><td>1. Set up the harness</td><td>Complete</td><td>Project instructions, spec, configuration, seed data, progress log, and passing harness check.</td></tr>
-      <tr><td>2. Build backend and frontend</td><td>Pending</td><td>Shared domain rules, three tools, API, and UI; only Approve saves a loan.</td></tr>
-      <tr><td>3. Test behavior</td><td>Pending</td><td>Cases 1–3 pass in the UI and automated tests.</td></tr>
+      <tr><td>2. Build backend and frontend</td><td>Complete</td><td>Shared domain rules, three tools, API, and UI; only Approve saves a loan.</td></tr>
+      <tr><td>3. Test behavior</td><td>Complete</td><td>Cases 1–3 pass in the real browser and automated domain/tool/HTTP tests.</td></tr>
       <tr><td>4. Make MCP server and connect agents</td><td>Pending</td><td>Shared tools exposed through MCP and two distinct clients connected.</td></tr>
       <tr><td>5. Add the agent to the UI</td><td>Pending</td><td>Plain-language valid request and clarification for an unclear request.</td></tr>
       <tr><td>6. Write prompt evaluations (advanced)</td><td>Pending</td><td>All five cases evaluated using two prompt versions; comparison recorded.</td></tr>
@@ -37,6 +37,28 @@
     <p>Verification: <code>npm.cmd run check:harness</code> and <code>git diff --check</code>. The harness check validates readable project documents, JSON configuration, empty model placeholders, equipment identifiers, and seed loan fields. It performs no writes and makes no network or model calls.</p>
     <p>Remaining issues: no application, runtime approval enforcement, business-rule tests, MCP connections, or model integration exists yet. Harness validation is not evidence of runtime acceptance criteria. Team role assignments remain pending.</p>
     <p>Next step: phase 2 — implement the shared domain validator and approved create operation, then connect the API and frontend. Use temporary fixtures for tests and keep runtime loan writes behind <code>create_loan</code>.</p>
+  </article>
+  <article>
+    <h2>Phase 2 — backend and frontend</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/milestone-1</code>.</p>
+    <p>Implemented shared domain validation, the list/check/create tools, validated storage reads, serialized atomic file writes, and an exclusive lock for competing processes. Added a local HTTP API and responsive equipment shelf, loan form, proposal review, explicit Approve and Cancel actions, rule-code feedback, and existing-loan list.</p>
+    <p>Checks create only in-memory proposals. The trusted approval handler issues a server-held single-use token bound to the proposal, student, and browser session. Creation revalidates stock, student capacity, and dates inside the write operation. The server binds to loopback; workshop student IDs are self-declared. No dependencies or credentials were added.</p>
+    <p>Verification: <code>npm.cmd run test:browser -- --screenshots</code> passed in local headless Chrome against temporary inventory. Reviewed desktop and mobile screenshots and checked for horizontal overflow and runtime exceptions. Syntax and HTTP integration checks passed. The browser needed to run outside the execution sandbox because its renderer timed out inside it.</p>
+    <p>Remaining limitations: no production authentication, loan-return management, MCP server, or chat agent. Proposals expire after ten minutes or on restart. A crash may leave a lock file that requires inspection after all server instances stop.</p>
+    <p>Next step: validate normal, boundary, and invalid flows with the automated behavior suite.</p>
+  </article>
+  <article>
+    <h2>Phase 3 — behavior tests; milestone 1 complete</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/milestone-1</code>.</p>
+    <p>Added 24 automated tests covering the first three handout cases, duplicate item rows, non-overlapping intervals, overdue loans, other students' stock use, malformed input, invalid storage, forged approval, cancellation, token replay, stale stock, and simultaneous approvals. HTTP tests cover session/CSRF enforcement and private-file access. All fixtures use temporary data and a fixed clock.</p>
+    <p>Verification: <code>npm.cmd test</code> passed all 24 tests. <code>npm.cmd run check:harness</code>, JavaScript syntax checks, and <code>git diff --check</code> passed. The real-browser smoke test verifies that checking or canceling makes no write, approval saves exactly one loan, and cases 2–3 return the expected rule codes without saving. Project seed inventory was unchanged.</p>
+    <p>Remaining work: natural-language requests, two connected MCP clients, and UI chat belong to milestone 2. Five-case prompt evaluations and proof of injection resistance from every client remain uncompleted advanced work.</p>
+    <p>Next step: review milestone 1 through a PR to <code>group-8/development</code>, then begin phase 4 with an MCP adapter over the existing three tools.</p>
+  </article>
+  <article>
+    <h2>Milestone 1 fix — shelf availability after approval</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). The shelf now displays date-specific availability alongside total inventory, using the same domain calculation as loan validation. Counts refresh after approval, date changes, page reload, and loan refresh. Selected quantities are preserved.</p>
+    <p>Verification: all 24 automated tests pass with added API assertions for overlapping and non-overlapping dates. The real-browser regression confirms 6 available before approval, 4 after approving 2, 4 after reload, and 6 for a non-overlapping interval. Cancellation leaves counts unchanged. Tests use temporary inventory; existing demonstration loans are preserved.</p>
   </article>
   <p>At the end of each later phase, update its status and append a dated entry with changes, actual verification results, remaining issues, and next steps.</p>
 </body>

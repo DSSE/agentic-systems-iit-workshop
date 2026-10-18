@@ -2,8 +2,13 @@
   "name": "group-8-lablend",
   "version": "0.1.0",
   "private": true,
-  "description": "LabLend workshop project: development harness",
+  "description": "LabLend: approval-based lab equipment lending",
   "type": "module",
   "engines": { "node": ">=22" },
-  "scripts": { "check:harness": "node scripts/check-harness.mjs" }
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node tests/browser.mjs",
+    "check:harness": "node scripts/check-harness.mjs"
+  }
 }
