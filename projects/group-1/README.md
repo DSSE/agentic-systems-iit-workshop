@@ -38,7 +38,25 @@ To try bookings without changing the real `data.json`, start the backend with `D
 | POST | `/api/check` | `room_id, start, end, group_size` | `{ok}` or `{ok: false, code, reason}` |
 | POST | `/api/bookings` | the above plus `requester, purpose, approved` | 201 `{ok, booking}`, or 422 `{ok: false, code, reason}` |
 
-For the agent, copy `.env.example` to `.env` and set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`.
+| POST | `/api/chat` | `messages: [{role, content}], requester` | `{reply, proposal}`; a proposal is saved only via `/api/bookings` on Approve |
+
+## Chat agent
+1. Copy `.env.example` to `.env` (in this folder) and paste your free Gemini key from https://aistudio.google.com/apikey into `LLM_API_KEY`. Check `LLM_MODEL` is a model AI Studio lists.
+2. Restart the backend, open the UI and switch to the **Chat** tab.
+3. Try "Book a lab for 3 people Thursday afternoon." (a proposal card appears; only Approve saves it) and "Book a room for tomorrow." (it asks for the time and group size).
+
+The agent talks to the MCP server through an MCP client. Any OpenAI-compatible provider works; change the three `LLM_*` values to switch.
+
+## MCP server
+The same three tools, for any coding agent. Run Claude Code or Gemini CLI from this folder (`projects/group-1`):
+
+- **Claude Code** reads [.mcp.json](.mcp.json). Approve the `campusdesk` server when asked, then check it with `/mcp`.
+- **Gemini CLI** reads [.gemini/settings.json](.gemini/settings.json), but only in a trusted folder. Run `gemini` here once and choose to trust the folder, then check with `/mcp`.
+
+The configs use the Windows venv path `backend/.venv/Scripts/python.exe`; on macOS/Linux change it to `backend/.venv/bin/python`.
+Over MCP, `create_booking` needs `approved: true`, which the agent must only send after you say yes. Every rule is re-checked either way.
+
+For HTTP clients: `cd backend && .venv/Scripts/python -m app.mcp_server --http` serves `http://127.0.0.1:8001/mcp`.
 
 ## Demo cases
 1. **Normal:** "Book a lab for 3 people Thursday afternoon." gives a proposal that is saved only after Approve.

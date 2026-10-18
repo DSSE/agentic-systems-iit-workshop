@@ -60,8 +60,31 @@
       <li><strong>Milestone 1 complete</strong> (pending a manual check in the browser).</li>
     </ul>
   </section>
-  <section class="phase todo"><h2>4. Make the MCP server and connect any agent <span class="status">To do</span></h2></section>
-  <section class="phase todo"><h2>5. Add the agent to the UI <span class="status">To do</span></h2></section>
+
+  <section class="phase done">
+    <h2>4. Make the MCP server and connect any agent <span class="status">Built, connection pending</span></h2>
+    <div class="date">2026-10-18</div>
+    <ul>
+      <li><code>backend/app/mcp_server.py</code> (mcp SDK 2.x) exposes <code>list_rooms</code>, <code>check_availability</code> and <code>create_booking</code> by calling <code>tools.py</code>, so the rule lives only in <code>domain/rules.py</code>. It runs over stdio (<code>backend/mcp_stdio.py</code>) and Streamable HTTP (port 8001).</li>
+      <li>Configured for two agents: Claude Code (<code>.mcp.json</code>) and Gemini CLI (<code>.gemini/settings.json</code>).</li>
+      <li>8 pytest tests go through a real MCP client: 5-hour bookings are refused even with <code>approved: true</code>, and nothing is saved without approval. The stdio and HTTP transports were each checked with a live client.</li>
+      <li>Still to do: connect from Claude Code and Gemini CLI (trust the folder first) and run cases 1 and 3.</li>
+    </ul>
+  </section>
+
+  <section class="phase done">
+    <h2>5. Add the agent to the UI <span class="status">Built, live run pending</span></h2>
+    <div class="date">2026-10-18</div>
+    <ul>
+      <li>Chat agent (<code>backend/app/agent/</code>) uses any OpenAI-compatible model from <code>.env</code> (Group 1: Gemini) and calls the tools through an MCP client.</li>
+      <li>The agent cannot save. Its <code>create_booking</code> call is intercepted, re-checked through MCP and returned as a proposal card; only Approve saves, through <code>/api/bookings</code>.</li>
+      <li>Prompt <code>prompts/v1.md</code>: ask for missing time or group size (case 4), resolve "Thursday afternoon", refuse more than 3 hours with the rule code and offer a 3-hour slot, and treat notes as data.</li>
+      <li>The UI has a Form/Chat tab, chat bubbles, example prompts and an inline proposal card.</li>
+      <li>Tests: 11 agent tests with a scripted model plus 5 chat UI tests. In total, 51 backend and 17 frontend tests pass.</li>
+      <li>Still to do: add the Gemini key to <code>.env</code> and check case 1 and case 4 live. Once both work, milestone 2 is done.</li>
+    </ul>
+  </section>
+
   <section class="phase todo"><h2>6. Write evals for the prompts <span class="status">To do</span></h2></section>
   <section class="phase todo"><h2>7. Add guardrails <span class="status">To do</span></h2></section>
   <section class="phase todo"><h2>8. Prepare the demo <span class="status">To do</span></h2></section>

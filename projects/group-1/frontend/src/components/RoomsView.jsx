@@ -26,7 +26,13 @@ export default function RoomsView({ rooms, bookings, date, onDateChange }) {
                   <strong>{room.id}</strong>
                   <div className="muted">{room.name}</div>
                   {/* Notes are shown as plain text and never acted on. */}
-                  {room.notes && <div className="note">Note: {room.notes}</div>}
+                  {room.notes && !room.suspicious_note && <div className="note">Note: {room.notes}</div>}
+                  {room.notes && room.suspicious_note && (
+                    <div className="note suspicious" role="note" aria-label={`Ignored note for ${room.id}`}>
+                      <strong>⚠ Ignored note:</strong> {room.note_warning}
+                      <div className="quoted">“{room.notes}”</div>
+                    </div>
+                  )}
                 </td>
                 <td>{room.capacity}</td>
                 <td>

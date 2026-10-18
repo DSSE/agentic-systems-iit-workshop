@@ -13,7 +13,13 @@ def data_file(tmp_path, monkeypatch):
     copy = tmp_path / "data.json"
     shutil.copy(PROJECT_ROOT / "data.json", copy)
     monkeypatch.setenv("DATA_PATH", str(copy))
+    monkeypatch.setenv("AUDIT_PATH", str(tmp_path / "audit.jsonl"))
     return copy
+
+
+@pytest.fixture
+def audit_file(tmp_path):
+    return tmp_path / "audit.jsonl"
 
 
 @pytest.fixture

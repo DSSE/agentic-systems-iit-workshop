@@ -5,6 +5,7 @@ import BookingForm from "./components/BookingForm.jsx";
 import ProposalCard from "./components/ProposalCard.jsx";
 import RefusalBanner from "./components/RefusalBanner.jsx";
 import ThemeToggle from "./components/ThemeToggle.jsx";
+import ChatPanel from "./components/ChatPanel.jsx";
 
 const REQUEST_LEVEL_CODES = new Set(["MAX_DURATION_EXCEEDED", "INVALID_TIME_RANGE", "INVALID_REQUEST"]);
 
@@ -22,6 +23,7 @@ export default function App() {
   const [proposal, setProposal] = useState(null);
   const [saved, setSaved] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState("form");
 
   const refresh = useCallback(async () => {
     try {
@@ -109,7 +111,30 @@ export default function App() {
 
       <main className="layout">
         <section className="panel">
-          <h2>Request a booking</h2>
+          <div className="tabs" role="tablist" aria-label="Booking mode">
+            {[
+              ["form", "Form"],
+              ["chat", "Chat"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                className={tab === id ? "tab active" : "tab"}
+                onClick={() => setTab(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Both stay mounted so switching tabs keeps each one's state. */}
+          <div hidden={tab !== "chat"}>
+            <ChatPanel onBooked={refresh} />
+          </div>
+
+          <div hidden={tab !== "form"}>
           <BookingForm rooms={data.rooms} defaultDate={date} onSubmit={handleFind} busy={busy} />
 
           {refusal && <RefusalBanner refusal={refusal} />}
@@ -142,9 +167,10 @@ export default function App() {
 
           {saved && (
             <div className="saved" role="status">
-              Booked {saved.room_id} on {saved.start.replace("T", " ")}–{saved.end.slice(11, 16)} ({saved.id}).
+              {`Booked ${saved.room_id} on ${saved.start.slice(0, 10)} ${saved.start.slice(11, 16)}–${saved.end.slice(11, 16)} (${saved.id}).`}
             </div>
           )}
+          </div>
         </section>
 
         <section className="panel">

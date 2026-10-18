@@ -74,6 +74,25 @@ button:disabled { opacity: .5; cursor: default; }
 
 .saved { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--ok-bg); color: var(--ok); }
 
+[hidden] { display: none !important; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+.tab { background: transparent; color: var(--muted); border-radius: 6px 6px 0 0; border-bottom: 2px solid transparent; padding: 6px 14px; }
+.tab.active { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+
+.chat { display: grid; gap: 10px; }
+.chat-name { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
+.chat-log { display: flex; flex-direction: column; gap: 8px; min-height: 260px; max-height: 460px; overflow-y: auto; padding: 4px 2px; }
+.chat-empty { color: var(--muted); font-size: .9rem; display: grid; gap: 6px; }
+.chat-empty p { margin: 0; }
+button.example { text-align: left; font-size: .85rem; }
+.bubble { max-width: 88%; padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+.bubble.assistant { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.bubble.pending { color: var(--muted); font-style: italic; }
+.chat-input { display: flex; gap: 8px; }
+.chat-input input { flex: 1; min-width: 0; }
+
 .rooms-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .rooms-header h2 { margin: 0; }
 .rooms-header label { font-size: .85rem; color: var(--muted); }
@@ -83,3 +102,5 @@ button:disabled { opacity: .5; cursor: default; }
 .muted { color: var(--muted); font-size: .85rem; }
 .note { margin-top: 4px; font-size: .8rem; background: var(--warn-bg); padding: 2px 6px; border-radius: 4px; }
 .slots { margin: 0; padding-left: 16px; }
+.note.suspicious { background: var(--bad-bg); color: var(--bad); }
+.note.suspicious .quoted { color: var(--muted); text-decoration: line-through; margin-top: 2px; }

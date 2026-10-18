@@ -1,16 +1,23 @@
-"""The three tools. The API (and later the MCP server and the agent) call these and nothing else."""
+"""The three tools. The API, the MCP server and the agent call these and nothing else."""
 
 from datetime import datetime
 
 from pydantic import BaseModel
 
-from . import store
+from . import guardrails, store
 from .domain import rules
 from .domain.models import Booking, BookingRequest, CreateBookingRequest, Room, RuleResult
 
 
+class RoomView(Room):
+    """A room as clients see it: the note is kept, but flagged when it reads like an instruction."""
+
+    suspicious_note: bool = False
+    note_warning: str | None = None
+
+
 class RoomsListing(BaseModel):
-    rooms: list[Room]
+    rooms: list[RoomView]
     bookings: list[Booking]
 
 
@@ -23,7 +30,13 @@ class CreateResult(BaseModel):
 
 def list_rooms() -> RoomsListing:
     rooms, bookings = store.load()
-    return RoomsListing(rooms=rooms, bookings=sorted(bookings, key=lambda b: b.start))
+    views = []
+    for room in rooms:
+        flagged = guardrails.looks_like_instruction(room.notes)
+        views.append(
+            RoomView(**room.model_dump(), suspicious_note=flagged, note_warning=guardrails.NOTE_WARNING if flagged else None)
+        )
+    return RoomsListing(rooms=views, bookings=sorted(bookings, key=lambda b: b.start))
 
 
 def check_availability(room_id: str, start: datetime, end: datetime, group_size: int) -> RuleResult:
@@ -32,14 +45,38 @@ def check_availability(room_id: str, start: datetime, end: datetime, group_size:
     return rules.validate(request, rooms, bookings)
 
 
-def create_booking(request: CreateBookingRequest) -> CreateResult:
+def create_booking(request: CreateBookingRequest, client: str = "api") -> CreateResult:
     """Saves a booking only with a person's approval, and re-checks every rule itself first."""
+    result = _create(request)
+    if not result.ok:
+        guardrails.audit(
+            "booking_refused",
+            client,
+            code=result.code,
+            room_id=request.room_id,
+            start=request.start,
+            end=request.end,
+            requester=request.requester,
+        )
+    return result
+
+
+def _create(request: CreateBookingRequest) -> CreateResult:
     if not request.approved:
         return CreateResult(
             ok=False,
             code=rules.APPROVAL_REQUIRED,
             reason="A person must approve the booking before it is saved.",
         )
+
+    # Free text is stored in data.json and later shown to agents: don't let it carry instructions in.
+    for field in ("purpose", "requester"):
+        if guardrails.looks_like_instruction(getattr(request, field)):
+            return CreateResult(
+                ok=False,
+                code=guardrails.SUSPICIOUS_CONTENT,
+                reason=f"The {field} reads like an instruction to the system. Please describe the booking plainly.",
+            )
 
     with store.write_lock:
         # Re-read inside the lock: never trust an earlier check_availability call.

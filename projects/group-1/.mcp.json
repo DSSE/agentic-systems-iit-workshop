@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "campusdesk": {
+      "type": "stdio",
+      "command": "backend/.venv/Scripts/python.exe",
+      "args": ["backend/mcp_stdio.py"]
+    }
+  }
+}

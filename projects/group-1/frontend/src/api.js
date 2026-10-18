@@ -24,6 +24,17 @@ export async function checkAvailability({ room_id, start, end, group_size }) {
   return res.json();
 }
 
+// The chat agent only ever returns a proposal; saving still goes through createBooking on Approve.
+export async function sendChat(messages, requester) {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages, requester }),
+  });
+  if (!res.ok) return readError(res);
+  return { ok: true, ...(await res.json()) };
+}
+
 // Only the Approve button calls this.
 export async function createBooking(proposal) {
   const res = await fetch("/api/bookings", {
