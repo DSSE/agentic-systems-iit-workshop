@@ -1,5 +1,5 @@
-// Unit tests for the proposal-token store itself: single-use and lookup,
-// independent of the availability recheck that also guards create_booking.
+// Student preview tokens are single-use and expire. They authorize request
+// submission only; they never authorize staff approval or a confirmed booking.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, writeFile } from "node:fs/promises";
@@ -28,4 +28,15 @@ test("consumeProposal returns the fields once, then nothing", () => {
 test("an unknown proposal id yields nothing", () => {
   assert.equal(peekProposal("does-not-exist"), null);
   assert.equal(consumeProposal("does-not-exist"), null);
+});
+
+test("a preview expires at its deadline and cannot be consumed", async (context) => {
+  const { PROPOSAL_TTL_MS } = await import("../src/config.js");
+  let clock = Date.now();
+  context.mock.method(Date, "now", () => clock);
+  const id = createProposal({ room_id: "lab-1" });
+  assert.ok(peekProposal(id));
+  clock += PROPOSAL_TTL_MS;
+  assert.equal(peekProposal(id), null);
+  assert.equal(consumeProposal(id), null);
 });

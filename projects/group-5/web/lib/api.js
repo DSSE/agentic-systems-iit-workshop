@@ -13,11 +13,16 @@ class ApiError extends Error {
 
 async function request(path, options) {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    cache: "no-store",
+    headers: options?.body ? { "Content-Type": "application/json" } : {},
     ...options,
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401 && data.error?.code === "UNAUTHENTICATED") {
+      window.dispatchEvent(new Event("campusdesk:session-expired"));
+    }
     throw new ApiError(data.error || { code: "UNKNOWN_ERROR", message: "Request failed." });
   }
   return data;
@@ -35,11 +40,16 @@ export function checkAvailability(input) {
   return request("/api/availability", { method: "POST", body: JSON.stringify(input) }).then((d) => d.proposal);
 }
 
-export function createBooking(input, approval) {
-  return request("/api/bookings", {
-    method: "POST",
-    body: JSON.stringify({ ...input, ...approval }),
-  }).then((d) => d.booking);
-}
+const post = (path, input = {}) => request(path, { method: "POST", body: JSON.stringify(input) });
+export const getSession = () => request("/api/auth/session").then((data) => data.user);
+export const login = (email, password) => post("/api/auth/login", { email, password }).then((data) => data.user);
+export const logout = () => post("/api/auth/logout");
+export const fetchRequests = () => request("/api/requests").then((data) => data.requests);
+export const submitRequest = (input) => post("/api/requests", input).then((data) => data.request);
+export const approveRequest = (id, note) => post(`/api/requests/${encodeURIComponent(id)}/approve`, { note });
+export const rejectRequest = (id, note) => post(`/api/requests/${encodeURIComponent(id)}/reject`, { note });
+export const cancelRequest = (id) => post(`/api/requests/${encodeURIComponent(id)}/cancel`);
+export const chatStatus = () => request("/api/chat/status");
+export const sendChat = (input) => post("/api/chat", input);
 
 export { ApiError };

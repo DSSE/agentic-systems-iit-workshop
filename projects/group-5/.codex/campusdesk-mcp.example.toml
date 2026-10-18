@@ -1,0 +1,5 @@
+# Merge into .codex/config.toml after setting student credentials in server/.env.
+# Start Codex from projects/group-5 and keep the API running (npm start).
+[mcp_servers.campusdesk]
+command = "node"
+args = ["--env-file-if-exists=server/.env", "server/scripts/mcp-stdio.js"]

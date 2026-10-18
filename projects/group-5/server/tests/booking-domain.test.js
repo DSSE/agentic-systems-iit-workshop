@@ -154,3 +154,15 @@ test("a group larger than capacity is rejected", () => {
     CODES.CAPACITY_EXCEEDED
   );
 });
+
+test("fractional overrun cannot bypass the 180-minute limit", () => {
+  assertCode(() => checkAvailability(rooms, [], { room_id: "lab-1", start_at: "2030-01-22T09:00:00+06:00",
+    end_at: "2030-01-22T12:00:00.001+06:00", group_size: 2 }), CODES.DURATION_LIMIT_EXCEEDED);
+});
+
+test("impossible calendar dates are rejected rather than normalized", () => {
+  assertCode(() => checkAvailability(rooms, [], { room_id: "lab-1", start_at: "2030-02-30T09:00:00+06:00",
+    end_at: "2030-02-30T10:00:00+06:00", group_size: 2 }), CODES.INVALID_REQUEST);
+  assert.equal(checkAvailability(rooms, [], { room_id: "lab-1", start_at: "2032-02-29T09:00+06:00",
+    end_at: "2032-02-29T10:00+06:00", group_size: 2 }).durationMinutes, 60);
+});

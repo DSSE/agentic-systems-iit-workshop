@@ -20,8 +20,35 @@ await writeFile(
 );
 process.env.CAMPUSDESK_DATA_FILE = dataFile;
 
-const { checkAvailabilityTool, createBookingTool } = await import("../src/service.js");
+const { checkAvailabilityTool: previewTool, createBookingTool: createTool, submitRequestTool,
+  listRequestsTool, rejectRequestTool, cancelRequestTool } = await import("../src/service.js");
 const { BookingError, CODES } = await import("../src/domain/errors.js");
+const { createAuth, provisionAccount } = await import("../src/auth.js");
+const { withData } = await import("../src/data/store.js");
+const password = "test-password-not-a-real-secret";
+const accounts = await Promise.all([
+  { id: "student-a", email: "a@test.invalid", name: "Student A", role: "student" },
+  { id: "student-b", email: "b@test.invalid", name: "Student B", role: "student" },
+  { id: "staff-a", email: "staff@test.invalid", name: "Staff A", role: "staff" },
+].map((account) => provisionAccount({ ...account, password })));
+const auth = createAuth(accounts);
+const student = (await auth.login("a@test.invalid", password)).user;
+const other = (await auth.login("b@test.invalid", password)).user;
+const staff = (await auth.login("staff@test.invalid", password)).user;
+const requestByProposal = new Map();
+
+// Preserve every original booking invariant through the new request/staff flow.
+async function checkAvailabilityTool(input) {
+  const proposal = await previewTool(input, student);
+  const request = await submitRequestTool({ ...input, proposal_id: proposal.proposal_id, purpose: "Workshop session" }, student);
+  requestByProposal.set(proposal.proposal_id, request.id);
+  return proposal;
+}
+async function createBookingTool(input, approval) {
+  const result = await createTool(input, { reviewer: staff, approved: approval?.approved,
+    request_id: requestByProposal.get(approval?.proposal_id) });
+  return result.booking;
+}
 
 async function readBookings() {
   const raw = await readFile(dataFile, "utf8");

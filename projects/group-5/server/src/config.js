@@ -12,6 +12,7 @@ export const DATA_FILE =
   process.env.CAMPUSDESK_DATA_FILE || path.join(PROJECT_ROOT, "data.json");
 
 export const PORT = Number(process.env.PORT || 4000);
+export const AUTH_DIR = process.env.CAMPUSDESK_AUTH_DIR || path.join(PROJECT_ROOT, ".local");
 
 // Origin of the Next.js frontend, for CORS in development.
 export const WEB_ORIGIN = process.env.WEB_ORIGIN || "http://localhost:3000";
@@ -25,13 +26,15 @@ export const CAMPUS_TZ_NAME = "Asia/Dhaka";
 
 export const MAX_DURATION_MINUTES = 180;
 
-// How long a check_availability proposal stays valid for approval. Keeps
-// "approval applies only to the exact proposal shown" from drifting forever,
-// and bounds the in-memory proposal store.
+// How long a student's availability preview can be submitted as a request.
+// Staff decisions refer to persisted immutable requests, not this token.
 export const PROPOSAL_TTL_MS = 5 * 60 * 1000;
 
-// Model configuration for the future chat agent (not used yet). Keep the
-// MCP/agent layer provider-agnostic.
-export const LLM_BASE_URL = process.env.LLM_BASE_URL || "";
-export const LLM_API_KEY = process.env.LLM_API_KEY || "";
-export const LLM_MODEL = process.env.LLM_MODEL || "";
+// Groq's compatible endpoint is the default; other compatible providers can
+// override it. Secrets are loaded by Node from .env, never sent to the browser.
+export const LLM_BASE_URL = process.env.LLM_BASE_URL || "https://api.groq.com/openai/v1/";
+export const LLM_API_KEY = process.env.LLM_API_KEY || process.env.GROQ_API_KEY || "";
+export const LLM_MODEL = process.env.LLM_MODEL || "openai/gpt-oss-120b";
+const configuredTimeout = Number(process.env.LLM_TIMEOUT_MS || 30000);
+export const LLM_TIMEOUT_MS = Number.isInteger(configuredTimeout) && configuredTimeout >= 1000 && configuredTimeout <= 120000
+  ? configuredTimeout : 30000;

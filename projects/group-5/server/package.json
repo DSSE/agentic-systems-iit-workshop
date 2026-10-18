@@ -5,15 +5,22 @@
   "type": "module",
   "description": "CampusDesk API: list_rooms, check_availability, create_booking, backed by shared domain validation and data.json.",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "test": "node --test tests/*.test.js"
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "test": "node --test tests/*.test.js",
+    "agent": "node --env-file-if-exists=.env scripts/agent.js",
+    "mcp": "node --env-file-if-exists=.env scripts/mcp-stdio.js",
+    "demo:agents": "node --env-file-if-exists=.env scripts/two-agents.js",
+    "eval": "node --env-file-if-exists=.env scripts/eval.js",
+    "model:check": "node --env-file-if-exists=.env scripts/check-model.js"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "zod": "^4.6.7"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.9"
   }
 }
