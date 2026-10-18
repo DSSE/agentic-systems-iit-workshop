@@ -12,13 +12,16 @@ Books lab rooms through a UI, a REST API, an MCP server and a chat agent; a book
 - `specs/agent.md`: the spec; build from it
 - `backend/data.json`: rooms and bookings (changed by approvals)
 - `backend/data.seed.json`: clean copy for tests, evals and demo reset; never changes
+- `backend/app/config.py`: settings from `.env`
 - `backend/app/domain/booking_rules.py`: the only place the rules live
 - `backend/app/store.py`: reads and writes `data.json`
 - `backend/app/proposals.py`: pending proposals (in memory)
+- `backend/app/tools.py`: the three tools plus approve and reject; the API and MCP server call these
 - `backend/app/api.py`: REST API
-- `backend/app/mcp_server.py`: MCP server, mounted at `/mcp`
-- `backend/app/agent.py`: chat agent (MCP client, OpenAI-compatible LLM)
-- `backend/app/prompts/`: agent system prompts (`v1.md`, `v2.md`)
+- `backend/app/main.py`: `create_app()`; mounts the API (and `/mcp` in Milestone 2)
+- `backend/app/mcp_server.py`: MCP server, mounted at `/mcp` (Milestone 2)
+- `backend/app/agent.py`: chat agent (MCP client, OpenAI-compatible LLM) (Milestone 2)
+- `backend/app/prompts/`: agent system prompts (`v1.md`, `v2.md`) (Milestone 3)
 - `backend/tests/`, `backend/evals/`: pytest and agent evals
 - `frontend/`: Next.js App Router UI
 - `progress.html`: add an entry at the end of every phase

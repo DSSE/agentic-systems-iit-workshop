@@ -137,6 +137,7 @@ Suggestions are best effort and are always re-validated before being returned:
 - `create_booking` **re-runs `validate_booking` itself**, even if `check_availability` was called first.
 - Proposals expire after 15 minutes (`PROPOSAL_TTL_MINUTES`).
 - Two pending proposals may target the same slot. The first one approved wins; the second fails its re-check with `BOOKING_OVERLAP`.
+- If approve's re-check fails, the proposal is discarded; the user makes a new one.
 
 ## REST API (FastAPI, port 8000)
 
@@ -197,7 +198,7 @@ If the LLM call fails (rate limit, timeout) or the 6 tool rounds run out, the ag
 
 One page with four panels:
 1. **Rooms and schedule:** pick a date and see rooms and bookings.
-2. **Booking form:** room, date, start, end, group size. **Check** calls availability; **Propose** creates a proposal. The form blocks end times over 3 hours for convenience, but the server is the source of truth and its rule code is always shown.
+2. **Booking form:** room, date, start, end, group size. **Check** calls availability; **Propose** creates a proposal. The form warns when the booking is over 3 hours but still sends it, so the server's rule code is always shown (needed for cases 2 and 3).
 3. **Pending approvals:** proposal cards from every client (UI, chat, MCP) with **Approve** and **Reject**. It refreshes every 3 seconds. This is the only place that saves.
 4. **Chat:** talks to `/api/chat` and shows proposal cards inline with Approve and Reject.
 

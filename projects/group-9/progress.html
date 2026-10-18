@@ -46,8 +46,8 @@
 
   <ol class="phases">
     <li class="done"><span class="dot"></span>1. Set up the harness</li>
-    <li><span class="dot"></span>2. Build the backend and the frontend</li>
-    <li><span class="dot"></span>3. Test the behaviour</li>
+    <li class="done"><span class="dot"></span>2. Build the backend and the frontend</li>
+    <li class="done"><span class="dot"></span>3. Test the behaviour</li>
     <li><span class="dot"></span>4. Make the MCP server and connect any agent</li>
     <li><span class="dot"></span>5. Add the agent to the UI</li>
     <li><span class="dot"></span>6. Write evals for the prompts</li>
@@ -78,6 +78,44 @@
     <h3>Next</h3>
     <ul>
       <li>Phase 2: domain module, store, REST API, seed <code>data.json</code>, Next.js form, schedule and approvals panel.</li>
+    </ul>
+  </article>
+  <article>
+    <h2>Phase 2: Build the backend and the frontend</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>Backend (FastAPI): <code>booking_rules.py</code> with 7 rule checks and suggestions, a JSON store with atomic writes, an in-memory proposal queue (15-minute expiry), and the tools layer.</li>
+      <li>REST API: rooms, bookings by day, availability, proposals, approve and reject. Every refusal is a <code>RuleResult</code> with a rule code.</li>
+      <li>Frontend (Next.js 16): booking form with Check and Propose, a Pending approvals panel that refreshes every 3 seconds, and a day schedule.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li><code>tools.py</code> holds list, check and create plus approve and reject, so the MCP server can reuse the first three and never approve.</li>
+      <li>Approve re-checks every rule under a lock; if the re-check fails, the proposal is discarded.</li>
+      <li>The form warns about bookings over 3 hours but still sends them, so the server's rule code is shown.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 3: Test the behaviour</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>65 pytest tests, all passing, on a temp copy of <code>data.seed.json</code> with a fixed clock. No network, no LLM.</li>
+      <li>Case 1: a proposal is created, <code>data.json</code> stays unchanged, and Approve saves it.</li>
+      <li>Case 2: 3:00 passes; 3:01 and 3:00:30 fail with <code>MAX_DURATION_EXCEEDED</code>; overlaps fail with <code>BOOKING_OVERLAP</code>; back-to-back is allowed.</li>
+      <li>Case 3: 5 hours in Lab-2 is refused and a 3-hour slot is suggested. Case 5 (6 hours, injected note) is refused by the create tool itself.</li>
+      <li>Edge cases: times without an offset, UTC times, crossing midnight, nonsense time text, approving twice, approving after expiry, approving after the start has passed.</li>
+      <li>Checked cases 1–3 and 5 against the running app through the Next.js <code>/api</code> proxy.</li>
+    </ul>
+
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 4: MCP server mounted at <code>/mcp</code>, reusing the same tools; connect Claude Code and Gemini CLI.</li>
     </ul>
   </article>
 </main>
