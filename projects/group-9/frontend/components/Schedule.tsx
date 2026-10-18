@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api";
-import { fmtTime } from "@/lib/time";
+import { fmtDay, fmtTime } from "@/lib/time";
 import type { Booking, Room } from "@/lib/types";
 
 type Props = { rooms: Room[]; day: string; onDayChange: (day: string) => void; version: number };
@@ -27,7 +27,7 @@ export default function Schedule({ rooms, day, onDayChange, version }: Props) {
   return (
     <section className="panel wide">
       <div className="panel-head">
-        <h2>Schedule</h2>
+        <h2>Schedule{day ? ` · ${fmtDay(`${day}T12:00:00+06:00`)}` : ""}</h2>
         <input type="date" value={day} onChange={(e) => onDayChange(e.target.value)} aria-label="Day" />
       </div>
       {error && <p className="banner error">{error}</p>}

@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 
 import RuleBox from "@/components/RuleBox";
 import { api } from "@/lib/api";
-import { fmtDay, fmtTime } from "@/lib/time";
+import { fmtDay, fmtTime, localParts } from "@/lib/time";
 import type { Proposal, RuleResult } from "@/lib/types";
 
 const POLL_MS = 3000;
 
-type Props = { version: number; onDecided: () => void };
+type Props = { version: number; onDecided: (bookedDay?: string) => void };
 
 export default function PendingApprovals({ version, onDecided }: Props) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -39,12 +39,15 @@ export default function PendingApprovals({ version, onDecided }: Props) {
     setDeciding(proposal.proposal_id);
     const outcome = await api.approve(proposal.proposal_id);
     setDeciding(null);
-    setLast(
-      outcome.ok
-        ? { ok: true, rule_code: null, message: `Saved booking ${outcome.data.id} in ${proposal.room_name}.`, suggestion: null }
-        : outcome.refusal,
-    );
-    onDecided();
+    if (outcome.ok) {
+      const { start, end } = outcome.data;
+      const message = `Saved ${proposal.room_name}, ${fmtDay(start)} ${fmtTime(start)}–${fmtTime(end)}. The schedule now shows that day.`;
+      setLast({ ok: true, rule_code: null, message, suggestion: null });
+      onDecided(localParts(start).date);
+    } else {
+      setLast(outcome.refusal);
+      onDecided();
+    }
     reload();
   }
 

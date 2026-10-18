@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import RuleBox from "@/components/RuleBox";
 import { api } from "@/lib/api";
-import { fmtDay, fmtTime } from "@/lib/time";
+import { fmtDay, fmtTime, localParts } from "@/lib/time";
 import type { ChatMessage, Proposal, RuleResult } from "@/lib/types";
 
 const EXAMPLES = [
@@ -24,7 +24,7 @@ function recentHistory(entries: Entry[], question: ChatMessage): ChatMessage[] {
   const firstUser = history.findIndex((m) => m.role === "user");
   return history.slice(firstUser);
 }
-type Props = { onProposed: () => void; onDecided: () => void };
+type Props = { onProposed: () => void; onDecided: (bookedDay?: string) => void };
 
 export default function Chat({ onProposed, onDecided }: Props) {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -58,11 +58,13 @@ export default function Chat({ onProposed, onDecided }: Props) {
     setDeciding(proposal.proposal_id);
     const outcome = approve ? await api.approve(proposal.proposal_id) : await api.reject(proposal.proposal_id);
     setDeciding(null);
+    const when = `${fmtDay(proposal.start)} ${fmtTime(proposal.start)}–${fmtTime(proposal.end)}`;
+    const saved = `Saved ${proposal.room_name}, ${when}. The schedule now shows that day.`;
     const result: RuleResult = outcome.ok
-      ? { ok: true, rule_code: null, message: approve ? `Saved in ${proposal.room_name}.` : "Rejected.", suggestion: null }
+      ? { ok: true, rule_code: null, message: approve ? saved : "Rejected.", suggestion: null }
       : outcome.refusal;
     setDecided((all) => ({ ...all, [proposal.proposal_id]: result }));
-    onDecided();
+    onDecided(outcome.ok && approve ? localParts(proposal.start).date : undefined);
   }
 
   return (

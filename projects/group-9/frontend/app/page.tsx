@@ -16,6 +16,11 @@ export default function Home() {
   const [day, setDay] = useState(todayInDhaka);
   const [version, setVersion] = useState(0);
   const refresh = () => setVersion((v) => v + 1);
+  // After an approval the schedule jumps to the booking's day, so the new booking is in view.
+  const decided = (bookedDay?: string) => {
+    if (bookedDay) setDay(bookedDay);
+    refresh();
+  };
 
   useEffect(() => {
     api.rooms().then((outcome) => {
@@ -33,8 +38,8 @@ export default function Home() {
       {error && <p className="banner error">{error}</p>}
       <div className="grid">
         <BookingForm rooms={rooms} day={day} onDayChange={setDay} onProposed={refresh} />
-        <PendingApprovals version={version} onDecided={refresh} />
-        <Chat onProposed={refresh} onDecided={refresh} />
+        <PendingApprovals version={version} onDecided={decided} />
+        <Chat onProposed={refresh} onDecided={decided} />
         <Schedule rooms={rooms} day={day} onDayChange={setDay} version={version} />
       </div>
     </main>
