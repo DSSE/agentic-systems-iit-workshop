@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test test/**/*.test.js",
+    "test:unit": "node --test test/**/*.test.js",
+    "test:e2e": "npx playwright test",
+    "evals": "node evals/eval_runner.js",
     "dev": "node --watch src/server.js",
     "mcp": "node src/mcp/server.js"
   },

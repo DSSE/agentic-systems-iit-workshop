@@ -30,6 +30,9 @@
           <div class="meta-pill">
             <span class="label">Hard Limit: <strong>8 Pts / Member</strong></span>
           </div>
+          <button id="btn-toggle-chat" class="btn btn-chat-toggle" title="Open AI Planning Assistant">
+            <span class="chat-icon">💬</span> Ask AI Agent
+          </button>
           <a href="progress.html" class="nav-btn" target="_blank">Lifecycle Dashboard ↗</a>
         </div>
       </div>
@@ -142,6 +145,41 @@
 
     <!-- Notification Toast Modal -->
     <div id="toast-container" class="toast-container"></div>
+
+    <!-- Slide-over AI Chat Agent Drawer -->
+    <aside id="chat-drawer" class="chat-drawer hidden">
+      <div class="chat-header">
+        <div class="chat-header-title">
+          <span class="chat-avatar">🤖</span>
+          <div>
+            <h3>SprintBoard Agent</h3>
+            <p class="chat-sub">Hard Capacity Guard & Ambiguity Resolver</p>
+          </div>
+        </div>
+        <button id="btn-close-chat" class="btn-icon-close" title="Close Chat">✕</button>
+      </div>
+
+      <div class="chat-body" id="chat-messages">
+        <div class="message assistant">
+          <div class="msg-avatar">🤖</div>
+          <div class="msg-content">
+            Hello! I am the SprintBoard Planning Agent. I can help you propose task assignments while strictly enforcing the <strong>8 story point capacity limit</strong>. Propose assignments by typing below or clicking a quick prompt.
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick prompts -->
+      <div class="chat-quick-prompts">
+        <button class="chip-prompt" data-prompt="Assign the login and payment tasks for this sprint.">Case 1: Login & Payment</button>
+        <button class="chip-prompt" data-prompt="Assign all 6 tasks to Rafi.">Case 3: All tasks to Rafi</button>
+        <button class="chip-prompt" data-prompt="Assign the remaining tasks.">Case 4: Ambiguous</button>
+      </div>
+
+      <form id="chat-form" class="chat-footer">
+        <input type="text" id="chat-input" placeholder="e.g. Assign the login and payment tasks..." autocomplete="off">
+        <button type="submit" id="btn-chat-send" class="btn btn-primary btn-send">Send</button>
+      </form>
+    </aside>
   </div>
 
   <script src="app.js"></script>

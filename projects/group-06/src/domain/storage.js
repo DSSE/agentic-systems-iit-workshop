@@ -28,15 +28,30 @@ export function getDataFilePath() {
 }
 
 /**
- * Reads the latest state from data.json.
+ * Reads the latest state from data.json with Windows lock resilience.
  * @returns {Object} { members, tasks, proposals }
  */
 export function readData() {
   if (!existsSync(currentDataFilePath)) {
     throw new Error(`Data file not found at ${currentDataFilePath}`);
   }
-  const raw = readFileSync(currentDataFilePath, 'utf8');
-  return JSON.parse(raw);
+
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      const raw = readFileSync(currentDataFilePath, 'utf8');
+      return JSON.parse(raw);
+    } catch (err) {
+      if ((err.code === 'EBUSY' || err.code === 'EPERM') && attempts < 4) {
+        attempts++;
+        // Short synchronous spin wait for Windows file lock release
+        const start = Date.now();
+        while (Date.now() - start < 15) {}
+      } else {
+        throw err;
+      }
+    }
+  }
 }
 
 /**

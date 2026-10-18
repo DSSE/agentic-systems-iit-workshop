@@ -20,17 +20,26 @@ SprintBoard assigns backlog tasks to agile team members while strictly enforcing
 # 1. Install dependencies (Node 18+ built-ins, zero external deps)
 npm install
 
-# 2. Run automated test suite
+# 2. Run automated test suite (Unit, MCP, Injection)
 npm test
 
-# 3. Start the full-stack web application & REST API
+# 3. Run Playwright E2E browser tests
+npm run test:e2e
+
+# 4. Run Prompt Evaluation Benchmark Suite (Prompt A vs Prompt B)
+npm run evals
+
+# 5. Start the full-stack web application & REST API
 npm start
 
-# 4. Run Model Context Protocol (MCP) server over stdio
+# 6. Run Model Context Protocol (MCP) server over stdio
 npm run mcp
 
-# 5. Start development mode with auto-reload
+# 7. Start development mode with auto-reload
 npm run dev
+
+# 8. Detailed Operational Demo Runbook
+See `harness/demo-runbook.md` for live presentation steps.
 ```
 
 ---

@@ -26,6 +26,15 @@ const btnApproveProposal = document.getElementById('btn-approve-proposal');
 const btnCancelProposal = document.getElementById('btn-cancel-proposal');
 const toastContainer = document.getElementById('toast-container');
 
+// Chat Drawer Elements
+const btnToggleChat = document.getElementById('btn-toggle-chat');
+const chatDrawer = document.getElementById('chat-drawer');
+const btnCloseChat = document.getElementById('btn-close-chat');
+const chatMessages = document.getElementById('chat-messages');
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const chipPrompts = document.querySelectorAll('.chip-prompt');
+
 // Benchmark Buttons
 const btnDemoCase1 = document.getElementById('btn-demo-case1');
 const btnDemoCase2 = document.getElementById('btn-demo-case2');
@@ -198,7 +207,7 @@ btnStageProposal.addEventListener('click', async () => {
     const data = await res.json();
 
     if (!res.ok) {
-      showToast(`❌ ${data.message || 'Capacity violation'}`, 'error');
+      showToast(`❌ [${data.code || 'ERR_MAX_POINTS_EXCEEDED'}] ${data.message || 'Capacity violation'}`, 'error');
       return;
     }
 
@@ -368,6 +377,92 @@ btnDemoCase3.addEventListener('click', async () => {
     showToast(`🛡️ Case 3 Refused! "${data.code}": ${data.message}. Suggestion: Spread tasks across teammates.`, 'error');
   }
 });
+
+/**
+ * In-UI AI Chat Assistant Interaction (AIDLC Phase 5 & 7)
+ */
+btnToggleChat.addEventListener('click', () => {
+  chatDrawer.classList.toggle('hidden');
+  if (!chatDrawer.classList.contains('hidden')) {
+    chatInput.focus();
+  }
+});
+
+btnCloseChat.addEventListener('click', () => {
+  chatDrawer.classList.add('hidden');
+});
+
+chipPrompts.forEach(chip => {
+  chip.addEventListener('click', () => {
+    chatInput.value = chip.dataset.prompt;
+    chatForm.dispatchEvent(new Event('submit'));
+  });
+});
+
+chatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  appendChatMessage(text, 'user');
+  chatInput.value = '';
+
+  const typingId = appendChatMessage('Reasoning with capacity rules...', 'assistant');
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    });
+    const data = await res.json();
+    removeChatMessage(typingId);
+
+    appendChatMessage(data.reply, 'assistant');
+
+    if (data.proposal) {
+      // Sync staged proposal into main UI
+      appState.activeProposal = {
+        memberName: data.proposal.memberName,
+        taskIds: data.proposal.taskIds,
+        proposal: data.proposal,
+        capacityCheck: { allowed: true, projectedTotal: data.proposal.projectedTotal }
+      };
+      renderActiveProposal();
+      showToast(`⏳ Agent staged proposal for ${data.proposal.memberName}. Click Approve to commit to data.json.`, 'success');
+    }
+  } catch (err) {
+    removeChatMessage(typingId);
+    appendChatMessage(`Error: ${err.message}`, 'assistant');
+  }
+});
+
+function appendChatMessage(text, role = 'assistant') {
+  const msgEl = document.createElement('div');
+  const msgId = 'msg-' + Math.random().toString(36).substring(2, 9);
+  msgEl.id = msgId;
+  msgEl.className = `message ${role}`;
+  msgEl.innerHTML = `
+    <div class="msg-avatar">${role === 'user' ? '👤' : '🤖'}</div>
+    <div class="msg-content">${escapeHtml(text)}</div>
+  `;
+  chatMessages.appendChild(msgEl);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return msgId;
+}
+
+function removeChatMessage(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+}
 
 // Initial boot
 loadData();

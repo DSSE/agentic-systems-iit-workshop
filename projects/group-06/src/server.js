@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, extname } from 'node:path';
 import { list_tasks, check_capacity, assign_task } from './tools.js';
 import { readData } from './domain/storage.js';
+import { runAgent } from './agent.js';
+import { detectInjectionPatterns } from './guardrails/input_sanitizer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -107,6 +109,28 @@ export function createServer() {
         return sendJson(res, status, result);
       } catch (err) {
         return sendJson(res, 400, { error: err.message });
+      }
+    }
+
+    if (pathname === '/api/chat' && req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const userMessage = body.message || '';
+        const history = body.history || [];
+
+        // Phase 7 Guardrail check: detect prompt injection indicators
+        const injectionAudit = detectInjectionPatterns(userMessage);
+        if (injectionAudit.hasInjectionPattern) {
+          console.warn(`[SECURITY AUDIT] Prompt injection indicator detected in chat: ${injectionAudit.matchedPatterns.join(', ')}`);
+        }
+
+        const agentResponse = await runAgent(userMessage, history);
+        return sendJson(res, 200, {
+          ...agentResponse,
+          guardrailAudit: injectionAudit
+        });
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
       }
     }
 
