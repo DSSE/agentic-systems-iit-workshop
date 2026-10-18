@@ -148,7 +148,8 @@
     <ul>
       <li>Chat agent (<code>app/agent.py</code>) on Groq <code>openai/gpt-oss-120b</code> through the OpenAI-compatible API. It is an MCP client of <code>/mcp</code>, in-process, marked <code>X-CampusDesk-Client: chat</code>.</li>
       <li><code>POST /api/chat</code> returns the reply and the real proposals from the store; the Chat panel shows them with Approve and Reject.</li>
-      <li>108 pytest tests pass, including the agent loop with a scripted LLM (no network in tests).</li>
+      <li>111 pytest tests pass, including the agent loop with a scripted LLM (no network in tests).</li>
+      <li>After code review: each chat turn ends within 25 seconds (fallback reply instead of a proxy error), a refused <code>create_booking</code> cannot be followed by an alternative proposal in the same turn, and the Chat panel sends only recent history.</li>
       <li>Live check with Groq: case 1 gave one proposal (Lab-3, Thursday 13:00-15:00, 2 hours, source chat); case 4 asked for the time and group size; cases 3 and 5 were refused with <code>MAX_DURATION_EXCEEDED</code> and no proposal.</li>
     </ul>
 
