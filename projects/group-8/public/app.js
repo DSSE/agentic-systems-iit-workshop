@@ -47,7 +47,7 @@ const showError = (error) => message(error.violations ?? 'Unable to reach LabLen
 function busy(value) {
   state.busy = value;
   for (const button of document.querySelectorAll('button')) button.disabled = value;
-  $('request-form').setAttribute('aria-busy', String(value));
+  $('request-form')?.setAttribute('aria-busy', String(value));
 }
 const run = async (operation) => {
   if (state.busy) return;
@@ -84,6 +84,7 @@ function renderEquipment() {
 }
 
 async function loadEquipment() {
+  if (!$('equipment')) return;
   const revision = ++shelfRevision;
   const start_date = $('start-date').value;
   const due_date = $('due-date').value;
@@ -116,12 +117,12 @@ function selected() {
 }
 function updateCount() {
   const count = selected().reduce((sum, item) => sum + item.quantity, 0);
-  $('selected-count').textContent = `${count} ${count === 1 ? 'unit' : 'units'}`;
+  if ($('selected-count')) $('selected-count').textContent = `${count} ${count === 1 ? 'unit' : 'units'}`;
 }
 async function identify() {
   const result = await api('/api/session', { student_id: $('student-id').value.trim() });
   if (state.studentId !== result.student_id) {
-    $('chat-log').replaceChildren(text('p', `Using student ID ${result.student_id}. Which equipment, how many units, and which dates?`, 'chat-assistant'));
+    $('chat-log')?.replaceChildren(text('p', `Using student ID ${result.student_id}. Which equipment, how many units, and which dates?`, 'chat-assistant'));
     state.studentId = result.student_id;
   }
   return result;
@@ -170,15 +171,15 @@ function chatLoading(loading) {
   $('chat-send').textContent = loading ? 'Waiting for reply…' : 'Send message ↗';
 }
 function applyProposal(result) {
-  $('start-date').value = result.proposal.start_date;
-  $('due-date').value = result.proposal.due_date;
+  if ($('start-date')) $('start-date').value = result.proposal.start_date;
+  if ($('due-date')) $('due-date').value = result.proposal.due_date;
   for (const input of document.querySelectorAll('[data-equipment-id]')) {
     input.value = result.proposal.items.find((item) => item.equipment_id === input.dataset.equipmentId)?.quantity ?? 0;
   }
   updateCount();
   renderProposal(result);
 }
-$('chat-form').addEventListener('submit', (event) => {
+$('chat-form')?.addEventListener('submit', (event) => {
   event.preventDefault();
   run(async () => {
     const content = $('chat-input').value.trim();
@@ -208,9 +209,9 @@ $('chat-form').addEventListener('submit', (event) => {
   });
 });
 for (const [id, content] of [['chat-example-normal', 'I need two Arduino kits for my project next week.'], ['chat-example-unclear', 'I need some sensors.']]) {
-  $(id).addEventListener('click', () => { $('chat-input').value = content; $('chat-form').requestSubmit(); });
+  $(id)?.addEventListener('click', () => { $('chat-input').value = content; $('chat-form').requestSubmit(); });
 }
-$('review-linked-proposal').addEventListener('click', () => run(async () => {
+$('review-linked-proposal')?.addEventListener('click', () => run(async () => {
   await identify();
   const proposal_id = new URLSearchParams(location.search).get('proposal');
   const result = await api('/api/review', { proposal_id });
@@ -225,7 +226,7 @@ async function cancel() {
   if (proposal) await api('/api/cancel', { proposal_id: proposal.proposal_id });
   message('Proposal canceled. Nothing was saved.');
 }
-$('request-form').addEventListener('submit', (event) => {
+$('request-form')?.addEventListener('submit', (event) => {
   event.preventDefault();
   run(async () => {
     $('message').hidden = true;
@@ -240,7 +241,11 @@ $('request-form').addEventListener('submit', (event) => {
   });
 });
 $('refresh-loans').addEventListener('click', () => run(async () => { await identify(); await Promise.all([loadLoans(), loadEquipment()]); }));
-for (const id of ['start-date', 'due-date']) $(id).addEventListener('change', () => { loadEquipment().catch(showError); });
+for (const id of ['start-date', 'due-date']) $(id)?.addEventListener('change', () => { loadEquipment().catch(showError); });
+for (const link of document.querySelectorAll('[data-chat-link]')) link.addEventListener('click', () => {
+  const student = $('student-id').value.trim();
+  link.href = student ? `/chat?${new URLSearchParams({ student })}` : '/chat';
+});
 for (const id of ['cancel-proposal', 'close-proposal']) $(id).addEventListener('click', () => run(cancel));
 $('proposal-dialog').addEventListener('cancel', (event) => { event.preventDefault(); run(cancel); });
 $('approve-proposal').addEventListener('click', () => run(async () => {
@@ -259,21 +264,24 @@ await run(async () => {
   state.csrf = session.csrf_token;
   state.studentId = session.student_id;
   $('student-id').value = session.student_id;
-  $('agent-mode').textContent = session.agent_mode === 'model' ? 'Model configured' : 'Demo mode · no LLM';
-  $('chat-mode-note').textContent = session.agent_mode === 'model'
+  if ($('agent-mode')) $('agent-mode').textContent = session.agent_mode === 'model' ? 'Model configured' : 'Demo mode · no LLM';
+  if ($('chat-mode-note')) $('chat-mode-note').textContent = session.agent_mode === 'model'
     ? 'The model uses the shared MCP tools. Review every proposal; only Approve loan saves it.'
     : 'Demo mode uses a limited local parser through MCP. Configure LLM_BASE_URL and LLM_MODEL in .env for an AI model. Only Approve loan saves a loan.';
   const linked = new URLSearchParams(location.search);
-  if (linked.get('proposal')) {
+  if ($('chat-form') && linked.get('student')) $('student-id').value = linked.get('student');
+  if (linked.get('proposal') && $('external-review')) {
     $('external-review').hidden = false;
     if (linked.get('student')) $('student-id').value = linked.get('student');
   }
-  $('start-date').min = session.today;
-  $('start-date').value = session.today;
-  const due = new Date(`${session.today}T00:00:00Z`);
-  due.setUTCDate(due.getUTCDate() + 7);
-  $('due-date').value = due.toISOString().slice(0, 10);
-  $('date-note').textContent = `Dates use ${session.timezone}. Return date is exclusive: the same weekday next week is 7 days.`;
+  if ($('start-date')) {
+    $('start-date').min = session.today;
+    $('start-date').value = session.today;
+    const due = new Date(`${session.today}T00:00:00Z`);
+    due.setUTCDate(due.getUTCDate() + 7);
+    $('due-date').value = due.toISOString().slice(0, 10);
+    $('date-note').textContent = `Dates use ${session.timezone}. Return date is exclusive: the same weekday next week is 7 days.`;
+  }
   await loadEquipment();
   if (session.student_id && session.student_id === $('student-id').value) await loadLoans();
 });
