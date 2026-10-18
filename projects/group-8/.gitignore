@@ -3,4 +3,7 @@ node_modules/
 .env.*
 !.env.example
 coverage/
+.artifacts/
+data.json.lock
+data.json.*.tmp
 *.log

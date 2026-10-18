@@ -44,7 +44,7 @@ Expose these exact tools through the application service and MCP server. API rou
 
 | Tool | Input | Output and effects |
 |---|---|---|
-| `list_equipment` | Optional `query` string | Equipment IDs, names, descriptions, and total quantities. Read only; date-specific availability comes from `check_stock`. |
+| `list_equipment` | Optional `query` string and paired `start_date`, `due_date` | Equipment IDs, names, descriptions, total quantities, and available quantities for the requested dates (today if omitted). Uses the same domain availability calculation as `check_stock`. Read only. |
 | `check_stock` | `student_id`, `items: [{equipment_id, quantity}]`, `start_date`, `due_date` | `ok`, date-specific availability, and `violations: [{code, message}]`. If valid, return a normalized proposal and a server-held proposal ID. No write to `data.json`. |
 | `create_loan` | `proposal_id`, server-verifiable `approval_token` | Saved loan on success, or structured violations. Resolves the exact approved proposal, independently checks all rules and current stock, and saves only on success. |
 
@@ -91,20 +91,22 @@ Configure the agent with `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` from env
 
 ## Acceptance criteria and verification
 
-- [ ] The UI lists equipment and can check stock and propose a loan without an LLM.
-- [ ] Two available units for exactly 7 days produce a proposal for an eligible student.
-- [ ] Approval saves exactly one loan; canceling or withholding approval leaves `data.json` unchanged.
-- [ ] A third concurrent unit fails with `ITEM_LIMIT_EXCEEDED`, including when existing units came from separate loans or a duplicate item entry.
-- [ ] An 8-day loan fails with `DURATION_LIMIT_EXCEEDED`; a 4-unit, 14-day request reports both limit codes.
-- [ ] Missing fields, invalid dates/quantities, unknown equipment, and insufficient stock fail without writes.
-- [ ] Direct `create_loan` calls cannot bypass validation, even when `check_stock` was skipped or an earlier check passed.
-- [ ] Missing, forged, replayed, or mismatched approval cannot create a loan.
-- [ ] Changes between check and approval and simultaneous create attempts cannot exceed stock or student limits.
-- [ ] Interval boundaries, separate non-overlapping loans, and overdue unreturned loans follow the defined semantics.
-- [ ] Storage failures leave existing data intact and do not report success.
+- [x] The UI lists equipment and can check stock and propose a loan without an LLM.
+- [x] Two available units for exactly 7 days produce a proposal for an eligible student.
+- [x] Approval saves exactly one loan; canceling or withholding approval leaves `data.json` unchanged.
+- [x] A third concurrent unit fails with `ITEM_LIMIT_EXCEEDED`, including when existing units came from separate loans or a duplicate item entry.
+- [x] An 8-day loan fails with `DURATION_LIMIT_EXCEEDED`; a 4-unit, 14-day request reports both limit codes.
+- [x] Missing fields, invalid dates/quantities, unknown equipment, and insufficient stock fail without writes.
+- [x] Direct `create_loan` calls cannot bypass validation, even when `check_stock` was skipped or an earlier check passed.
+- [x] Missing, forged, replayed, or mismatched approval cannot create a loan.
+- [x] Changes between check and approval and simultaneous create attempts cannot exceed stock or student limits.
+- [x] Interval boundaries, separate non-overlapping loans, and overdue unreturned loans follow the defined semantics.
+- [x] Storage failures leave existing data intact and do not report success.
 - [ ] The agent asks which sensor, quantity, and duration for "I need some sensors."
 - [ ] Case 1 works through UI chat, and two external agents can connect to the MCP server.
 - [ ] Injection text cannot override policy through the UI, API, MCP server, or agent.
+
+Milestone 1 evidence: `npm test` covers domain/tool/API behavior; `npm run test:browser` exercises cases 1-3 and cancellation in a real browser. Both use temporary inventory and a fixed clock. MCP and agent acceptance items remain unchecked until those clients exist and are tested.
 
 Build automated domain and integration tests for cases 1-3 first. Use temporary data files and fixed dates; verify unchanged data on every rejected or unapproved creation. Add UI/MCP coverage for the approval path and bypass attempts.
 
