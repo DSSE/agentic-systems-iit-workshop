@@ -1,0 +1,18 @@
+{
+  "name": "clubops-group-7",
+  "version": "2.0.0",
+  "description": "ClubOps: plans a club event's expenses. Full-stack app + MCP server + model-independent agent. Hard rule: total spending never goes over the budget cap.",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=18.17" },
+  "scripts": {
+    "start": "node src/server.js",
+    "start:chat": "node scripts/run-with-env.mjs .env.chat.local src/server.js",
+    "agent": "node src/agent/cli.js",
+    "agent:gemini": "node scripts/run-with-env.mjs .env.gemini.local src/agent/cli.js",
+    "mcp": "node src/mcp/server.js",
+    "doctor": "node src/doctor.js",
+    "eval": "node evals/run.js",
+    "test": "node --test"
+  }
+}
