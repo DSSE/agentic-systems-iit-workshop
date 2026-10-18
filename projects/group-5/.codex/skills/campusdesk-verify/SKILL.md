@@ -15,13 +15,13 @@ the corresponding proposal, approval, rejection, and error flows in the UI:
 
 | Case | Evidence to collect |
 |---|---|
-| Normal | Suitable room, exact proposal, no write before approval, one saved booking after approval |
-| Reject/cancel | Booking data unchanged |
+| Normal | Exact preview, student submits pending request, independent staff approves, one confirmed booking |
+| Reject/cancel | Request status may change; confirmed bookings remain unchanged |
 | Duration | 180 minutes succeeds; 181 minutes and 5 hours return `DURATION_LIMIT_EXCEEDED` |
 | Availability | Same-room overlap returns `ROOM_UNAVAILABLE`; adjacent slots succeed |
 | Input/capacity | Invalid times, durations, group sizes and rooms fail with spec codes; excess capacity returns `CAPACITY_EXCEEDED` |
 | Direct create | Skipping the check cannot bypass validation or approval |
-| Approval binding | Missing, fabricated, or mismatched approval returns `APPROVAL_REQUIRED` |
+| Approval binding | Public MCP cannot supply human approval; only staff's API review can create the exact request |
 | Stale/concurrent | A stale conflicting proposal fails; concurrent conflicting creates produce at most one booking |
 
 Assert unchanged persisted data after failed operations, not just returned error
@@ -32,6 +32,12 @@ For Intermediate, additionally exercise all three MCP tools from two agents
 and demonstrate normal booking and clarification through UI chat. For requested
 Advanced work, compare two prompt versions over all five workshop cases and
 check room-note injection across each client.
+
+Run server tests from `server/` and `npm run test:browser` inside `web/`.
+Browser tests use isolated data and a scripted provider. Run `npm run eval`
+inside `server/` for real model calls; `-- --offline` only checks deterministic
+contracts and scoring. A provider access or quota failure is a live-verification
+blocker, never evidence that a prompt passed or failed the booking rubric.
 
 Finish with checks run, results, and remaining gaps. Update `progress.html` and
 `PLANS.md` only for work supported by evidence. Basics is done only when the

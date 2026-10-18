@@ -30,8 +30,8 @@ export const MAX_DURATION_MINUTES = 180;
 // Staff decisions refer to persisted immutable requests, not this token.
 export const PROPOSAL_TTL_MS = 5 * 60 * 1000;
 
-// Model configuration for the future chat agent (not used yet). Keep the
-// MCP/agent layer provider-agnostic.
-export const LLM_BASE_URL = process.env.LLM_BASE_URL || "";
-export const LLM_API_KEY = process.env.LLM_API_KEY || "";
-export const LLM_MODEL = process.env.LLM_MODEL || "";
+// Gemini's compatible endpoint is the default; other compatible providers can
+// override it. Secrets are loaded by Node from .env, never sent to the browser.
+export const LLM_BASE_URL = process.env.LLM_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai/";
+export const LLM_API_KEY = process.env.LLM_API_KEY || process.env.GEMINI_API_KEY || "";
+export const LLM_MODEL = process.env.LLM_MODEL || "gemini-3.8-flash";

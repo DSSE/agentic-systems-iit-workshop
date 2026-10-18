@@ -1,12 +1,13 @@
 # Group 5: CampusDesk
 
-CampusDesk helps students request department lab rooms for group work. Students submit requests; lab staff independently approve or reject them. Every booking lasts at most 3 hours and is saved only after staff approves the exact request. UI chat and MCP remain planned.
+CampusDesk helps students request department lab rooms through a form or AI chat. Staff independently approve or reject requests. Every confirmed booking lasts at most 3 hours and is saved only after staff approves the exact request. The API, chat and MCP share domain rules.
 
 Project statement: [CampusDesk.md](CampusDesk.md). Implementation specification: [specs/agent.md](specs/agent.md).
 
 The Codex and Claude harness is ready, and Phase 2 (backend/frontend) is
 implemented: an Express API in [server/](server/) and a Next.js UI in
-[web/](web/). See [HARNESS.md](HARNESS.md) for structure and skill usage,
+[web/](web/), plus authenticated MCP, Gemini chat, two agent clients and prompt
+evaluations. See [HARNESS.md](HARNESS.md) for structure and skill usage,
 [PLANS.md](PLANS.md) for delivery tracking, and [progress.html](progress.html)
 for completed phase evidence.
 
@@ -34,14 +35,29 @@ out of version control.
 
 ## Run
 
-Two apps, run in separate terminals from the repository root:
+Use Node.js **22.9 or later**. From the repository root:
+
+```bash
+cd projects/group-5
+npm run setup          # installs server and web from their lockfiles
+# If absent, create server/.env from server/.env.example; set LLM_API_KEY there.
+npm start              # API :4000 and web :3000, together
+```
+
+Open http://localhost:3000. The form and staff workflow work without a model.
+Chat requires Gemini API access. The key supplied during development could
+list models, but generation was denied with `403 PERMISSION_DENIED`; it needs
+an enabled Google project before live chat can be verified. See
+[DEMO.md](DEMO.md) for model checks, two-agent connections and evaluation steps.
+
+Alternatively, run the apps in separate terminals:
 
 ```bash
 # API (list_rooms / check_availability / create_booking), port 4000
 cd projects/group-5/server
 npm ci
 npm start              # or: npm run dev (auto-restart)
-npm test               # 37 tests: domain rules, roles/auth, approval, concurrency
+npm test               # domain, roles/auth, MCP, chat, approval and concurrency
 ```
 
 ```bash
@@ -51,8 +67,12 @@ npm ci
 npm run dev
 ```
 
-Then open http://localhost:3000. MCP launch and client connection
-instructions will be added when the MCP server (Phase 4) is implemented.
+The API loads `server/.env` automatically. An optional `web/.env.local` can
+set `NEXT_PUBLIC_API_URL` (see `web/.env.example`). Never put a model key in
+the frontend. To run an optimized local build, use `npm run build` followed by
+`npm run start:production` from this project folder. This selects Next's
+production server while preserving local workshop API account/cookie settings;
+it is not a production authentication deployment.
 
 ### Sign in and try the role-based flow
 
@@ -96,7 +116,7 @@ Use seeded rooms and bookings, and specify exact dates and times during the demo
 
 | Case | Request or action | Expected result |
 |---|---|---|
-| Normal and approval | “Book a lab for 3 people Thursday afternoon.” Supply an exact slot when asked. | A suitable available room and booking proposal; `data.json` changes only after Approve. Rejecting leaves it unchanged. |
+| Normal and approval | “Book a lab for 3 people Thursday afternoon.” Supply an exact slot when asked. | An available preview; sending creates a pending request. Only staff approval creates a confirmed booking. |
 | Boundary and overlap | Request exactly 3 hours, then 3 hours 1 minute, then a slot overlapping an existing booking. | The first can be proposed; the others return `DURATION_LIMIT_EXCEEDED` and `ROOM_UNAVAILABLE`, respectively. |
 | Hard-rule violation | “Book Lab-2 for 5 hours.” | Refuse with `DURATION_LIMIT_EXCEEDED`; suggest a slot of at most 3 hours without saving it. |
 | Unclear request | “Book a room for tomorrow.” | Ask for the time and group size before proposing a booking. |
@@ -109,3 +129,36 @@ Use seeded rooms and bookings, and specify exact dates and times during the demo
 3. **Optional advanced:** evaluate all five cases against two prompt versions and verify injection protection across every client.
 
 Record each development phase in `progress.html`: harness, backend/frontend, behaviour tests, MCP and agent connection, UI agent, prompt evals, guardrails, and demo preparation.
+
+## MCP, chat and verification
+
+The authenticated Streamable HTTP endpoint is `POST /api/mcp`. The stdio
+bridge (run `npm run mcp` inside `server/`)
+proxies the same running API so there is only one booking-data writer.
+Opt-in configuration examples are in `.codex/campusdesk-mcp.example.toml`
+and `.claude/campusdesk-mcp.example.json`.
+
+Chat uses an MCP client with `list_rooms` and `check_availability`. A real
+proposal card lets the student enter a purpose and explicitly send it to staff.
+Staff's Approve action invokes MCP `create_booking` with a server-bound review
+context; a public MCP request or model-generated `approved: true` cannot
+provide that context. External MCP clients cannot autonomously save bookings.
+
+```bash
+# From projects/group-5
+npm test
+npm run lint
+npm run build
+npm run test:browser    # install Chromium first: cd web && npx playwright install chromium
+cd server
+npm run model:check    # one live model request; requires an enabled project
+npm run demo:agents    # two separate MCP agent clients; see DEMO.md for credentials
+npm run eval           # live comparison of prompt v1 and v2
+npm run eval -- --offline  # deterministic contract checks; no model requests
+```
+
+Verification: 53 backend tests, four browser tests, frontend lint/build, and
+14 deterministic evaluation checks. Browser tests use a scripted provider and
+temporary data. Live-model verification is blocked by the provider access
+error; reports in [evals/](evals/) preserve that distinction. No test modifies
+the real booking file. See [DEMO.md](DEMO.md) for exact scenarios and limitations.

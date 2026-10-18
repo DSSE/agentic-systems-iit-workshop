@@ -14,6 +14,9 @@ const ISO_OFFSET_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{
 /** Parse an ISO 8601 timestamp that carries an explicit offset (or Z). */
 function parseExplicitIso(value) {
   if (typeof value !== "string" || !ISO_OFFSET_RE.test(value)) return null;
+  const [year, month, day, hour, minute, second] = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/).slice(1).map((part) => Number(part || 0));
+  if (month < 1 || month > 12 || day < 1 || day > new Date(Date.UTC(year, month, 0)).getUTCDate()
+    || hour > 23 || minute > 59 || second > 59) return null;
   const ms = Date.parse(value);
   return Number.isNaN(ms) ? null : new Date(ms);
 }
@@ -101,7 +104,7 @@ export function validateRequestShape(rooms, input) {
     throw new BookingError(CODES.ROOM_NOT_FOUND, `Unknown room "${room_id}".`);
   }
 
-  const durationMinutes = Math.round((endDate - startDate) / 60000);
+  const durationMinutes = (endDate - startDate) / 60000;
   if (durationMinutes > MAX_DURATION_MINUTES) {
     throw new BookingError(
       CODES.DURATION_LIMIT_EXCEEDED,

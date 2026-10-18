@@ -1,0 +1,9 @@
+{
+  "checkedOn": "2026-10-18",
+  "provider": "Gemini",
+  "endpoints": ["OpenAI-compatible chat/completions", "native generateContent"],
+  "httpStatus": 403,
+  "code": "PERMISSION_DENIED",
+  "message": "Your project has been denied access. Please contact support.",
+  "impact": "Live model calls and model-backed two-agent demonstration remain unverified. Deterministic contract tests and browser tests use an isolated test provider. No API key is included in this diagnostic."
+}

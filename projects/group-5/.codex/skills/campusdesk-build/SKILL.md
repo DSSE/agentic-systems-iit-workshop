@@ -18,16 +18,23 @@ For Basics implementation:
   domain validation module. API routes and later MCP adapters delegate to it.
 - Implement explicit-offset timestamps, positive integer group sizes, the
   180-minute boundary, half-open interval conflicts, and the spec's error codes.
-- Make a proposal read-only. Collect human approval through the application,
-  bind it to the exact proposal, and revalidate at creation time. Never trust
-  an agent's `approved: true` as evidence of a person's action.
+- Make a proposal read-only. A student confirms submission of a pending
+  request; only independent authenticated staff can approve the immutable
+  request. Revalidate at creation time. Never trust an agent's `approved: true`.
 - Keep conflict checking and persistence within a serialized operation; a
   failure must leave stored bookings intact.
 - In the UI, show room, date, timezone, start/end, duration, and group size
-  before Approve; rejection leaves data unchanged. Surface structured errors.
+  before submission and staff review. Rejection never creates a confirmed
+  booking. Surface structured errors.
 
 Add only the dependencies already authorized. Keep any later model integration
 configurable through `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`.
+
+For MCP/chat, reuse `server/src/mcp.js` and the server-owned principal. Public
+MCP and model calls never grant human approval. The staff review API supplies
+its approval context to the MCP create tool. Keep the stdio bridge connected
+to the same running API to preserve one serialized data writer. Report live
+model results separately from offline contract fixtures.
 
 Use `campusdesk-verify` for the relevant acceptance cases. Update the completed
 phase and its real evidence in `PLANS.md` and `progress.html`; report what is

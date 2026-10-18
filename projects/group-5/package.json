@@ -1,0 +1,16 @@
+{
+  "name": "campusdesk",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "start": "node scripts/start.js",
+    "start:production": "node scripts/start.js --production",
+    "test": "npm --prefix server test",
+    "build": "npm --prefix web run build",
+    "lint": "npm --prefix web run lint",
+    "test:browser": "npm --prefix web run test:browser",
+    "eval": "npm --prefix server run eval"
+  },
+  "engines": { "node": ">=22.9" }
+}
