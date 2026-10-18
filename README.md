@@ -9,10 +9,10 @@ All groups work in this one repo. Each group has its own folder, works on its ow
 | Your folder is `projects/group-<N>/` | `projects/group-3/` |
 | Your branches start with `group-<N>/` | `group-3/add-check-tool` |
 | Branch names are lowercase, no spaces | `group-3/approval-prompt` ✅ `Group3 Approval` ❌ |
-| Your group's integration branch is `group-<N>/feature` | `group-3/feature` |
-| Feature PRs target `group-<N>/feature`; only that branch opens a PR into `main` | |
+| Your group picks one feature branch, any `group-<N>/<name>` | `group-3/feature`, `group-3/dev` |
+| Work PRs target your feature branch; only the feature branch opens a PR into `main` | |
 | A PR may only change files inside your folder | |
-| Nobody pushes to `main` or `group-<N>/feature`; everything goes through a PR | |
+| Nobody pushes to `main` or your feature branch; everything goes through a PR | |
 | A teammate from your group must approve your PR | You can't approve your own |
 
 Every PR runs a check called **pr-guard**. If it fails, open the check's details: it tells you exactly what is wrong (branch name, wrong group, or files outside your folder).
@@ -61,7 +61,7 @@ Tip: open your PR early as a draft (`gh pr create --draft`) so pr-guard checks y
 |---|---|
 | Branch is not named correctly | `git branch -m group-<N>/<name>`, push again, and open a new PR |
 | Not a member of group N | You used the wrong group number in the branch name |
-| This PR targets ... | Change the PR's base to `group-<N>/feature` (Edit next to the PR title) |
+| This PR goes from ... into ... | Change the PR's base to your group's feature branch (Edit next to the PR title) |
 | Files outside your folder | Move the changes into your folder, or revert them: `git checkout origin/main -- <file>` |
 | PR comes from a fork | Clone this repo directly (you were invited as a collaborator) and push there |
 
@@ -78,7 +78,7 @@ Tip: open your PR early as a draft (`gh pr create --draft`) so pr-guard checks y
 | Rule | Enforced by |
 |---|---|
 | No direct pushes, force pushes or deletion of `main` | Ruleset `protect-main` |
-| Same for every `group-<N>/feature` branch | Ruleset `protect-group-feature` |
+| Same for branches named exactly `group-<N>/feature` (other feature-branch names rely on the group following the flow) | Ruleset `protect-group-feature` |
 | A PR needs one approval from a code owner | Rulesets + `.github/CODEOWNERS` (each group folder is owned by its members) |
 | Branch name, group membership, PR base, files only in own folder | `pr-guard` workflow (a required check) |
 | The check can't be edited from a PR | It runs with `pull_request_target`, from `main`; `.github/` is owned by instructors |
