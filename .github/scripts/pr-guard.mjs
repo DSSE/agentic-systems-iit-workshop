@@ -1,8 +1,8 @@
 // Checks a pull request against the workshop rules:
 //   1. The PR comes from this repo (not a fork).
 //   2. The branch is named group-<N>/<short-name>.
-//   3. The PR targets the group's integration branch group-<N>/feature;
-//      only group-<N>/feature itself may target the default branch.
+//   3. The PR targets the default branch or another group-<N>/ branch
+//      (the group's feature branch, e.g. group-<N>/feature or group-<N>/dev).
 //   4. The PR author is a member of group N in groups.json.
 //   5. Every changed file is inside projects/group-<N>/.
 // Instructors listed in groups.json skip rules 2-5.
@@ -46,24 +46,23 @@ if (lower(config.instructors).includes(author)) {
     const n = match[1];
     const group = config.groups[n];
     const folder = `projects/group-${n}/`;
-    const featureBranch = `group-${n}/feature`;
 
     if (group && !lower(group.members).includes(author)) {
       errors.push(`@${author} is not a member of group ${n}. Use your own group number in the branch name.`);
     }
 
-    const intoFeature = baseRef === featureBranch && branch !== featureBranch;
-    const featureIntoMain = baseRef === defaultBranch && branch === featureBranch;
-    if (!intoFeature && !featureIntoMain) {
+    const baseOk =
+      baseRef === defaultBranch || (baseRef.startsWith(`group-${n}/`) && baseRef !== branch);
+    if (!baseOk) {
       errors.push(
-        `This PR goes from "${branch}" into "${baseRef}". Open feature PRs against ` +
-          `"${featureBranch}"; only "${featureBranch}" itself opens a PR into "${defaultBranch}".`
+        `This PR goes from "${branch}" into "${baseRef}". Open it against your group's ` +
+          `feature branch (group-${n}/<name>) or "${defaultBranch}".`
       );
     }
 
     if (!group) {
       errors.push(`Group ${n} is not listed in groups.json. Check your group number.`);
-    } else if (intoFeature || featureIntoMain) {
+    } else if (baseOk) {
       const base = git("merge-base", `origin/${baseRef}`, prHead);
       const files = git("diff", "--name-only", "--no-renames", base, prHead)
         .split("\n")
