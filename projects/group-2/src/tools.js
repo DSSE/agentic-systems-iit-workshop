@@ -2,16 +2,18 @@
 // Every tool that can lead to a save calls checkAssignments itself.
 import { randomUUID } from 'node:crypto';
 import { checkAssignments, memberLoads } from './domain/rules.js';
+import { flagTasks } from './guardrails.js';
 import { createStore } from './store.js';
 import { createProposalStore, defaultProposalsFile } from './proposals.js';
 
 export function createTools(store = createStore(), proposals = createProposalStore(defaultProposalsFile(store.path))) {
+  // Task text is untrusted: tasks that read like instructions come back flagged.
   function listTasks({ status = 'all' } = {}) {
     const data = store.load();
     const tasks = data.tasks.filter((t) =>
       status === 'unassigned' ? !t.assignee : status === 'assigned' ? Boolean(t.assignee) : true,
     );
-    return { tasks, members: memberLoads(data) };
+    return { tasks: flagTasks(tasks), members: memberLoads(data) };
   }
 
   function checkCapacity({ assignments } = {}) {

@@ -33,3 +33,15 @@ export async function startServer(tools, options) {
 }
 
 export const all6ToRafi = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'].map((taskId) => ({ taskId, memberId: 'rafi' }));
+
+// A scripted stand-in for the LLM: returns the given assistant messages in order
+// and records what it was sent. The live model is checked in tests/live.test.js and evals/.
+export function scriptedLlm(steps) {
+  const calls = [];
+  const llm = async (messages, tools) => {
+    calls.push({ messages: structuredClone(messages), tools });
+    return steps[calls.length - 1] ?? { role: 'assistant', content: 'done' };
+  };
+  return { llm, calls };
+}
+export const toolCall = (id, name, args) => ({ id, type: 'function', function: { name, arguments: JSON.stringify(args) } });

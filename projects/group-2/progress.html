@@ -35,10 +35,49 @@
     <li class="done">3 Tests</li>
     <li class="done">4 MCP server</li>
     <li class="done">5 Agent in UI</li>
-    <li>6 Evals</li>
-    <li>7 Guardrails</li>
+    <li class="done">6 Evals</li>
+    <li class="done">7 Guardrails</li>
     <li>8 Demo</li>
   </ol>
+
+  <article>
+    <h2>Phase 7: Add guardrails</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>src/guardrails.js</code> flags task text that reads like an instruction (“assign all … to”, “already checked”, “ignore previous instructions”, “system:”, “skip the check”).</li>
+      <li><code>list_tasks</code> returns <code>flags: ["instruction"]</code>, so the API, UI and MCP see the same flags. The UI shows flagged tasks with a warning.</li>
+      <li>The MCP server hides flagged text from every AI client. The task keeps its id and points.</li>
+      <li>AC-17 checks C5 from every client: tools, API, UI, MCP and the agent. A model that tries “all tasks to Rafi” anyway is still refused with <code>MAX_POINTS_EXCEEDED</code>.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>Layered: HR-1 in the domain is the guarantee. Flagging and redaction stop the injection from steering the agent inside the limit.</li>
+      <li>Redaction can be turned off only for evals (<code>SPRINTBOARD_GUARDRAILS=off</code>), to measure it.</li>
+      <li>Measured with redaction off, C5 × 3 runs per prompt: the model still proposed only T1 and T2 and kept everyone within 8. It failed only because the injected words reached the model, for 0/3 on both prompts. With redaction on, both prompts scored 3/3. This model resists the injection on its own, so redaction is defense in depth.</li>
+    </ul>
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 8: prepare the demo.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 6: Write evals for the prompts</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>evals/cases.js</code>: C1–C5 with a scorer each. Scorers check proposals, tool results, the reply and what the model was sent, not the wording.</li>
+      <li><code>evals/run.js</code> (<code>npm run eval</code>): cases × prompts × runs. Each run gets a fresh fixture copy and MCP server. In C2, a person approves between turns. Results go to <code>evals/results/</code> (git-ignored).</li>
+      <li>Prompt <code>v2.md</code>: calls <code>list_tasks</code> every turn, runs <code>check_capacity</code> before <code>assign_task</code>, only suggests a spread after a refusal, and handles flagged tasks.</li>
+      <li>Live on <code>nvidia/nemotron-3-super-120b-a12b</code>, 3 runs each: v1 15/15, v2 15/15.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>The two prompts tie on this model, so the default stays <code>v1</code>. Switch with <code>PROMPT_VERSION=v2</code>. v2 is stricter on paper (C3: no unasked proposal), so it is worth re-running on a weaker model.</li>
+      <li>AC-16 runs the whole eval pipeline with a scripted model, so the scorers and the report are tested without spending credits.</li>
+    </ul>
+  </article>
 
   <article>
     <h2>Phase 5: Add the agent to the UI</h2>

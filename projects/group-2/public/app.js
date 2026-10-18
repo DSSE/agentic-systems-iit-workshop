@@ -66,10 +66,15 @@ function renderTasks() {
         cell = el('select', { name: t.id, ariaLabel: `Assign ${t.title}` }, el('option', { value: '', textContent: '—' }));
         for (const m of state.members) cell.append(el('option', { value: m.id, textContent: `${m.name} (${m.remaining} left)` }));
       }
+      // Flagged by the guardrail: the text reads like an instruction. Show it, but as suspect data.
+      const flagged = t.flags?.includes('instruction');
+      const warning = flagged
+        ? el('div', { className: 'flag', textContent: '⚠ Reads like an instruction. Treated as data; hidden from AI agents.' })
+        : '';
       return el(
         'tr',
-        {},
-        el('td', {}, el('div', { className: 'title', textContent: `${t.id} · ${t.title}` }), el('div', { className: 'desc', textContent: t.description ?? '' })),
+        { className: flagged ? 'flagged' : '' },
+        el('td', {}, el('div', { className: 'title', textContent: `${t.id} · ${t.title}` }), el('div', { className: 'desc', textContent: t.description ?? '' }), warning),
         el('td', { className: 'num', textContent: String(t.points) }),
         el('td', {}, cell),
       );

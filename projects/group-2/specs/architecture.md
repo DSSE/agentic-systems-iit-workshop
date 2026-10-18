@@ -67,7 +67,7 @@ projects/group-2/
 │   ├── fixtures/             # seed, boundary, injection
 │   ├── harness.test.js       # Phase 1
 │   └── acceptance.test.js    # AC-n todos → real tests in Phase 3
-├── evals/                    # Phase 6
+├── evals/                    # Phase 6: cases, runner, results/
 └── .claude/                  # settings, hooks, skills
 ```
 
@@ -91,3 +91,23 @@ in `data.json`. `proposals.json` is git-ignored.
 - `POST /api/chat` takes `{ messages: [{ role: 'user' | 'assistant', content }] }`. Clients
   can't send system or tool messages. Returns `{ ok, reply, proposals: [ids] }`.
 - `npm run agent` is the same agent in the terminal.
+
+## Guardrails (Phase 7)
+- `src/guardrails.js`: pure functions, no I/O. `scanText(text)` → matched pattern names;
+  `flagTasks(tasks)` adds `flags: ["instruction"]`; `redactTasks(tasks)` hides flagged text.
+- `tools.listTasks` flags tasks, so the API, UI and MCP all see the same flags.
+- `src/mcp/server.js` redacts flagged text in `list_tasks` (the boundary to every AI
+  client). `createHandler(tools, { redact })`; `SPRINTBOARD_GUARDRAILS=off` turns
+  redaction off only for evals.
+- HR-1 stays in `src/domain/rules.js`; guardrails never decide what fits.
+
+## Evals (Phase 6)
+```
+evals/
+├── cases.js     # C1–C5: fixture, turns, scorer
+├── run.js       # runEvals() + CLI: npm run eval -- --prompts v1,v2 --runs 3
+└── results/     # latest.json, latest.md (git-ignored)
+```
+Each run uses a temp copy of the fixture and its own MCP server process. The runner wraps
+the LLM to record what the model was sent, so C5 can check the injected words never
+reached it. Between the turns of C2, the runner approves the proposal as the person would.
