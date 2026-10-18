@@ -1,14 +1,14 @@
 {
   "instructors": ["Tahmid12Khan", "fahmidf3053", "jsureka", "TasmiaZerin1128"],
   "groups": {
-    "1": { "project": "CampusDesk",  "members": ["ZahinRakin", "student-a2", "student-a3", "student-a4", "student-a5"] },
-    "2": { "project": "SprintBoard", "members": ["CodeWithIsmail", "sejutiii", "student-b3", "student-b4", "student-b5"] },
-    "3": { "project": "ClubOps",     "members": ["SalsabilaZaman", "amzayedabdullah", "student-c3", "student-c4", "student-c5"] },
-    "4": { "project": "LabLend",     "members": ["zisan23", "Tashrif-007", "student-d3", "student-d4", "student-d5"] },
-    "5": { "project": "CampusDesk",  "members": ["salman1237", "FarhanTausif", "student-a3", "student-a4", "student-a5"] },
-    "6": { "project": "SprintBoard", "members": ["TAUSEEF-01", "student-b2", "student-b3", "student-b4", "student-b5"] },
-    "7": { "project": "ClubOps",     "members": ["student-c1", "student-c2", "student-c3", "student-c4", "student-c5"] },
-    "8": { "project": "LabLend",     "members": ["Yasin1406", "SamiaRahman22", "student-d3", "student-d4", "student-d5"] },
-    "9": { "project": "CampusDesk",  "members": ["thabir303", "Kazi-Nazmus-Shakib", "student-d3", "student-d4", "student-d5"] }
+    "1": { "project": "CampusDesk",  "members": ["ZahinRakin", "sariakhatun", "Mahfuz-Ayon73", "student-a4"] },
+    "2": { "project": "SprintBoard", "members": ["CodeWithIsmail", "sejutiii", "muhithasan-34", "student-b4"] },
+    "3": { "project": "ClubOps",     "members": ["SalsabilaZaman", "amzayedabdullah", "MdMostafizurRahaman", "student-c3"] },
+    "4": { "project": "LabLend",     "members": ["zisan23", "Tashrif-007", "ishmamhashim-sys", "musfiq-21"] },
+    "5": { "project": "CampusDesk",  "members": ["salman1237", "FarhanTausif", "Tamzid-Tariq", "student-a4"] },
+    "6": { "project": "SprintBoard", "members": ["TAUSEEF-01", "redowansami", "Piccolo7210", "student-b4"] },
+    "7": { "project": "ClubOps",     "members": ["SajidAhmed-here", "student-c2", "student-c3", "student-c4"] },
+    "8": { "project": "LabLend",     "members": ["Yasin1406", "SamiaRahman22", "student-d3", "student-d4"] },
+    "9": { "project": "CampusDesk",  "members": ["thabir303", "Kazi-Nazmus-Shakib", "shahalam22", "student-d4"] }
   }
 }
