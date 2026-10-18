@@ -53,6 +53,9 @@ Agents can only create proposals (`list_rooms`, `check_availability`, `create_bo
 ## Test
 ```bash
 cd backend && uv run pytest                    # rule + API tests, no LLM needed
+# e2e against a throwaway backend (never the real data.json); --chat also calls the LLM:
+cd backend && cp data.seed.json /tmp/cd-e2e.json && DATA_FILE=/tmp/cd-e2e.json uv run uvicorn app.main:app --port 8001 &
+cd backend && E2E_DATA_FILE=/tmp/cd-e2e.json bash e2e/run.sh http://localhost:8001 --chat
 cd backend && uv run python -m evals.run       # agent evals, needs LLM_API_KEY
 ```
 

@@ -6,6 +6,7 @@ Books lab rooms through a UI, a REST API, an MCP server and a chat agent; a book
 - Backend: `cd backend && uv run uvicorn app.main:app --reload --port 8000`
 - Frontend: `cd frontend && npm run dev`
 - Test: `cd backend && uv run pytest`
+- E2E: `cd backend && E2E_DATA_FILE=<temp copy> bash e2e/run.sh http://localhost:8001 [--chat]` (against a throwaway backend on :8001, never the real `data.json`)
 - Evals: `cd backend && uv run python -m evals.run`
 
 ## Structure

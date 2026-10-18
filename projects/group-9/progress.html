@@ -165,6 +165,37 @@
       <li>Milestone 3 (optional): evals for prompt v1 vs v2 on all five cases, and guardrails until case 5 is blocked from every client.</li>
     </ul>
   </article>
+  <article>
+    <h2>Phase 5 follow-up: end-to-end run and fixes</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Reported</h3>
+    <ul>
+      <li>A Lab-2 booking made from the chat did not appear in the schedule, and the form could book "the same time".</li>
+    </ul>
+
+    <h3>Found</h3>
+    <ul>
+      <li>The booking was saved (Mon 19 Oct) but the schedule showed Sun 18 Oct, and the form shares that date, so the "same time" was on another day. The overlap rule was never bypassed.</li>
+      <li>Groq returned 429 after the proposal was made, so the chat said "could not finish" above a real proposal.</li>
+      <li>The agent sometimes asked "Does that work for you?" instead of proposing (case 1: 0 of 3 live runs), and passed the room name "Lab-2" as the id (ROOM_NOT_FOUND).</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li>Approving moves the schedule to the booking's day; the header shows the day.</li>
+      <li>A turn that fails after a proposal says the proposal is waiting for Approve.</li>
+      <li>Prompt: propose as soon as date, time and group size are known; find a free room with check_availability first; plain text replies. Case 1 then proposed in 7 of 8 live runs.</li>
+      <li>Rooms are accepted by id or name in any case, resolved once in the domain module.</li>
+    </ul>
+
+    <h3>Checked</h3>
+    <ul>
+      <li><code>backend/e2e/run.sh</code> against a throwaway backend: 28 of 28 (REST, MCP and the four live chat cases).</li>
+      <li>Browser run in Chrome (Playwright, not added to the project): the reported scenario end to end, plus form cases 1 to 3: 10 of 10.</li>
+      <li>116 pytest tests pass.</li>
+    </ul>
+  </article>
 </main>
 </body>
 </html>
