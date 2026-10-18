@@ -1,0 +1,7 @@
+# Project defaults; loaded only when this project is trusted.
+# User and organization policies may further restrict these settings.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = false
