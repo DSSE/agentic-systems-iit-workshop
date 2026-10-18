@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClubOps</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <main>
+    <header class="top">
+      <div>
+        <h1>ClubOps</h1>
+        <p id="event" class="muted">Loading event</p>
+      </div>
+      <button id="reset" class="ghost" title="Restore the starting data">Reset demo data</button>
+    </header>
+
+    <section aria-labelledby="budget-h" class="budget">
+      <h2 id="budget-h">Budget</h2>
+      <div class="figures">
+        <div><span class="n" id="f-spent">0</span><span class="l">approved</span></div>
+        <div><span class="n pend" id="f-pending">0</span><span class="l">waiting for approval</span></div>
+        <div><span class="n" id="f-remaining">0</span><span class="l">left to plan</span></div>
+        <div class="capfig"><span class="n" id="f-cap">0</span><span class="l">hard cap, BDT</span></div>
+      </div>
+      <div class="bar" role="img" id="bar" aria-label="Budget bar">
+        <div class="seg spent" id="seg-spent"></div>
+        <div class="seg pending" id="seg-pending"></div>
+        <div class="capmark"><span>Cap</span></div>
+      </div>
+    </section>
+
+    <div id="alerts"></div>
+
+    <section aria-labelledby="pend-h">
+      <h2 id="pend-h">Waiting for your approval</h2>
+      <p class="hint">Nothing is saved until you press Approve.</p>
+      <ul id="pending" class="list"></ul>
+    </section>
+
+    <section aria-labelledby="ledger-h">
+      <h2 id="ledger-h">Approved expenses</h2>
+      <table>
+        <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Amount (BDT)</th></tr></thead>
+        <tbody id="ledger"></tbody>
+      </table>
+    </section>
+
+    <section aria-labelledby="add-h">
+      <h2 id="add-h">Propose an expense</h2>
+      <form id="form" class="form">
+        <label>Vendor item
+          <select id="item"></select>
+        </label>
+        <label>Quantity
+          <input id="qty" type="number" min="1" value="1">
+        </label>
+        <button type="submit">Check and propose</button>
+      </form>
+      <p id="form-msg" class="msg" role="status"></p>
+    </section>
+
+    <section aria-labelledby="vend-h">
+      <h2 id="vend-h">Vendors</h2>
+      <ul id="vendors" class="vendors"></ul>
+    </section>
+  </main>
+
+  <aside class="chat" aria-labelledby="chat-h">
+    <h2 id="chat-h">Plan with the assistant</h2>
+    <p class="hint">It uses the same tools as any MCP client and can only propose.</p>
+    <div id="log" class="log" aria-live="polite"></div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" autocomplete="off" placeholder="Plan snacks and a speaker for Friday's seminar." aria-label="Message">
+      <button type="submit">Send</button>
+    </form>
+  </aside>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "clubops",
+  "version": "1.0.0",
+  "description": "ClubOps: plans a club event's expenses. Hard rule: total spending never goes over the budget cap.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/api/server.js",
+    "mcp": "node src/mcp/server.js",
+    "agent": "node src/agent/cli.js",
+    "test": "node --test",
+    "verify": "node --test && node scripts/check-rule-location.mjs",
+    "evals": "node evals/run.mjs",
+    "evals:compare": "node evals/run.mjs --prompts v1,v2",
+    "reset": "node scripts/reset.mjs",
+    "progress": "node scripts/progress.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "zod": "^3.23.8"
+  }
+}
