@@ -52,6 +52,7 @@ export function approveProposal(id) {
   });
   proposal.status = 'approved';
   proposal.expenseId = expense.id;
+  saveProposal(proposal);
   return { proposal, expense };
 }
 
@@ -62,5 +63,5 @@ export function rejectProposal(id) {
     throw new RuleError(INVALID_REQUEST, `Proposal ${id} is already ${proposal.status}.`, { id });
   }
   proposal.status = 'rejected';
-  return proposal;
+  return saveProposal(proposal);
 }

@@ -33,7 +33,10 @@
   <p>node:test suite (18 tests): cases 1 to 3, exact-cap and cap + 1 boundary, add_expense refusing without a token or over the cap, nothing written without approval, and the case 5 injection text staying inert.</p>
 </div>
 
-<div class="entry todo"><h2>Phase 4: MCP server and agents (todo)</h2></div>
+<div class="entry">
+  <h2>Phase 4: MCP server and connect any agent (done)</h2>
+  <p>src/mcp-server.js exposes list_vendors, check_budget and add_expense (proposal only) over stdio, calling the same domain module. Pending proposals now persist in proposals.json so the UI and MCP server share them. Added Claude Code permissions, two hooks (protect data.json, test after edit), a verify-cases skill and .mcp.json. 28 tests pass.</p>
+</div>
 <div class="entry todo"><h2>Phase 5: Agent in the UI (todo)</h2></div>
 <div class="entry todo"><h2>Phase 6: Evals for the prompts (todo)</h2></div>
 <div class="entry todo"><h2>Phase 7: Guardrails (todo)</h2></div>

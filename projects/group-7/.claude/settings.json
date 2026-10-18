@@ -4,15 +4,41 @@
       "Bash(npm test)",
       "Bash(npm start)",
       "Bash(git diff:*)",
-      "Bash(git status)"
+      "Bash(git status)",
+      "mcp__clubops__list_vendors",
+      "mcp__clubops__check_budget"
+    ],
+    "ask": [
+      "mcp__clubops__add_expense"
     ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
+      "Edit(./data.json)",
+      "Write(./data.json)",
       "Bash(curl:*)",
       "Bash(wget:*)",
       "Bash(git push --force:*)",
       "Bash(rm -rf:*)"
+    ]
+  },
+  "enabledMcpjsonServers": ["clubops"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-data.mjs\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/test-after-edit.mjs\"", "timeout": 90 }
+        ]
+      }
     ]
   }
 }

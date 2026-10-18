@@ -4,16 +4,17 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resetProposals } from '../src/store.js';
 
-const realData = join(dirname(fileURLToPath(import.meta.url)), '..', 'data.json');
+// Pinned copy of the seed data, so tests don't depend on what was approved in the live data.json.
+const seedData = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'data.json');
 
 function tempFile() {
   return join(mkdtempSync(join(tmpdir(), 'clubops-')), 'data.json');
 }
 
-// Points the store at a temp copy of the real data.json.
-export function useRealData() {
+// Points the store at a temp copy of the seed data.
+export function useSeedData() {
   const file = tempFile();
-  copyFileSync(realData, file);
+  copyFileSync(seedData, file);
   process.env.CLUBOPS_DATA = file;
   resetProposals();
   return file;

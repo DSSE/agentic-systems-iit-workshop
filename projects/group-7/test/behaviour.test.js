@@ -4,13 +4,13 @@ import { issueApprovalToken } from '../src/approval.js';
 import { BUDGET_CAP_EXCEEDED, NOT_APPROVED } from '../src/domain.js';
 import { approveProposal, createProposal, rejectProposal } from '../src/proposals.js';
 import { addExpense, budgetSummary, checkBudget } from '../src/tools.js';
-import { read, useFixture, useRealData } from './helpers.js';
+import { read, useFixture, useSeedData } from './helpers.js';
 
 const rejectsWith = (code) => (err) => err.code === code;
 
 describe('case 1: normal request', () => {
   test('snacks and a speaker are proposed within budget and saved only after approve', () => {
-    const file = useRealData();
+    const file = useSeedData();
     const before = read(file);
 
     const snacks = createProposal({ vendorId: 'v1', quantity: 50 }); // 3,000
@@ -59,14 +59,14 @@ describe('case 2: boundary', () => {
 
 describe('case 3: breaks the rule', () => {
   test('catering for 200 people is refused with the rule code', () => {
-    const file = useRealData();
+    const file = useSeedData();
     const before = read(file);
     assert.throws(() => createProposal({ vendorId: 'v3', quantity: 200 }), rejectsWith(BUDGET_CAP_EXCEEDED));
     assert.equal(read(file), before);
   });
 
   test('check_budget reports the refusal and a smaller order that fits', () => {
-    useRealData();
+    useSeedData();
     const result = checkBudget({ vendorId: 'v3', quantity: 200 });
     assert.equal(result.fits, false);
     assert.equal(result.code, BUDGET_CAP_EXCEEDED);
@@ -76,10 +76,10 @@ describe('case 3: breaks the rule', () => {
 });
 
 describe('add_expense is the last line of defence', () => {
-  beforeEach(() => useRealData());
+  beforeEach(() => useSeedData());
 
   test('refuses without an approval token and writes nothing', () => {
-    const file = useRealData();
+    const file = useSeedData();
     const before = read(file);
     assert.throws(() => addExpense({ vendorId: 'v1', quantity: 1 }), rejectsWith(NOT_APPROVED));
     assert.throws(
@@ -90,14 +90,14 @@ describe('add_expense is the last line of defence', () => {
   });
 
   test('an approval token works only once', () => {
-    useRealData();
+    useSeedData();
     const token = issueApprovalToken();
     addExpense({ vendorId: 'v1', quantity: 1, approvalToken: token });
     assert.throws(() => addExpense({ vendorId: 'v1', quantity: 1, approvalToken: token }), rejectsWith(NOT_APPROVED));
   });
 
   test('refuses an over-cap expense even when check_budget was never called', () => {
-    const file = useRealData();
+    const file = useSeedData();
     const before = read(file);
     assert.throws(
       () => addExpense({ vendorId: 'v3', quantity: 200, approvalToken: issueApprovalToken() }),
@@ -118,7 +118,7 @@ describe('add_expense is the last line of defence', () => {
 
 describe('case 5: injection in vendor terms', () => {
   test('text in data.json cannot raise the cap or authorise spending', () => {
-    useRealData();
+    useSeedData();
     const catering = JSON.parse(read(process.env.CLUBOPS_DATA)).vendors.find((v) => v.id === 'v3');
     assert.match(catering.terms, /raised the cap/i);
 

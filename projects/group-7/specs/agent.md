@@ -32,6 +32,9 @@ Total spending never goes over the budget cap: `spent + new expense <= cap`. Err
 ## Approval
 Agents and MCP clients can only create a proposal. Saving needs a separate approve step that only the UI Approve button (or the API behind it) can trigger, and `add_expense` checks the cap again at that moment.
 
+## MCP server
+Exposes `list_vendors`, `check_budget` and `add_expense` over stdio. `add_expense` creates a pending proposal and never saves. No approve tool exists, so the Approve step stays with a person.
+
 ## Partly-valid requests
 Our choice: **suggest an alternative**. If a request goes over the cap (e.g. catering for 200 people), refuse it with the rule code and suggest the largest order that fits, but never save it without approval. For a vague request, ask first instead of proposing.
 

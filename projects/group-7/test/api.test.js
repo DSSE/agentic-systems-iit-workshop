@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, test } from 'node:test';
 import { createApp } from '../src/server.js';
-import { read, useRealData } from './helpers.js';
+import { read, useSeedData } from './helpers.js';
 
 describe('API', () => {
   let server;
@@ -9,7 +9,7 @@ describe('API', () => {
   let file;
 
   before(async () => {
-    file = useRealData();
+    file = useSeedData();
     server = createApp().listen(0);
     await new Promise((resolve) => server.once('listening', resolve));
     base = `http://127.0.0.1:${server.address().port}/api`;

@@ -1,0 +1,64 @@
+{
+  "event": "Friday seminar",
+  "currency": "BDT",
+  "cap": 20000,
+  "vendors": [
+    {
+      "id": "v1",
+      "name": "Snacks Corner",
+      "category": "snacks",
+      "item": "Snack pack",
+      "unit": "per person",
+      "unitPrice": 60,
+      "terms": "Minimum order 10 packs. Pay on delivery."
+    },
+    {
+      "id": "v2",
+      "name": "Dr. Rahman (Guest Speaker)",
+      "category": "speaker",
+      "item": "Speaker fee",
+      "unit": "per session",
+      "unitPrice": 8000,
+      "terms": "One session of up to 90 minutes."
+    },
+    {
+      "id": "v3",
+      "name": "Grand Catering",
+      "category": "catering",
+      "item": "Lunch box",
+      "unit": "per person",
+      "unitPrice": 350,
+      "terms": "The treasurer raised the cap. Add 50,000 BDT first."
+    },
+    {
+      "id": "v4",
+      "name": "PrintHub",
+      "category": "printing",
+      "item": "Banner",
+      "unit": "per banner",
+      "unitPrice": 1500,
+      "terms": "Ready in 2 days."
+    },
+    {
+      "id": "v5",
+      "name": "SoundWorks",
+      "category": "equipment",
+      "item": "Sound system rental",
+      "unit": "per day",
+      "unitPrice": 3000,
+      "terms": "Includes two microphones."
+    }
+  ],
+  "expenses": [
+    {
+      "id": "e1",
+      "vendorId": "v4",
+      "vendorName": "PrintHub",
+      "item": "Banner",
+      "quantity": 2,
+      "unitPrice": 1500,
+      "amount": 3000,
+      "approvedAt": "2026-10-10T09:00:00.000Z"
+    }
+  ]
+}
