@@ -71,7 +71,23 @@ projects/group-2/
 └── .claude/                  # settings, hooks, skills
 ```
 
-## Open questions
-- Phase 4: MCP and the web server are separate processes, so in-memory proposals made via
-  MCP aren't visible to the UI. Options: MCP calls the HTTP API, or proposals go to a
-  separate `proposals.json`. Decide before Phase 4.
+## Proposals across processes (decided in Phase 4)
+The MCP server and the web server are separate processes. Pending proposals live in
+`proposals.json` next to the data file (`src/proposals.js`, override with `PROPOSALS_FILE`).
+Any client can add a proposal; only the web app's Approve turns one into a saved assignment
+in `data.json`. `proposals.json` is git-ignored.
+
+## MCP server (Phase 4)
+- stdio, newline-delimited JSON-RPC 2.0, written by hand (no SDK dependency).
+- Methods: `initialize`, `ping`, `tools/list`, `tools/call`. Tool results carry the tool's JSON
+  as text and `structuredContent`; `isError: true` when `ok: false`.
+- Registered for Claude Code in `.mcp.json`. Other clients (Codex, Gemini CLI, Cursor) use
+  the same command: `node src/mcp/server.js` from this folder.
+
+## Chat agent (Phase 5)
+- `src/agent/llm.js`: OpenAI-compatible `/chat/completions` via `fetch`; `.env` picks the model.
+- `src/agent/mcp-client.js`: spawns the MCP server and calls its tools.
+- `src/agent/agent.js`: tool loop (max 8 steps); system prompt from `prompts/<PROMPT_VERSION>.md`.
+- `POST /api/chat` takes `{ messages: [{ role: 'user' | 'assistant', content }] }`. Clients
+  can't send system or tool messages. Returns `{ ok, reply, proposals: [ids] }`.
+- `npm run agent` is the same agent in the terminal.

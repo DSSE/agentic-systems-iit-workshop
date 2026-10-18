@@ -98,10 +98,10 @@ IDs are referenced by test names (`AC-n: ...`) so each criterion maps to a test.
 - [x] AC-11: Cases C1–C3 work in the UI; only the Approve button saves. (API path tested; tick after a manual click-through)
 
 ### Milestone 2 (Phases 4–5)
-- [ ] AC-12: The MCP server exposes `list_tasks`, `check_capacity`, `assign_task` and calls the domain module.
-- [ ] AC-13: Two different AI clients can connect to the MCP server.
-- [ ] AC-14 (C1): Chat agent handles case 1 in plain words.
-- [ ] AC-15 (C4): Chat agent asks a question back for case 4.
+- [x] AC-12: The MCP server exposes `list_tasks`, `check_capacity`, `assign_task` and calls the domain module.
+- [x] AC-13: Two different AI clients can connect to the MCP server. (two client sessions tested; tick once Claude Code is approved and connected)
+- [x] AC-14 (C1): Chat agent handles case 1 in plain words.
+- [x] AC-15 (C4): Chat agent asks a question back for case 4.
 
 ### Milestone 3 (Phases 6–7, optional)
 - [ ] AC-16: Evals cover C1–C5 and compare two prompt versions.

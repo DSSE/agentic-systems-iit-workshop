@@ -33,12 +33,45 @@
     <li class="done">1 Harness</li>
     <li class="done">2 Backend + frontend</li>
     <li class="done">3 Tests</li>
-    <li>4 MCP server</li>
-    <li>5 Agent in UI</li>
+    <li class="done">4 MCP server</li>
+    <li class="done">5 Agent in UI</li>
     <li>6 Evals</li>
     <li>7 Guardrails</li>
     <li>8 Demo</li>
   </ol>
+
+  <article>
+    <h2>Phase 5: Add the agent to the UI</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li>Chat agent in <code>src/agent/</code>: any OpenAI-compatible model from <code>.env</code> (now NVIDIA NIM), tools only through the MCP server, prompt in <code>prompts/v1.md</code>.</li>
+      <li>“Ask the agent” panel in the UI and <code>POST /api/chat</code>; the agent's proposals show under Pending proposals and still need Approve.</li>
+      <li><code>npm run agent</code> for the terminal; <code>npm run test:live</code> checks C1 and C4 on the real model.</li>
+      <li>Live: C1 gives one balanced proposal (T1 → Rafi, T2 → Nadia); C4 lists the options and asks which tasks and to whom. Passed 2 of 2 runs after a prompt fix.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>Prompt fix after the first live run: spread tasks across members, and end a clarifying reply with a question.</li>
+      <li>Clients send only user/assistant text; system and tool messages are rejected.</li>
+    </ul>
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 6: evals for C1–C5 and a v2 prompt to compare.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 4: Make the MCP server and connect any agent</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>src/mcp/server.js</code>: MCP over stdio, written by hand with no SDK. Exposes <code>list_tasks</code>, <code>check_capacity</code>, <code>assign_task</code>, and no approve.</li>
+      <li>Proposals moved to a shared <code>proposals.json</code>, so a proposal made over MCP can be approved in the UI.</li>
+      <li>Claude Code connects through <code>.mcp.json</code>; our agent connects through <code>src/agent/mcp-client.js</code>.</li>
+      <li>Tests AC-12 and AC-13 run the real MCP server as a child process.</li>
+    </ul>
+  </article>
 
   <article>
     <h2>Phase 3: Test the behaviour</h2>

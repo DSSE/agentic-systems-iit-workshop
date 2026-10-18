@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sprintboard": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["src/mcp/server.js"]
+    }
+  }
+}

@@ -37,6 +37,19 @@
     <h2>Pending proposals</h2>
     <div id="proposals"><p class="empty">No pending proposals.</p></div>
   </section>
+
+  <section>
+    <h2>Ask the agent</h2>
+    <div class="chat">
+      <div id="chat-log" class="chat-log" aria-live="polite">
+        <p class="empty">Try “Assign the login and payment tasks for this sprint.” The agent only proposes; you approve above.</p>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" autocomplete="off" placeholder="Ask in plain words…" aria-label="Message the agent">
+        <button type="submit" id="chat-send">Send</button>
+      </form>
+    </div>
+  </section>
 </main>
 <script type="module" src="/app.js"></script>
 </body>

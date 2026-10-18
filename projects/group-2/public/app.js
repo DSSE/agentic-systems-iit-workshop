@@ -123,4 +123,43 @@ async function decide(id, action) {
   await refresh();
 }
 
+// Chat: history is user/assistant text only; the agent can propose, never approve.
+const chatHistory = [];
+
+function addBubble(role, text) {
+  const log = $('chat-log');
+  log.querySelector('.empty')?.remove();
+  log.append(el('div', { className: `bubble ${role}`, textContent: text }));
+  log.scrollTop = log.scrollHeight;
+}
+
+$('chat-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = $('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addBubble('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  $('chat-send').disabled = true;
+  addBubble('thinking', 'Thinking…');
+  try {
+    const result = await api('POST', '/api/chat', { messages: chatHistory.slice(-20) });
+    $('chat-log').querySelector('.thinking')?.remove();
+    if (result.ok) {
+      addBubble('assistant', result.reply);
+      chatHistory.push({ role: 'assistant', content: result.reply });
+      if (result.proposals.length) showMessage('ok', 'Agent created a proposal.', 'Review it under Pending proposals and click Approve to save.');
+    } else {
+      addBubble('error', `${result.code}: ${result.details?.message ?? result.details?.reason ?? ''}`);
+    }
+  } catch (err) {
+    $('chat-log').querySelector('.thinking')?.remove();
+    addBubble('error', err.message);
+  } finally {
+    $('chat-send').disabled = false;
+    await refresh();
+  }
+});
+
 refresh();

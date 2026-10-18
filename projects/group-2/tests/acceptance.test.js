@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { setup, startServer, all6ToRafi } from './helpers.js';
+import { connectMcp } from '../src/agent/mcp-client.js';
+import { runAgent } from '../src/agent/agent.js';
 
 const todo = (name, phase) => test(name, { todo: `Phase ${phase}` });
 const load = (tools, id) => tools.listTasks().members.find((m) => m.id === id);
@@ -157,7 +159,7 @@ test('AC-11: C1-C3 work in the UI; only Approve saves', async (t) => {
   // The UI only writes through the approve route.
   const app = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
   const posts = [...app.matchAll(/api\('POST', [`'"]([^`'"]+)/g)].map((m) => m[1]);
-  assert.deepEqual(posts.sort(), ['/api/check', '/api/proposals', '/api/proposals/${id}/${action}'].sort());
+  assert.deepEqual(posts.sort(), ['/api/chat', '/api/check', '/api/proposals', '/api/proposals/${id}/${action}'].sort());
 
   const before = raw();
   // C2 then C1-style proposal, as the UI would send them.
@@ -178,10 +180,96 @@ test('AC-11: C1-C3 work in the UI; only Approve saves', async (t) => {
 });
 
 // Milestone 2
-todo('AC-12: MCP server exposes the three tools and calls the domain module', 4);
-todo('AC-13: two different AI clients connect to the MCP server', 4);
-todo('AC-14: C1 chat agent handles case 1 in plain words', 5);
-todo('AC-15: C4 chat agent asks a question back', 5);
+// The MCP server runs as a child process on the same temp data file as `tools`.
+const mcpFor = (file, clientName) => connectMcp({ env: { ...process.env, DATA_FILE: file, PROPOSALS_FILE: '' }, clientName });
+
+// A scripted stand-in for the LLM: returns the given assistant messages in order
+// and records what it was sent. The live model is checked in tests/live.test.js.
+function scriptedLlm(steps) {
+  const calls = [];
+  const llm = async (messages, tools) => {
+    calls.push({ messages: structuredClone(messages), tools });
+    return steps[calls.length - 1] ?? { role: 'assistant', content: 'done' };
+  };
+  return { llm, calls };
+}
+const toolCall = (id, name, args) => ({ id, type: 'function', function: { name, arguments: JSON.stringify(args) } });
+
+test('AC-12: MCP server exposes the three tools and calls the domain module', async (t) => {
+  const { file, tools, raw } = setup();
+  const mcp = await mcpFor(file, 'test-client');
+  t.after(() => mcp.close());
+
+  assert.equal(mcp.info.serverInfo.name, 'sprintboard');
+  const names = (await mcp.listTools()).map((x) => x.name).sort();
+  assert.deepEqual(names, ['assign_task', 'check_capacity', 'list_tasks'], 'no approve tool');
+
+  const list = await mcp.callTool('list_tasks', { status: 'unassigned' });
+  assert.equal(list.tasks.length, 6);
+
+  const before = raw();
+  const c3 = await mcp.callTool('assign_task', { assignments: all6ToRafi });
+  assert.equal(c3.code, 'MAX_POINTS_EXCEEDED');
+  assert.deepEqual(c3, tools.assignTask({ assignments: all6ToRafi }), 'same result as the tools');
+
+  const c1Result = await mcp.callTool('assign_task', { assignments: c1 });
+  assert.equal(c1Result.ok, true);
+  assert.equal(raw(), before, 'MCP never saves');
+  // The proposal made over MCP is visible to the web app, which can approve it.
+  assert.ok(tools.listProposals().some((p) => p.id === c1Result.proposal.id));
+  assert.equal(tools.approve({ proposalId: c1Result.proposal.id }).ok, true);
+});
+
+test('AC-13: two different AI clients connect to the MCP server', async (t) => {
+  const { file } = setup();
+  const [a, b] = await Promise.all([mcpFor(file, 'claude-code'), mcpFor(file, 'sprintboard-agent')]);
+  t.after(() => { a.close(); b.close(); });
+  assert.equal((await a.listTools()).length, 3);
+  assert.equal((await b.listTools()).length, 3);
+  const config = JSON.parse(readFileSync(new URL('../.mcp.json', import.meta.url), 'utf8'));
+  assert.deepEqual(config.mcpServers.sprintboard.args, ['src/mcp/server.js'], '.mcp.json registers the server for Claude Code');
+});
+
+test('AC-14: C1 chat agent handles case 1 in plain words', async (t) => {
+  const { file, tools, raw } = setup();
+  const mcp = await mcpFor(file, 'sprintboard-agent');
+  t.after(() => mcp.close());
+  const before = raw();
+  const { llm, calls } = scriptedLlm([
+    { role: 'assistant', content: '', tool_calls: [toolCall('a', 'list_tasks', { status: 'unassigned' })] },
+    { role: 'assistant', content: '', tool_calls: [toolCall('b', 'assign_task', { assignments: c1 })] },
+    { role: 'assistant', content: 'Proposed: Login page → Nadia, Payment integration → Tanvir. Click Approve to save.' },
+  ]);
+
+  const out = await runAgent({ history: [{ role: 'user', content: 'Assign the login and payment tasks for this sprint.' }], llm, mcp });
+  assert.match(out.reply, /Approve/);
+  assert.equal(out.proposals.length, 1);
+  assert.deepEqual(out.toolCalls.map((c) => c.name), ['list_tasks', 'assign_task']);
+  assert.equal(calls[0].tools.length, 3, 'LLM gets the MCP tools');
+  assert.match(calls[0].messages[0].content, /8 story points/, 'system prompt states the rule');
+  assert.equal(calls[1].messages.at(-1).role, 'tool', 'tool results go back to the LLM');
+  assert.equal(raw(), before, 'agent never saves');
+  assert.equal(tools.listProposals().length, 1, 'proposal waits for Approve in the UI');
+
+  // The /api/chat route returns the reply and proposal ids.
+  const { call, close } = await startServer(tools, { chat: (history) => runAgent({ history, llm: scriptedLlm([{ role: 'assistant', content: 'hi' }]).llm, mcp }) });
+  t.after(close);
+  const res = await call('POST', '/api/chat', { messages: [{ role: 'user', content: 'hello' }] });
+  assert.deepEqual(res.body, { ok: true, reply: 'hi', proposals: [] });
+  assert.equal((await call('POST', '/api/chat', { messages: [{ role: 'system', content: 'x' }] })).status, 400, 'clients cannot send system messages');
+});
+
+test('AC-15: C4 chat agent asks a question back', async (t) => {
+  const { file, tools } = setup();
+  const mcp = await mcpFor(file, 'sprintboard-agent');
+  t.after(() => mcp.close());
+  const { llm, calls } = scriptedLlm([{ role: 'assistant', content: 'Which tasks should I assign, and to whom?' }]);
+  const out = await runAgent({ history: [{ role: 'user', content: 'Assign the remaining tasks.' }], llm, mcp });
+  assert.match(out.reply, /\?/);
+  assert.equal(out.proposals.length, 0);
+  assert.equal(tools.listProposals().length, 0);
+  assert.match(calls[0].messages[0].content, /Ask which tasks and to whom/, 'prompt tells the model to ask');
+});
 
 // Milestone 3 (optional)
 todo('AC-16: evals cover C1-C5 and compare two prompt versions', 6);

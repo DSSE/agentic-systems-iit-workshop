@@ -4,6 +4,26 @@ import { readFile } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createTools } from './tools.js';
+import { createLlm } from './agent/llm.js';
+import { connectMcp } from './agent/mcp-client.js';
+import { runAgent } from './agent/agent.js';
+
+// Default chat: the agent talks to the tools only through the MCP server.
+function createChat() {
+  let ready;
+  return async (history) => {
+    ready ??= Promise.all([createLlm(), connectMcp({ clientName: 'sprintboard-web' })]).catch((err) => {
+      ready = undefined;
+      throw err;
+    });
+    const [llm, mcp] = await ready;
+    return runAgent({ history, llm, mcp });
+  };
+}
+
+const validHistory = (h) =>
+  Array.isArray(h) && h.length > 0 && h.length <= 40 &&
+  h.every((m) => (m?.role === 'user' || m?.role === 'assistant') && typeof m.content === 'string' && m.content.length <= 4000);
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
@@ -43,7 +63,7 @@ async function serveStatic(res, pathname) {
   }
 }
 
-export function createServer(tools = createTools()) {
+export function createServer(tools = createTools(), { chat = createChat() } = {}) {
   return createHttpServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const { pathname } = url;
@@ -61,6 +81,17 @@ export function createServer(tools = createTools()) {
         const body = await readBody(req);
         if (body === null) return send(res, 400, { ok: false, code: 'INVALID_INPUT', details: { reason: 'invalid JSON' } });
 
+        if (pathname === '/api/chat') {
+          if (!validHistory(body.messages)) {
+            return send(res, 400, { ok: false, code: 'INVALID_INPUT', details: { reason: 'messages must be user/assistant text' } });
+          }
+          try {
+            const { reply, proposals } = await chat(body.messages);
+            return send(res, 200, { ok: true, reply, proposals: proposals.map((p) => p.id) });
+          } catch (err) {
+            return send(res, 502, { ok: false, code: 'AGENT_ERROR', details: { message: err.message } });
+          }
+        }
         if (pathname === '/api/check') {
           const result = tools.checkCapacity(body);
           return send(res, statusFor(result), result);
