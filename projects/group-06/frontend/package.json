@@ -1,0 +1,23 @@
+{
+  "name": "sprintboard-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SprintBoard frontend: Next.js + TypeScript UI over the backend's three tools",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^16.4.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

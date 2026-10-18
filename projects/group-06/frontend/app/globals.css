@@ -1,0 +1,142 @@
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0b0d12;
+  color: #e7e9ee;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+h1 {
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: #9aa2b1;
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+section {
+  margin-bottom: 2.5rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9aa2b1;
+  margin-bottom: 0.75rem;
+}
+
+.members {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.member-card {
+  border: 1px solid #262a36;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  min-width: 140px;
+  background: #141822;
+}
+
+.member-card .name {
+  font-weight: 600;
+}
+
+.bar {
+  height: 6px;
+  border-radius: 4px;
+  background: #262a36;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #4caf7d;
+}
+
+.bar-fill.full {
+  background: #e0a63a;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid #1d212b;
+  vertical-align: top;
+}
+
+th {
+  color: #9aa2b1;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+select, button {
+  font: inherit;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #343a48;
+  background: #1a1e28;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.approve {
+  background: #2d6a4f;
+  border-color: #2d6a4f;
+  color: white;
+}
+
+.preview-ok {
+  color: #4caf7d;
+}
+
+.preview-refused {
+  color: #e05d5d;
+}
+
+.status-line {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.task-desc {
+  color: #9aa2b1;
+  font-size: 0.85rem;
+}
+
+.empty {
+  color: #9aa2b1;
+  font-style: italic;
+}

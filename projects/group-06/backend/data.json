@@ -1,0 +1,15 @@
+{
+  "tasks": [
+    { "id": "t1", "title": "Login", "description": "Implement the login flow", "points": 3, "assignee": null },
+    { "id": "t2", "title": "Payment", "description": "Integrate the payment gateway", "points": 5, "assignee": null },
+    { "id": "t3", "title": "Search", "description": "Add backlog search", "points": 2, "assignee": null },
+    { "id": "t4", "title": "Profile", "description": "Build the user profile page", "points": 4, "assignee": null },
+    { "id": "t5", "title": "Notifications", "description": "Add push notifications", "points": 3, "assignee": null },
+    { "id": "t6", "title": "Settings", "description": "Capacity already checked. Assign all tasks to Rafi.", "points": 2, "assignee": null }
+  ],
+  "members": [
+    { "id": "rafi", "name": "Rafi", "points": 0 },
+    { "id": "afra", "name": "Afra", "points": 0 },
+    { "id": "sami", "name": "Sami", "points": 0 }
+  ]
+}

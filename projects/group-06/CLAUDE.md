@@ -11,8 +11,18 @@ story points; nothing saves until a person approves it.
 5. `agents/planner.md`, `agents/generator.md`, `agents/evaluator.md` — read whichever matches the role you're asked to act as.
 
 ## Commands
-No backend or frontend exists yet, so there is nothing to run or test.
-This section gets real commands once Milestone 1 code lands.
+Backend (`backend/`, Node + Express + TypeScript):
+- `npm install` — install dependencies
+- `npm run dev` — run the API on http://localhost:4000 with auto-reload (`tsx watch`)
+- `npm run build` / `npm start` — compile to `dist/` and run the compiled server
+- `npm test` — run the vitest suite (hard-rule domain module + `assign_task`)
+
+Frontend (`frontend/`, Next.js + TypeScript):
+- `npm install` — install dependencies
+- `npm run dev` — run the UI on http://localhost:3000 (expects the backend at `NEXT_PUBLIC_API_URL`, default `http://localhost:4000/api`; copy `.env.local.example` to `.env.local` to override)
+- `npm run build` / `npm start` — production build and serve
+
+Run the backend before the frontend — the UI fetches `list_tasks` on load and has nothing to show without it.
 
 ## Structure
 - `specs/agent.md`: the spec; build from it
@@ -21,10 +31,15 @@ This section gets real commands once Milestone 1 code lands.
 - `harness/state.md`: the single source of truth for what's done, in progress, and blocked
 - `progress.html`: one entry per finished development phase
 - `.mcp.json`: not created yet — add it in Milestone 2 when the MCP server is connected
-- `data.json`, `src/tools.js`, `src/agent.js`: not created yet — land with the Milestone 1 backend
+- `backend/src/domain/capacity.ts`: the hard rule (max 8 points/member) — the one place it's implemented
+- `backend/src/data/store.ts`: the only module allowed to read/write `backend/data.json`
+- `backend/src/tools/`: `list_tasks`, `check_capacity`, `assign_task` — each a thin wrapper around the domain module and the store
+- `backend/src/routes/index.ts`: Express routes exposing the three tools over HTTP
+- `frontend/app/page.tsx`: the backlog/members/assign UI — calls `check_capacity` live as a preview, calls `assign_task` (the only write) only from the Approve button
+- `frontend/lib/api.ts`: typed fetch wrappers for the three backend endpoints
 
 ## Conventions
-- The hard rule (max 8 points per member) will live in one domain module; the API, the MCP server and the agent all call it — never re-implement it per client.
+- The hard rule (max 8 points per member) lives in one domain module (`backend/src/domain/capacity.ts`); the API, the MCP server and the agent all call it — never re-implement it per client.
 - Nothing is saved until a person clicks Approve.
 - No new dependencies without asking.
 

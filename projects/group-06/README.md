@@ -19,10 +19,13 @@ Start with `CLAUDE.md` — it lists the files to read and in what order
 (spec → tool contracts → workflow → current state).
 
 ## Run
-Phase 1 (this harness) has no backend or frontend yet, so there's
-nothing to install or run. This section will be filled in with real
-`npm install` / run / test commands once Milestone 1's Express backend
-and Next.js frontend land — see `harness/state.md` for what's next.
+```
+cd backend && npm install && npm run dev    # API on :4000
+cd frontend && npm install && npm run dev   # UI on :3000
+```
+Start the backend first. See `CLAUDE.md`'s Commands section for build/test
+commands, and `harness/state.md` for what's next (the Phase 2 work is
+awaiting evaluator review).
 
 ## Demo cases
 See the five cases in `sprintboard_project_spec.md`:
