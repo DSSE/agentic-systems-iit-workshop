@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.next/
+node_modules/
+next-env.d.ts
+
+# Handout photos (local reference only)
+miss/
