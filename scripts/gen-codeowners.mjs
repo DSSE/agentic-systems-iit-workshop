@@ -1,6 +1,8 @@
 // Writes .github/CODEOWNERS from groups.json.
-// Instructors own everything; each group folder is also owned by its members,
-// so a teammate (not the PR author) must approve every group PR.
+// Instructors own everything outside the group folders; each group folder is
+// owned only by its members, so a teammate (not the PR author) must approve
+// every group PR and instructors are not requested on it. Instructors are repo
+// admins and can bypass the review rule when a group needs unblocking.
 // Re-run this whenever groups.json changes, and commit the result.
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -19,7 +21,7 @@ const lines = [
 
 for (const [n, group] of Object.entries(config.groups)) {
   lines.push(`# Group ${n}: ${group.project}`);
-  lines.push(`/projects/group-${n}/  ${at(group.members)} ${instructors}`);
+  lines.push(`/projects/group-${n}/  ${at(group.members)}`);
 }
 
 writeFileSync(".github/CODEOWNERS", lines.join("\n") + "\n");
