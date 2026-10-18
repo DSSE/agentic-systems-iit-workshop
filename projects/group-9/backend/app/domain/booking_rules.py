@@ -10,7 +10,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
-MAX_DURATION = timedelta(hours=3)
+MAX_DURATION_MINUTES = 180  # the hard rule; prompts get this number injected
+MAX_DURATION = timedelta(minutes=MAX_DURATION_MINUTES)
 SLOT_STEP = timedelta(minutes=30)
 
 

@@ -104,3 +104,13 @@ def test_utc_time_is_compared_correctly():
 
 def test_booking_may_cross_midnight():
     assert check("lab-3", at(23), at(1, day=23)).ok
+
+
+def test_cap_is_exposed_in_minutes_for_prompts():
+    # The agent prompt gets the cap from here (spec: Agent), so the number is never typed in.
+    from datetime import timedelta
+
+    from app.domain.booking_rules import MAX_DURATION, MAX_DURATION_MINUTES
+
+    assert MAX_DURATION_MINUTES == 180
+    assert MAX_DURATION == timedelta(minutes=MAX_DURATION_MINUTES)
