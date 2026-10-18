@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { loadEnv } from './agent/env';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  loadEnv();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api');
 

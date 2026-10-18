@@ -55,3 +55,26 @@ export const listLoans = async (studentId: string): Promise<Loan[]> =>
 export const checkStock = (req: LoanRequest) => send<CheckResult>('/api/loans/check', req);
 
 export const createLoan = (req: LoanRequest) => send<CreateResult>('/api/loans', { ...req, approved: true });
+
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatReply {
+  reply: string;
+  proposal?: Proposal;
+}
+
+export async function chat(messages: ChatTurn[], studentId: string): Promise<ChatReply> {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, studentId }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? `Server error (${res.status})`);
+  }
+  return res.json() as Promise<ChatReply>;
+}

@@ -17,3 +17,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .box.ok { background: #e6f6ea; border: 1px solid #9bd3a8; }
 .box.refused { background: #fdeaea; border: 1px solid #e3a3a3; }
 .box ul { margin: 4px 0 0; padding-left: 20px; }
+.chat-log { max-height: 260px; overflow-y: auto; }
+.chat-log .turn { margin: 6px 0; }
+.chat-log .turn.user { color: #1f4f9c; }
+.hint { color: #6b7280; margin: 6px 0; }
+.chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.chat-form input { flex: 1; }

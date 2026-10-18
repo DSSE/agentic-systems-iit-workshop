@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LabLend progress</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color: #1c1c1e; }
+    article { border: 1px solid #e2e4e8; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+    h2 { font-size: 1.05rem; margin: 0 0 6px; }
+    li { margin: 3px 0; }
+    .meta { color: #6b7280; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>LabLend: progress</h1>
+  <p>Each development phase ends with an entry here. Newest first.</p>
+
+  <article id="phase-5">
+    <h2>Phase 5: Add the agent to the UI</h2>
+    <p class="meta">Milestone 2 · branch group-4/milestone-2</p>
+    <ul>
+      <li>Added a chat panel to the UI (<code>frontend/src/Chat.tsx</code>) and <code>POST /api/chat</code>.</li>
+      <li>The agent (<code>backend/src/agent/</code>) has two backends chosen in <code>.env</code>: the Claude Agent SDK (<code>LLM_PROVIDER=claude-sdk</code>, no built-in tools) or any OpenAI-compatible API. Both use the same tool list as the MCP server. Added the <code>@anthropic-ai/claude-agent-sdk</code> and <code>zod</code> dependencies, at the user's request.</li>
+      <li>The model gets only <code>list_equipment</code> and <code>check_stock</code>. It never gets <code>create_loan</code>: the Approve button is the only way to save, and the student id comes from the session.</li>
+      <li>A proposal is returned only from a successful <code>check_stock</code>, not from the model's words.</li>
+      <li>Tests with a scripted model for cases 1, 3, 4 and 5, and endpoint tests for the 400 and 503 cases.</li>
+      <li>Not done: a run against a real model (needs a key in <code>.env</code>), evals and prompt comparison (Milestone 3).</li>
+    </ul>
+  </article>
+
+  <article id="phase-4">
+    <h2>Phase 4: Make the MCP server and connect any agent</h2>
+    <p class="meta">Milestone 2 · branch group-4/milestone-2</p>
+    <ul>
+      <li>Added a stdio MCP server (<code>backend/src/mcp/</code>) with <code>list_equipment</code>, <code>check_stock</code> and <code>create_loan</code>. It has no new dependency.</li>
+      <li>The tools call the same <code>LoansService</code> and domain module as the API, so the rule outcome is the same. <code>create_loan</code> re-checks the rule and saves only when <code>approved</code> is true.</li>
+      <li>Config for Claude Code (<code>.mcp.json</code>) and Gemini CLI (<code>.gemini/settings.json</code>); Codex and Cursor steps are in the README.</li>
+      <li>Tests for the protocol and for cases 1 to 3 through MCP; a smoke test over real stdio gave the expected replies.</li>
+      <li>Not done: a check with the real Claude Code and Gemini CLI.</li>
+    </ul>
+  </article>
+</body>
+</html>
