@@ -10,5 +10,6 @@
     { "id": "F07", "phase": 6, "behavior": "Evals for all five cases; prompt v1 vs v2 compared", "verification": "npm run evals:compare", "state": "not_started", "evidence": "" },
     { "id": "F08", "phase": 7, "behavior": "Case 5 blocked from every client (UI, API, MCP, agent)", "verification": "npm test && npm run evals", "state": "not_started", "evidence": "" },
     { "id": "F09", "phase": 8, "behavior": "Demo ready from a clean clone", "verification": "npm run reset && npm run verify && npm run evals", "state": "not_started", "evidence": "" }
+  
   ]
 }
