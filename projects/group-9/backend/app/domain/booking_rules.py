@@ -146,4 +146,87 @@ def validate_booking(
     if failure is None:
         return RuleResult(ok=True, message="The booking follows every rule.")
     code, message = failure
-    return RuleResult(ok=False, rule_code=code, message=message, suggestion=None)
+    return RuleResult(
+        ok=False,
+        rule_code=code,
+        message=message,
+        suggestion=suggest_alternative(req, code, rooms, bookings, now),
+    )
+
+
+def _by_size(rooms: Sequence[Room]) -> list[Room]:
+    return sorted(rooms, key=lambda r: (r.capacity, r.id))
+
+
+def _other_room(
+    req: BookingRequest, start: datetime, end: datetime,
+    rooms: Sequence[Room], bookings: Sequence[Booking], now: datetime,
+) -> Slot | None:
+    for room in _by_size(rooms):
+        if room.id == req.room_id:
+            continue
+        trial = req.model_copy(update={"room_id": room.id, "start": start, "end": end})
+        if _first_failure(trial, rooms, bookings, now) is None:
+            return Slot(room_id=room.id, start=start, end=end)
+    return None
+
+
+def _later_in_same_room(
+    req: BookingRequest, first_start: datetime, duration: timedelta,
+    rooms: Sequence[Room], bookings: Sequence[Booking], now: datetime,
+) -> Slot | None:
+    """The first free slot of `duration` in the same room, on the same day, in 30-minute steps."""
+    if req.room_id is None:
+        return None
+    day = first_start.astimezone(now.tzinfo).date()
+    candidate = first_start
+    while candidate.astimezone(now.tzinfo).date() == day:
+        trial = req.model_copy(update={"start": candidate, "end": candidate + duration})
+        if _first_failure(trial, rooms, bookings, now) is None:
+            return Slot(room_id=req.room_id, start=candidate, end=candidate + duration)
+        candidate += SLOT_STEP
+    return None
+
+
+def suggest_alternative(
+    req: BookingRequest, rule_code: RuleCode,
+    rooms: Sequence[Room], bookings: Sequence[Booking], now: datetime,
+) -> Slot | None:
+    """A valid slot close to the request, or None. Never creates anything."""
+    start, end = parse_time(req.start, now.tzinfo), parse_time(req.end, now.tzinfo)
+    if start is None or end is None:
+        return None
+    if rule_code == RuleCode.MAX_DURATION_EXCEEDED:
+        return _later_in_same_room(req, start, MAX_DURATION, rooms, bookings, now)
+    if rule_code == RuleCode.BOOKING_OVERLAP:
+        return _other_room(req, start, end, rooms, bookings, now) or _later_in_same_room(
+            req, start + SLOT_STEP, end - start, rooms, bookings, now
+        )
+    if rule_code == RuleCode.CAPACITY_EXCEEDED:
+        return _other_room(req, start, end, rooms, bookings, now)
+    return None
+
+
+def available_rooms(
+    req: BookingRequest, rooms: Sequence[Room], bookings: Sequence[Booking], now: datetime
+) -> tuple[list[Room], RuleResult]:
+    """Rooms that fit the group and are free at the requested time, smallest first."""
+    start, end = parse_time(req.start, now.tzinfo), parse_time(req.end, now.tzinfo)
+    failure = _time_failure(start, end)
+    if failure is None and req.group_size < 1:
+        failure = RuleCode.INVALID_GROUP_SIZE, BAD_GROUP_MESSAGE
+    if failure is None and start < now:
+        failure = RuleCode.START_IN_PAST, PAST_MESSAGE
+    if failure is not None:
+        return [], RuleResult(ok=False, rule_code=failure[0], message=failure[1])
+    free = [
+        room for room in _by_size(rooms)
+        if _first_failure(req.model_copy(update={"room_id": room.id}), rooms, bookings, now) is None
+    ]
+    if free:
+        return free, RuleResult(ok=True, message=f"{len(free)} room(s) free.")
+    return [], RuleResult(
+        ok=False,
+        rule_code=RuleCode.NO_ROOM_AVAILABLE,
+        message="No room that fits the group is free at that time.",
+    )
