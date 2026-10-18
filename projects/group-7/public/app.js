@@ -116,4 +116,38 @@ async function refresh() {
   }
 }
 
+const history = [];
+
+function addBubble(role, text, toolCalls = []) {
+  const bubble = el('div', text, `bubble ${role}`);
+  if (toolCalls.length) {
+    const used = toolCalls.map((t) => `${t.name}${t.isError ? ' (refused)' : ''}`).join(', ');
+    bubble.append(el('span', `Tools used: ${used}`, 'tools'));
+  }
+  $('chat-log').append(bubble);
+  bubble.scrollIntoView({ block: 'end' });
+}
+
+$('chat-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const input = $('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  history.push({ role: 'user', content: text });
+  addBubble('user', text);
+  $('chat-send').disabled = true;
+  try {
+    const { reply, toolCalls } = await api('/chat', { method: 'POST', body: { messages: history } });
+    history.push({ role: 'assistant', content: reply });
+    addBubble('assistant', reply, toolCalls);
+    say(null);
+  } catch (err) {
+    history.pop();
+    sayError(err);
+  }
+  $('chat-send').disabled = false;
+  await refresh();
+});
+
 refresh().catch(sayError);

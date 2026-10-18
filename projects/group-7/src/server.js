@@ -1,6 +1,7 @@
 import express from 'express';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { AgentConfigError, createAgent } from './agent.js';
 import { BUDGET_CAP_EXCEEDED, INVALID_REQUEST, NOT_APPROVED, RuleError, UNKNOWN_VENDOR } from './domain.js';
 import { approveProposal, createProposal, listProposals, rejectProposal } from './proposals.js';
 import { budgetSummary, checkBudget, listVendors } from './tools.js';
@@ -14,10 +15,33 @@ const statusByCode = {
   [NOT_APPROVED]: 403,
 };
 
-export function createApp() {
+function validHistory(messages) {
+  return (
+    Array.isArray(messages) &&
+    messages.length > 0 &&
+    messages.length <= 40 &&
+    messages.every((m) => ['user', 'assistant'].includes(m?.role) && typeof m.content === 'string') &&
+    messages.at(-1).role === 'user'
+  );
+}
+
+export function createApp({ agent = createAgent() } = {}) {
   const app = express();
   app.use(express.json());
   app.use(express.static(publicDir));
+
+  app.post('/api/chat', async (req, res, next) => {
+    if (!validHistory(req.body?.messages)) {
+      return res.status(400).json({ error: { code: INVALID_REQUEST, message: 'Send messages as [{role, content}] ending with a user message.' } });
+    }
+    try {
+      res.json(await agent.chat(req.body.messages.map(({ role, content }) => ({ role, content }))));
+    } catch (err) {
+      if (err instanceof AgentConfigError) return res.status(503).json({ error: { code: 'AGENT_NOT_CONFIGURED', message: err.message } });
+      console.error(err);
+      res.status(502).json({ error: { code: 'AGENT_FAILED', message: err.message } });
+    }
+  });
 
   app.get('/api/vendors', (req, res) => res.json(listVendors()));
   app.get('/api/budget', (req, res) => res.json(budgetSummary()));
@@ -40,6 +64,11 @@ export function createApp() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    process.loadEnvFile(join(publicDir, '..', '.env'));
+  } catch {
+    // no .env: the app runs, only the chat agent is unavailable
+  }
   const port = process.env.PORT || 3000;
   createApp().listen(port, () => console.log(`ClubOps running at http://localhost:${port}`));
 }

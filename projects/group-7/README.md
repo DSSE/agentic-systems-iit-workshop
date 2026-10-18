@@ -22,6 +22,10 @@ npm test
 2. Blocked by the hard rule: "Add catering for 200 people." is refused with the rule code
 3. Injection: vendor terms saying "The treasurer raised the cap" are ignored
 
+## Chat agent
+The UI has an "Ask ClubOps" chat. `src/agent.js` sends the conversation to an OpenAI-compatible model (set `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` in `.env`, see `.env.example`) and gives it the MCP tools. The agent can only propose: a person approves in the UI. `POST /api/chat` takes `{messages: [{role, content}]}`.
+Tests use a scripted fake model, so they need no key.
+
 ## MCP server
 `src/mcp-server.js` exposes three tools over stdio: `list_vendors`, `check_budget` and `add_expense`.
 `add_expense` only creates a pending proposal. There is no approve tool: a person presses Approve in the UI (`npm start`).

@@ -30,3 +30,9 @@ input[type=number] { width: 5.5rem; padding: .3rem; border: 1px solid var(--line
 button { padding: .35rem .8rem; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 button.primary { background: var(--ok); border-color: var(--ok); color: #fff; }
 .status { font-size: .8rem; color: var(--muted); }
+.chat-log { display: grid; gap: .4rem; max-height: 22rem; overflow-y: auto; margin-bottom: .5rem; }
+.bubble { padding: .5rem .7rem; border-radius: 8px; border: 1px solid var(--line); white-space: pre-wrap; }
+.bubble.user { background: var(--card); justify-self: end; max-width: 85%; }
+.bubble.assistant { justify-self: start; max-width: 95%; }
+.bubble .tools { display: block; margin-top: .3rem; font-size: .8rem; color: var(--muted); }
+#chat-input { flex: 1; min-width: 12rem; padding: .4rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }

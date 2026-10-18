@@ -20,7 +20,8 @@ Plans a club event's expenses with an agent; total spending never goes over the 
 - `.claude/`: permissions, hooks (protect data.json, test after edit) and the verify-cases skill
 - `.mcp.json`: connects Claude Code to the clubops MCP server
 - `test/`: node:test suites; they use a temp copy of data.json (`CLUBOPS_DATA`)
-- `src/agent.js`: the agent (not built yet)
+- `src/agent.js`: the chat agent; talks to any OpenAI-compatible LLM and uses the MCP server for its tools
+- `src/prompts.js`: system prompts, picked with PROMPT_VERSION
 - `proposals.json`: pending proposals, shared by the UI and the MCP server (git-ignored)
 - `progress.html`: one entry per development phase
 
