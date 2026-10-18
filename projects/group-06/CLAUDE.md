@@ -21,6 +21,7 @@ Frontend (`frontend/`, Next.js + TypeScript):
 - `npm install` — install dependencies
 - `npm run dev` — run the UI on http://localhost:3000 (expects the backend at `NEXT_PUBLIC_API_URL`, default `http://localhost:4000/api`; copy `.env.local.example` to `.env.local` to override)
 - `npm run build` / `npm start` — production build and serve
+- `npm run test:e2e` — run the Playwright end-to-end suite (`e2e/sprintboard.spec.ts`); boots its own backend+frontend on ports 4100/3100 against a throwaway `backend/data.e2e.json`, so it never touches the real dev servers or `data.json`
 
 Run the backend before the frontend — the UI fetches `list_tasks` on load and has nothing to show without it.
 
@@ -37,6 +38,8 @@ Run the backend before the frontend — the UI fetches `list_tasks` on load and 
 - `backend/src/routes/index.ts`: Express routes exposing the three tools over HTTP
 - `frontend/app/page.tsx`: the backlog/members/assign UI — calls `check_capacity` live as a preview, calls `assign_task` (the only write) only from the Approve button
 - `frontend/lib/api.ts`: typed fetch wrappers for the three backend endpoints
+- `frontend/e2e/`: Playwright end-to-end tests driving the real UI; `fixtures.ts` holds the dedicated test board path/seed and an API-only setup helper
+- `frontend/playwright.config.ts`: boots backend+frontend on ports 4100/3100 against `backend/data.e2e.json`, separate from normal dev
 
 ## Conventions
 - The hard rule (max 8 points per member) lives in one domain module (`backend/src/domain/capacity.ts`); the API, the MCP server and the agent all call it — never re-implement it per client.
