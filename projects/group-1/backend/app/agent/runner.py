@@ -30,6 +30,8 @@ SAVED_CLAIM = re.compile(
     re.IGNORECASE,
 )
 PROMPTS_DIR = Path(__file__).parent / "prompts"
+# v2 won the eval comparison (7/7 vs 6/7 on gemini-3.1-flash-lite): see evals/results/.
+DEFAULT_PROMPT = "v2"
 
 # What the model sees for create_booking in this chat. requester and approved are not the model's to set.
 PROPOSE_DESCRIPTION = (
@@ -46,7 +48,7 @@ class ChatReply:
     trace: list[dict] = field(default_factory=list)
 
 
-def system_prompt(version: str = "v1", today: date | None = None) -> str:
+def system_prompt(version: str = DEFAULT_PROMPT, today: date | None = None) -> str:
     today = today or date.today()
     text = (PROMPTS_DIR / f"{version}.md").read_text(encoding="utf-8")
     return text.replace("{{today}}", today.isoformat()).replace("{{weekday}}", today.strftime("%A"))
@@ -57,10 +59,24 @@ async def run_chat(
     llm: LLM,
     requester: str = "",
     today: date | None = None,
-    prompt_version: str = "v1",
+    prompt_version: str = DEFAULT_PROMPT,
     mcp_target=None,
 ) -> ChatReply:
     """messages: the conversation so far, as [{"role": "user"|"assistant", "content": str}]."""
+    try:
+        return await _run_chat(messages, llm, requester, today, prompt_version, mcp_target)
+    except BaseExceptionGroup as group:
+        # The MCP client runs inside a task group, which wraps errors; surface the real one.
+        raise root_cause(group) from None
+
+
+def root_cause(error: BaseException) -> BaseException:
+    while isinstance(error, BaseExceptionGroup) and error.exceptions:
+        error = error.exceptions[0]
+    return error
+
+
+async def _run_chat(messages, llm, requester, today, prompt_version, mcp_target) -> ChatReply:
     target = mcp_target or config.mcp_url() or server
     convo = [{"role": "system", "content": system_prompt(prompt_version, today)}, *messages]
     proposal = None
@@ -169,7 +185,7 @@ def _assistant_turn(message: LLMMessage) -> dict:
         "role": "assistant",
         "content": message.content or "",
         "tool_calls": [
-            {"id": c.id, "type": "function", "function": {"name": c.name, "arguments": c.arguments or "{}"}}
+            {**c.extra, "id": c.id, "type": "function", "function": {"name": c.name, "arguments": c.arguments or "{}"}}
             for c in message.tool_calls
         ],
     }

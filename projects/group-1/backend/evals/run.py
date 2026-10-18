@@ -2,9 +2,10 @@
 
     cd backend
     .venv/Scripts/python -m evals.run                      # v1 vs v2, every case once
-    .venv/Scripts/python -m evals.run --repeats 3 --cases 1,4 --model gemini-2.5-flash-lite
+    .venv/Scripts/python -m evals.run --repeats 3 --cases 1,4 --model gemini-3.1-flash-lite
 
-Each conversation runs on its own temp copy of data.json, so evals never touch the real file.
+Each conversation runs on its own temp copy of the fixed seed data (tests/fixtures/seed_data.json),
+so results are reproducible and the real data.json is never touched.
 Results go to evals/results/<timestamp>.md and .json.
 """
 
@@ -12,7 +13,6 @@ import argparse
 import asyncio
 import json
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -54,15 +54,22 @@ class ThrottledLLM:
             try:
                 self.calls += 1
                 return await self.inner(messages, tools)
-            except openai.RateLimitError as e:
-                text = str(e)
-                if "PerDay" in text or "per day" in text.lower() or "daily" in text.lower():
-                    raise QuotaExhausted("Daily quota exhausted for this model. Try --model with another one.") from e
+            except agent_llm.LLMRateLimited as e:
+                if e.daily:
+                    raise QuotaExhausted(
+                        "Daily free-tier quota exhausted for this model. Wait for the reset, or try --model with another one."
+                    ) from e
                 if attempt == self.max_retries:
                     raise
-                match = re.search(r"retry in ([\d.]+)s", text)
-                delay = float(match.group(1)) + 2 if match else 20 * (attempt + 1)
+                delay = (e.retry_after or 20 * (attempt + 1)) + 2
                 print(f"    rate limited; waiting {delay:.0f}s", flush=True)
+                await asyncio.sleep(delay)
+            except (openai.InternalServerError, openai.APIConnectionError) as e:
+                # 503 "high demand" and dropped connections are temporary: retry, don't fail the case.
+                if attempt == self.max_retries:
+                    raise
+                delay = 15 * (attempt + 1)
+                print(f"    provider unavailable ({type(e).__name__}); retrying in {delay}s", flush=True)
                 await asyncio.sleep(delay)
 
 
@@ -163,15 +170,15 @@ async def main() -> int:
     if args.model:
         os.environ["LLM_MODEL"] = args.model
     try:
-        inner = agent_llm.from_env()
+        inner = agent_llm.from_env(use_fallbacks=False)  # one model for the whole comparison
     except agent_llm.LLMNotConfigured as e:
         print(e)
         return 2
     inner.client = inner.client.with_options(max_retries=0)  # ThrottledLLM handles retries
     llm = ThrottledLLM(inner, rpm=args.rpm)
-    model = config.llm_settings()["model"]
+    model = inner.model
 
-    seed = config.PROJECT_ROOT / "data.json"
+    seed = Path(__file__).parent.parent / "tests" / "fixtures" / "seed_data.json"
     results, partial = [], False
     print(f"Model {model}; {len(cases)} cases × {len(prompts)} prompts × {args.repeats} run(s)", flush=True)
     with tempfile.TemporaryDirectory() as tmp:
@@ -186,6 +193,10 @@ async def main() -> int:
         except QuotaExhausted as e:
             print(f"Stopped: {e}")
             partial = True
+            # The case that hit the quota never ran; don't let a half-finished run look like a result.
+    if partial and not results:
+        print("No cases completed; no report written.")
+        return 3
 
     path = write_report(results, prompts, model, args.repeats, partial)
     print(f"\nLLM calls: {llm.calls}. Report: {path}")

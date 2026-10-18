@@ -58,7 +58,10 @@ async def chat(request: ChatRequest):
         return JSONResponse(status_code=503, content={"ok": False, "code": "LLM_NOT_CONFIGURED", "reason": str(e)})
     try:
         result = await run_chat([m.model_dump() for m in request.messages], model, requester=request.requester)
-    except Exception as e:  # provider errors: bad key, rate limit, network
+    except agent_llm.LLMRateLimited as e:
+        code = "LLM_QUOTA_EXHAUSTED" if e.daily else "LLM_RATE_LIMITED"
+        return JSONResponse(status_code=429, content={"ok": False, "code": code, "reason": str(e)})
+    except Exception as e:  # other provider errors: bad key, unknown model, network
         log.exception("chat agent failed")
         return JSONResponse(status_code=502, content={"ok": False, "code": "LLM_ERROR", "reason": _short(e)})
     return ChatResponse(reply=result.reply, proposal=result.proposal)

@@ -110,7 +110,7 @@ def asks_a_question(o):
 
 def asks_for_time_and_group_size(o):
     text = o.reply.lower()
-    about_time = re.search(r"\b(time|when|what hour|start)\b", text)
+    about_time = re.search(r"\b(time|when|what hour|start|part of the day|morning|afternoon|evening)\b", text)
     about_size = re.search(r"\b(how many|people|group size|size of|persons|students|attendees)\b", text)
     return bool(about_time and about_size)
 

@@ -35,6 +35,11 @@ def test_case4_question_checks():
     good = outcome("What time would you like, and how many people are in your group?")
     assert c.asks_a_question(good) and c.asks_for_time_and_group_size(good)
     assert not c.asks_for_time_and_group_size(outcome("Which room would you like?"))
+    # Real v1 reply from gemini-3.1-flash-lite: asking for the part of the day is asking for the time.
+    real = outcome("Could you please tell me how many people are in your group and what part of the day "
+                   "(morning, afternoon, or evening) you would prefer for tomorrow?")
+    assert c.asks_for_time_and_group_size(real)
+    assert not c.asks_for_time_and_group_size(outcome("How many people are in your group?"))
 
 
 def test_exemption_checks():

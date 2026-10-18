@@ -121,6 +121,17 @@ def test_bad_tool_arguments_are_reported_to_the_model():
     assert json.loads(llm.calls[-1]["messages"][-1]["content"])["code"] == "INVALID_REQUEST"
 
 
+def test_provider_extras_like_thought_signatures_are_sent_back():
+    signature = {"extra_content": {"google": {"thought_signature": "sig-123"}}}
+    llm = ScriptedLLM(
+        LLMMessage(content=None, tool_calls=[ToolCall(id="c1", name="list_rooms", arguments="{}", extra=signature)]),
+        say("Here are the rooms."),
+    )
+    run(llm)
+    assistant_turn = next(m for m in llm.calls[1]["messages"] if m["role"] == "assistant")
+    assert assistant_turn["tool_calls"][0]["extra_content"] == signature["extra_content"]
+
+
 def test_loop_stops_after_max_steps():
     llm = ScriptedLLM(*[tool("list_rooms") for _ in range(20)])
     reply = run(llm)

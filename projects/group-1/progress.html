@@ -62,7 +62,7 @@
   </section>
 
   <section class="phase done">
-    <h2>4. Make the MCP server and connect any agent <span class="status">Built, connection pending</span></h2>
+    <h2>4. Make the MCP server and connect any agent <span class="status">Done</span></h2>
     <div class="date">2026-10-18</div>
     <ul>
       <li><code>backend/app/mcp_server.py</code> (mcp SDK 2.x) exposes <code>list_rooms</code>, <code>check_availability</code> and <code>create_booking</code> by calling <code>tools.py</code>, so the rule lives only in <code>domain/rules.py</code>. It runs over stdio (<code>backend/mcp_stdio.py</code>) and Streamable HTTP (port 8001).</li>

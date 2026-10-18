@@ -26,6 +26,8 @@ def llm_settings() -> dict:
         "base_url": os.environ.get("LLM_BASE_URL", "").strip(),
         "api_key": os.environ.get("LLM_API_KEY", "").strip(),
         "model": os.environ.get("LLM_MODEL", "").strip(),
+        # Tried in order when a model's daily free quota runs out, e.g. "gemini-3.1-flash-lite,gemini-3-flash-preview".
+        "fallback_models": [m.strip() for m in os.environ.get("LLM_FALLBACK_MODELS", "").split(",") if m.strip()],
     }
 
 
