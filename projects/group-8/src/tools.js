@@ -1,6 +1,7 @@
 import { randomUUID, randomBytes } from 'node:crypto';
 import { failure, labToday, validateLoan, validDate, availableQuantity } from './domain.js';
 import { createStore, StorageError } from './store.js';
+import { validateToolInput } from './guardrails.js';
 
 const token = () => randomBytes(32).toString('hex');
 const TTL = 10 * 60 * 1000;
@@ -25,7 +26,11 @@ export function createTools({ dataPath, now = () => new Date(), timezone = 'Asia
     }
   };
 
-  const list_equipment = guard(async ({ query = '', start_date, due_date } = {}) => {
+  const list_equipment = guard(async (input = {}) => {
+    // HTTP adapters omit absent optional fields rather than passing undefined properties.
+    const valid = validateToolInput('list_equipment', input);
+    if (!valid.ok) return valid;
+    let { query = '', start_date, due_date } = input;
     if (typeof query !== 'string') return failure('INVALID_INPUT', 'Search must be text.');
     const currentDate = today();
     if (start_date === undefined && due_date === undefined) {
@@ -46,6 +51,8 @@ export function createTools({ dataPath, now = () => new Date(), timezone = 'Asia
 
   const check_stock = guard(async (input, context) => {
     cleanup();
+    const valid = validateToolInput('check_stock', input);
+    if (!valid.ok) return valid;
     if (!context?.session_id || !context.student_id || input?.student_id !== context.student_id) {
       return failure('INVALID_INPUT', 'Use the student ID selected in this session.');
     }
@@ -64,6 +71,9 @@ export function createTools({ dataPath, now = () => new Date(), timezone = 'Asia
 
   // Trusted human UI handler only. Do not expose this helper as an agent/MCP tool.
   function approveProposal(proposal_id, context) {
+    if (context?.client_kind === 'mcp' || context?.client_kind === 'agent') {
+      return failure('APPROVAL_REQUIRED', 'Only the trusted human approval handler may authorize a proposal.');
+    }
     cleanup();
     const entry = proposals.get(proposal_id);
     if (!owns(entry, context)) return expired();
@@ -80,6 +90,8 @@ export function createTools({ dataPath, now = () => new Date(), timezone = 'Asia
     if (!approval || approval.proposal_id !== input?.proposal_id || approval.session_id !== context?.session_id) {
       return failure('APPROVAL_REQUIRED', 'Explicit human approval of this exact proposal is required.');
     }
+    const valid = validateToolInput('create_loan', input);
+    if (!valid.ok) return valid;
     const entry = proposals.get(input.proposal_id);
     if (!owns(entry, context)) return expired();
     // Consume before awaiting storage so simultaneous calls and retries cannot replay approval.

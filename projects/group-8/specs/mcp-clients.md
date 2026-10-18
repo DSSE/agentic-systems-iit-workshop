@@ -28,6 +28,8 @@ For stdio clients, launch `node src/mcp.js` using an absolute script path. The b
 
 `LABLEND_URL` accepts only a local HTTP address. Set it to the app's port if `PORT` changes. Restart clients after changing configuration. The LabLend web chat's model variables are separate from the external coding agent's own provider login.
 
+Each MCP session binds to the student ID on its first stock check. An agent cannot switch that session to another student; start a new client session when intentionally demonstrating a different workshop student. MCP catalog results omit raw descriptions and non-contract fields; names remain untrusted labels. See [guardrails](guardrails.md).
+
 ## Repeatable demonstration for each client
 
 1. Confirm `lablend` connects and lists exactly the three declared tools. Record the client name, version, date, and outcome in `progress.html`.

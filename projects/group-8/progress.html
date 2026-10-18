@@ -26,7 +26,7 @@
       <tr><td>4. Make MCP server and connect agents</td><td>Implemented; live agent demos pending</td><td>MCP and independent HTTP/stdio clients tested. Connect and demonstrate two actual coding agents after configuration.</td></tr>
       <tr><td>5. Add the agent to the UI</td><td>Implemented; live model pending</td><td>Browser demo chat and controlled model tool-loop tests pass. Configure a live provider to finish the model-backed demonstration.</td></tr>
       <tr><td>6. Write prompt evaluations (advanced)</td><td>Pending</td><td>All five cases evaluated using two prompt versions; comparison recorded.</td></tr>
-      <tr><td>7. Add guardrails (advanced)</td><td>Pending</td><td>Injection and bypass attempts blocked across every client.</td></tr>
+      <tr><td>7. Add guardrails (advanced)</td><td>Implemented and tested</td><td>Poisoned-description and bypass tests pass for every implemented boundary. Live external-agent demos remain a separate pending item.</td></tr>
       <tr><td>8. Prepare the demo</td><td>Pending</td><td>Repeatable fixtures, commands, and evidence for completed milestones.</td></tr>
     </tbody>
   </table>
@@ -84,6 +84,13 @@
     <h2>Milestone 2 fix — actionable model failures</h2>
     <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Replaced collapsed provider errors with safe typed categories and numeric HTTP status, distinguished tool-loop exhaustion from network/provider errors, preserved opaque Gemini metadata across tool rounds, and made the default 60-second timeout configurable. Added an explicit user-run model diagnostic with no loan data or raw secret output.</p>
     <p>Verification: all 39 automated tests pass, including rate limits, authentication, unavailable models/providers, network errors, timeouts, invalid responses, metadata replay, and credential redaction. The live diagnostic was blocked by automatic approval review because exporting the diagnostic payload with a local API key requires specific approval. The reported live failure's provider cause remains unverified; no claim of successful live repair is made.</p>
+  </article>
+  <article>
+    <h2>Phase 7 — guardrails and adversarial regression checks</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/guardrail</code>. Added cross-cutting guardrail helpers for canonical tool schemas, field allowlists, MCP/model output projection, bounded history/output, and supplemental reply filtering. Raw catalog descriptions and undeclared/credential fields do not reach MCP/model consumers. External MCP sessions bind to one student ID; copied or expired sessions are rejected. HTTP rejects forged conversation/identity fields, and MCP/agent contexts cannot invoke the human approval helper.</p>
+    <p>Verification: all 47 tests pass, including poisoned catalog descriptions, TA override claims, a deliberately adversarial simulated model, unauthorized approval/shell calls with a permissive client, altered approved content, prototype fields, identity switching, and session forgery. HTTP and independent stdio tests enforce the two-item/seven-day rule. Browser checks verify that injected descriptions cannot create a proposal for 10 units over 30 days through either form or demo chat and that rejected attempts leave data unchanged.</p>
+    <p>Preserved valid requests and the existing human approval flow. All tests use temporary inventory and controlled responses; no live model requests or saved demonstration-loan changes are required. <a href="specs/guardrails.md">Guardrail documentation</a> records boundaries, evidence, and limits.</p>
+    <p>Remaining work: live provider/two coding-agent demonstrations and the separate all-five-case comparison of two prompt versions are not completed by these tests. Student IDs remain self-declared; session pinning is not production authentication. Text filtering supplements server enforcement and does not claim universal prompt-injection detection.</p>
   </article>
   <p>At the end of each later phase, update its status and append a dated entry with changes, actual verification results, remaining issues, and next steps.</p>
 </body>

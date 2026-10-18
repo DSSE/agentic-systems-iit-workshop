@@ -162,6 +162,8 @@ Use isolated fixtures with known stock, student IDs, and a fixed clock. A succes
 
 ## Milestones and development phases
 
+Guardrails are implemented and tested across the app's direct tools, HTTP, model adapter boundary, MCP HTTP/stdio, and browser form/chat. Catalog descriptions are omitted from MCP/model results, only declared fields and tools are accepted, MCP student identity is pinned within a session, and approval remains server-verified. Run `npm run test:guardrails` for the focused suite. See [guardrail boundaries, evidence, and limits](specs/guardrails.md). Live-agent demonstrations and the optional two-prompt comparison remain separate pending work.
+
 | Milestone | Deliverables | Done when |
 |---|---|---|
 | 1: Basics | Set up the harness and spec; build the full-stack app and three tools; add tests for cases 1-3. | Cases 1-3 work in the UI, only Approve saves, and tests pass. |
