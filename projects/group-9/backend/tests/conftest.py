@@ -54,3 +54,20 @@ def client(data_file: Path, clock: FakeClock) -> TestClient:
 @pytest.fixture
 def anyio_backend() -> str:
     return "asyncio"
+
+
+class ScriptedLLM:
+    """Plays back AssistantTurns in order; an Exception in the script is raised instead."""
+
+    repeat = None  # set to a turn to play forever once the script runs out
+
+    def __init__(self, turns: list) -> None:
+        self.turns = list(turns)
+        self.seen: list[tuple[list, list]] = []
+
+    async def complete(self, messages: list, tools: list):
+        self.seen.append(([dict(m) for m in messages], tools))
+        turn = self.turns.pop(0) if self.turns else self.repeat
+        if isinstance(turn, Exception):
+            raise turn
+        return turn
