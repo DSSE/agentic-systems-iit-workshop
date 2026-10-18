@@ -92,6 +92,14 @@ def parse_time(value: str | datetime | None, tz: tzinfo) -> datetime | None:
     return value if value.tzinfo else value.replace(tzinfo=tz)
 
 
+def find_room(rooms: Sequence[Room], room_ref: str | None) -> Room | None:
+    """A room by its id or its name, ignoring case: 'lab-2', 'Lab-2' and 'LAB-2' are the same room."""
+    if not room_ref:
+        return None
+    ref = room_ref.strip().casefold()
+    return next((r for r in rooms if ref in (r.id.casefold(), r.name.casefold())), None)
+
+
 def _duration(delta: timedelta) -> str:
     hours, rest = divmod(int(delta.total_seconds()), 3600)
     minutes, seconds = divmod(rest, 60)
@@ -143,6 +151,9 @@ def validate_booking(
     req: BookingRequest, rooms: Sequence[Room], bookings: Sequence[Booking], now: datetime
 ) -> RuleResult:
     """Check every rule in order and return the first failure."""
+    room = find_room(rooms, req.room_id)
+    if room is not None and room.id != req.room_id:
+        req = req.model_copy(update={"room_id": room.id})  # from here on, always the canonical id
     failure = _first_failure(req, rooms, bookings, now)
     if failure is None:
         return RuleResult(ok=True, message="The booking follows every rule.")

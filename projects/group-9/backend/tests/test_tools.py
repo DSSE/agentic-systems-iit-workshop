@@ -120,3 +120,15 @@ def test_concurrent_approves_save_once_and_the_rest_see_not_found(desk):
     assert len(saved) == 1
     assert refused == [RuleCode.PROPOSAL_NOT_FOUND] * 3
     assert len(desk.bookings_on(date(2026, 10, 22))) == 3
+
+
+def test_create_booking_by_room_name_stores_the_room_id(desk):
+    proposal = desk.create_booking("Lab-3", at(13), at(15), 3)
+    assert isinstance(proposal, Proposal)
+    assert proposal.room_id == "lab-3" and proposal.room_name == "Lab-3"
+
+
+def test_check_availability_by_room_name(desk):
+    availability = desk.check_availability(at(13), at(15), 3, room_id="Lab-3")
+    assert availability.result.ok
+    assert [r.id for r in availability.free_rooms] == ["lab-3"]

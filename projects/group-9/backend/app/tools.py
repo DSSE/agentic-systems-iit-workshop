@@ -17,6 +17,7 @@ from app.domain.booking_rules import (
     RuleCode,
     RuleResult,
     available_rooms,
+    find_room,
     parse_time,
     validate_booking,
 )
@@ -62,7 +63,8 @@ class CampusDesk:
             free, result = available_rooms(req, rooms, bookings, self.clock())
             return Availability(result=result, free_rooms=free)
         result = validate_booking(req, rooms, bookings, self.clock())
-        return Availability(result=result, free_rooms=[r for r in rooms if r.id == room_id] if result.ok else [])
+        room = find_room(rooms, room_id)
+        return Availability(result=result, free_rooms=[room] if result.ok and room else [])
 
     def create_booking(
         self, room_id: str, start: TimeInput, end: TimeInput, group_size: int,
@@ -75,7 +77,7 @@ class CampusDesk:
         result = validate_booking(req, rooms, bookings, now)
         if not result.ok:
             return result
-        room = next(r for r in rooms if r.id == room_id)
+        room = find_room(rooms, room_id)
         return self.proposals.add(
             room_id=room.id, room_name=room.name,
             start=parse_time(start, now.tzinfo), end=parse_time(end, now.tzinfo),

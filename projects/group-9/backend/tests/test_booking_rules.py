@@ -114,3 +114,15 @@ def test_cap_is_exposed_in_minutes_for_prompts():
 
     assert MAX_DURATION_MINUTES == 180
     assert MAX_DURATION == timedelta(minutes=MAX_DURATION_MINUTES)
+
+
+def test_room_can_be_given_by_name_in_any_case():
+    # Users say "Lab-2", and LLM agents pass that on as room_id (seen live: ROOM_NOT_FOUND).
+    assert check("Lab-3", at(13), at(15)).ok
+    assert check("LAB-3", at(13), at(15)).ok
+
+
+def test_a_named_room_still_gets_suggestions_for_other_rooms():
+    result = check("Lab-1", at(15), at(17))
+    assert result.rule_code == RuleCode.BOOKING_OVERLAP
+    assert result.suggestion.room_id == "lab-3"
