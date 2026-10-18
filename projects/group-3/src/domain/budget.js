@@ -3,7 +3,7 @@
 // The API, the MCP server and the agent all reach this through store.js.
 // Amounts are whole BDT (integers) so "1 BDT over" is exact.
 
-export const OVER_BUDGET = 'OVER_BUDGET';
+export const BUDGET_CAP_EXCEEDED = 'BUDGET_CAP_EXCEEDED';
 export const INVALID_AMOUNT = 'INVALID_AMOUNT';
 
 export const sum = (list) => list.reduce((total, e) => total + e.amount, 0);
@@ -21,8 +21,8 @@ export function checkBudget({ cap, spent, pending = 0 }, amount) {
   const total_after = committed + amount;
   if (total_after > cap) {
     return {
-      ...base, ok: false, code: OVER_BUDGET, total_after, over_by: total_after - cap,
-      message: `Refused (${OVER_BUDGET}): total would be ${total_after} BDT, which is ${total_after - cap} BDT over the ${cap} BDT cap.`,
+      ...base, ok: false, code: BUDGET_CAP_EXCEEDED, total_after, over_by: total_after - cap,
+      message: `Refused (${BUDGET_CAP_EXCEEDED}): total would be ${total_after} BDT, which is ${total_after - cap} BDT over the ${cap} BDT cap.`,
     };
   }
   return { ...base, ok: true, total_after, message: `Within budget: total would be ${total_after} of ${cap} BDT.` };

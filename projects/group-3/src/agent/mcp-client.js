@@ -1,9 +1,10 @@
 // Connects the agent to the ClubOps MCP server over stdio.
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-const serverPath = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'mcp', 'server.js');
+const serverPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'mcp', 'server.js');
 
 export async function connectMcp(env = process.env) {
   const transport = new StdioClientTransport({

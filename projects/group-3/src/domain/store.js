@@ -4,22 +4,28 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { checkBudget, maxAffordableQuantity, sum } from './budget.js';
 import { screenUntrustedText, cleanNote } from './guardrails.js';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 export function createStore({
   dataFile = process.env.DATA_FILE || path.join(root, 'data.json'),
   stateFile = process.env.STATE_FILE || path.join(root, '.state.json'),
 } = {}) {
+  const readSeed = () => JSON.parse(fs.readFileSync(dataFile, 'utf8'));
   const seed = () => {
-    const d = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+    const d = readSeed();
     return { ...d, pending: d.pending ?? [], security_events: [], seq: 1 };
   };
   const load = () => {
     if (!fs.existsSync(stateFile)) save(seed());
-    return JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    // Vendor listings and quoted prices are catalog data; keep them current without
+    // resetting approved expenses or proposals in an existing demo workspace.
+    state.vendors = readSeed().vendors;
+    return state;
   };
   const save = (state) => {
     const tmp = `${stateFile}.${process.pid}.tmp`;
@@ -36,6 +42,29 @@ export function createStore({
 
   return {
     reset() { save(seed()); return this.getState(); },
+
+    createEvent({ name, date, expected_attendees, budget_cap, replace = false } = {}) {
+      const s = load();
+      if (s.event && !replace) {
+        return { ok: false, code: 'EVENT_EXISTS', message: 'A workspace is already active. Confirm before replacing it with a new event.' };
+      }
+      const cleanName = String(name ?? '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 100);
+      const cleanDate = String(date ?? '');
+      const attendees = Number(expected_attendees);
+      const cap = Number(budget_cap);
+      const parsedDate = new Date(`${cleanDate}T00:00:00Z`);
+      const dateValid = /^\d{4}-\d{2}-\d{2}$/.test(cleanDate) && !Number.isNaN(parsedDate.getTime()) && parsedDate.toISOString().slice(0, 10) === cleanDate;
+      if (!cleanName || !dateValid || !Number.isInteger(attendees) || attendees < 1 || attendees > 10000 || !Number.isSafeInteger(cap) || cap < 1) {
+        return { ok: false, code: 'INVALID_EVENT', message: 'Enter an event name, a valid date, 1–10,000 attendees, and a positive whole-number budget cap in BDT.' };
+      }
+      s.event = { name: cleanName, date: cleanDate, expected_attendees: attendees, currency: 'BDT' };
+      s.budget_cap = cap;
+      s.expenses = [];
+      s.pending = [];
+      s.seq = 1;
+      save(s);
+      return { ok: true, state: this.getState() };
+    },
 
     getState() {
       const s = load();
@@ -56,7 +85,7 @@ export function createStore({
         if (screened.flagged && !s.security_events.some((e) => e.vendor_id === v.id)) {
           s.security_events.push({
             at: new Date().toISOString(), vendor_id: v.id, vendor_name: v.name,
-            kind: 'prompt_injection_blocked', reasons: screened.reasons, original: v.terms,
+            kind: 'prompt_injection_blocked', reasons: screened.reasons,
           });
           changed = true;
         }
@@ -68,12 +97,15 @@ export function createStore({
 
     /** Tool: check_budget. Read only. With no amount it reports the current position. */
     checkBudget(amount = 0) {
-      return checkBudget(figures(load()), amount);
+      const s = load();
+      if (!s.event) return { ok: false, code: 'NO_EVENT', message: 'Create an event in the ClubOps workspace before planning expenses.' };
+      return checkBudget(figures(s), amount);
     },
 
     /** Tool: add_expense. Creates a PROPOSAL only. Price comes from vendor data, never from the caller. */
     proposeExpense({ vendor_id, item_id, quantity = 1, note = '' }) {
       const s = load();
+      if (!s.event) return { ok: false, code: 'NO_EVENT', message: 'Create an event in the ClubOps workspace before proposing expenses.' };
       const { vendor, item } = findItem(s, vendor_id, item_id);
       if (!vendor || !item) {
         return { ok: false, code: 'UNKNOWN_ITEM', message: `No such vendor item: ${vendor_id}/${item_id}. Call list_vendors first.` };
@@ -95,7 +127,7 @@ export function createStore({
         return out;
       }
       const proposal = {
-        id: `p${s.seq++}`, vendor_id, vendor_name: vendor.name, item_id,
+        id: `p${s.seq++}`, vendor_id, vendor_name: vendor.name, category: vendor.category, item_id,
         description: item.name, quantity, unit_price: item.unit_price, amount,
         note: cleanNote(note), created_at: new Date().toISOString(),
       };
@@ -114,7 +146,8 @@ export function createStore({
       const idx = s.pending.findIndex((p) => p.id === id);
       if (idx === -1) return { ok: false, code: 'NOT_FOUND', message: `No pending proposal ${id}.` };
       const p = s.pending[idx];
-      const check = checkBudget({ cap: s.budget_cap, spent: sum(s.expenses), pending: 0 }, p.amount);
+      const otherPending = sum(s.pending.filter((pending) => pending.id !== id));
+      const check = checkBudget({ cap: s.budget_cap, spent: sum(s.expenses), pending: otherPending }, p.amount);
       if (!check.ok) return { ...check, proposal_id: id };
       s.pending.splice(idx, 1);
       const expense = { id: `e${s.seq++}`, vendor_id: p.vendor_id, item_id: p.item_id, description: p.description,

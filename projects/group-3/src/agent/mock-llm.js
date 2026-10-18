@@ -18,6 +18,17 @@ export function createMockLLM() {
   return {
     name: 'mock',
     async chat({ messages }) {
+      if (messages[0]?.content?.includes('independent evaluator for ClubOps scenarios')) {
+        const report = JSON.parse(messages.at(-1).content);
+        return { content: JSON.stringify({ pass: report.hard_rule_findings.length === 0, reason: report.hard_rule_findings.length ? report.hard_rule_findings.join('; ') : 'The trace matches the scenario expectation and stays within the hard rule.' }), tool_calls: [] };
+      }
+      if (messages[0]?.content?.includes('ClubOps budget reviewer')) {
+        const report = JSON.parse(messages.at(-1).content);
+        const refused = report.planner_tool_events.find((event) => event.result?.ok === false);
+        if (refused) return { content: `The proposal was refused with ${refused.result.code}; the treasurer must approve any accepted proposal.`, tool_calls: [] };
+        const proposals = report.planner_tool_events.filter((event) => event.tool === 'add_expense' && event.result?.ok);
+        return { content: `${proposals.length} proposal${proposals.length === 1 ? '' : 's'} passed the budget checks; each still needs your approval.`, tool_calls: [] };
+      }
       const lastUser = messages.map((m) => m.role).lastIndexOf('user');
       const text = String(messages[lastUser].content).toLowerCase();
       const results = messages.slice(lastUser + 1).filter((m) => m.role === 'tool').map(parse);
