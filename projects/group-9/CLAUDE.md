@@ -26,6 +26,15 @@ Books lab rooms through a UI, a REST API, an MCP server and a chat agent; a book
 - `frontend/`: Next.js App Router UI
 - `progress.html`: add an entry at the end of every phase
 
+## Workflow
+Every phase: plan (user approves) → implement → test (pytest + e2e) → review → progress entry → commit. Push only through `/ship` after the user reviews.
+Branches: work on `group-9/<short-name>` cut from `group-9/feature`; PRs go into `group-9/feature`; only `group-9/feature` opens a PR into `main`.
+- `/phase <N>`: runs one phase with that flow; it lists each phase's scope and "done when"
+- `/e2e`: feature checks against a temp backend on :8001 (never the real `data.json`)
+- `/ship`: scope check, tests, review, then push and PR after the user says yes
+- Agents: `rule-guardian` (read-only review against the invariants), `e2e-tester` (runs checks, reports pass/fail)
+- Hooks in `.claude/hooks/`: block edits outside this folder and to `.env`, block `.env`/key reads and pushes to `main`, flag rule drift after each edit
+
 ## Conventions
 - Python 3.12+ with uv, FastAPI, type hints, Pydantic models for every request and response
 - Next.js App Router with TypeScript; call the backend only through `/api/*`

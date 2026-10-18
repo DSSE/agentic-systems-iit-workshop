@@ -6,3 +6,6 @@ __pycache__/
 .next/
 node_modules/
 next-env.d.ts
+
+# Handout photos (local reference only)
+miss/

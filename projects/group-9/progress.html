@@ -64,7 +64,9 @@
       <li>Created <code>projects/group-9/</code> from the template on branch <code>group-9/setup</code>.</li>
       <li>Wrote the spec in <code>specs/agent.md</code>: tools, rule codes, API, MCP, agent behaviour, test matrix for the 5 cases.</li>
       <li>Rewrote <code>CLAUDE.md</code> and <code>.claude/settings.json</code> for Python (FastAPI, uv) and Next.js.</li>
-      <li>Added <code>.env.example</code> for Groq (<code>llama-3.3-70b-versatile</code>) through the OpenAI-compatible API.</li>
+      <li>Added <code>.env.example</code> for Groq (<code>llama-3.3-70b-versatile</code>) through the OpenAI-compatible API, with Ollama and Gemini as alternatives.</li>
+      <li>Checked the spec against the handout: case 3 now refuses before asking for missing details; <code>check_availability</code> returns time-rule failures first; Milestone 3 marked optional.</li>
+      <li>Harness: skills <code>/phase</code>, <code>/e2e</code>, <code>/ship</code>; agents <code>rule-guardian</code> and <code>e2e-tester</code>; hooks that block edits outside the group folder, <code>.env</code> access and pushes to <code>main</code>, and flag rule drift after edits.</li>
     </ul>
 
     <h3>Decisions</h3>
