@@ -13,9 +13,25 @@ import {
   listBookingsForRoomTool,
 } from "./service.js";
 
+const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/;
+
 export function createApp() {
   const app = express();
-  app.use(cors({ origin: WEB_ORIGIN }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        // No Origin header (curl, server-to-server) — allow.
+        if (!origin) return callback(null, true);
+        // The configured frontend origin, or any localhost/127.0.0.1 port.
+        // The latter is dev-only convenience: Next's default port (3000) is
+        // often already taken by something else, so it moves around.
+        if (origin === WEB_ORIGIN || LOCALHOST_ORIGIN_RE.test(origin)) {
+          return callback(null, true);
+        }
+        callback(new Error(`Origin ${origin} is not allowed.`));
+      },
+    })
+  );
   app.use(express.json());
 
   app.get("/", (req, res) => {
