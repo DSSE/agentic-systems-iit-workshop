@@ -23,8 +23,8 @@
       <tr><td>1. Set up the harness</td><td>Complete</td><td>Project instructions, spec, configuration, seed data, progress log, and passing harness check.</td></tr>
       <tr><td>2. Build backend and frontend</td><td>Complete</td><td>Shared domain rules, three tools, API, and UI; only Approve saves a loan.</td></tr>
       <tr><td>3. Test behavior</td><td>Complete</td><td>Cases 1–3 pass in the real browser and automated domain/tool/HTTP tests.</td></tr>
-      <tr><td>4. Make MCP server and connect agents</td><td>Pending</td><td>Shared tools exposed through MCP and two distinct clients connected.</td></tr>
-      <tr><td>5. Add the agent to the UI</td><td>Pending</td><td>Plain-language valid request and clarification for an unclear request.</td></tr>
+      <tr><td>4. Make MCP server and connect agents</td><td>Implemented; live agent demos pending</td><td>MCP and independent HTTP/stdio clients tested. Connect and demonstrate two actual coding agents after configuration.</td></tr>
+      <tr><td>5. Add the agent to the UI</td><td>Implemented; live model pending</td><td>Browser demo chat and controlled model tool-loop tests pass. Configure a live provider to finish the model-backed demonstration.</td></tr>
       <tr><td>6. Write prompt evaluations (advanced)</td><td>Pending</td><td>All five cases evaluated using two prompt versions; comparison recorded.</td></tr>
       <tr><td>7. Add guardrails (advanced)</td><td>Pending</td><td>Injection and bypass attempts blocked across every client.</td></tr>
       <tr><td>8. Prepare the demo</td><td>Pending</td><td>Repeatable fixtures, commands, and evidence for completed milestones.</td></tr>
@@ -59,6 +59,31 @@
     <h2>Milestone 1 fix — shelf availability after approval</h2>
     <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). The shelf now displays date-specific availability alongside total inventory, using the same domain calculation as loan validation. Counts refresh after approval, date changes, page reload, and loan refresh. Selected quantities are preserved.</p>
     <p>Verification: all 24 automated tests pass with added API assertions for overlapping and non-overlapping dates. The real-browser regression confirms 6 available before approval, 4 after approving 2, 4 after reload, and 6 for a non-overlapping interval. Cancellation leaves counts unchanged. Tests use temporary inventory; existing demonstration loans are preserved.</p>
+  </article>
+  <article>
+    <h2>Phase 4 — MCP implementation and client integration tests</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/milestone-2</code>. This branch initially predated milestone 1, so it was fast-forwarded to the existing milestone 1 implementation before development. Local demonstration loans were preserved.</p>
+    <p>Implemented an MCP 2025-11-25 JSON-RPC dispatcher with version negotiation, tool discovery, schema checks, and the three shared lending tools. The app serves a loopback Streamable HTTP endpoint; a dependency-free stdio bridge connects external clients to the same running app and inventory. External proposals have human review links, and only the trusted browser approval path can save them.</p>
+    <p>Verification: direct HTTP and independent stdio subprocess clients pass lifecycle, discovery, proposals, direct-create denial, schema checks, and origin/version checks. A test transfers an external proposal to the matching human browser identity, confirms no write during review, and saves only after explicit approval.</p>
+    <p>Remaining requirement: these are protocol clients, not two live coding-agent demonstrations. Claude Code/Gemini CLI have not been connected here. Setup and the evidence checklist are in <a href="specs/mcp-clients.md">specs/mcp-clients.md</a>. Phase 4 is not marked fully complete until those demonstrations are recorded.</p>
+  </article>
+  <article>
+    <h2>Phase 5 — UI assistant and configurable model adapter</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Added UI chat with tool activity, session-held follow-up context, proposal review, and unchanged explicit approval. The assistant uses an internal MCP JSON-RPC client, sharing the dispatcher and schemas used by external clients. The model adapter supports configurable compatible chat-completions endpoints, bounded tool calls, provider errors, and server-only credentials.</p>
+    <p>At the user's request, live model configuration is deferred to an ignored local .env file. Empty settings select explicitly labeled demo mode, a limited local parser rather than an LLM. Partial configuration fails startup. A failed configured model never silently switches to demo mode.</p>
+    <p>Verification: all 36 automated tests pass, including MCP, multi-turn sensor clarification, model tool-loop fixtures, approval-helper denial, loop limits, and provider error redaction. Headless Chrome passes the UI's normal chat proposal, unclear-sensor question and follow-up, cancellation, and approval; existing milestone 1 approval, availability, desktop, and mobile checks also pass. Tests use isolated data and a fixed clock.</p>
+    <p>Remaining requirement: no live provider was called. After configuration, verify case 1 with a real model, case 4's clarification, and both external agent clients. Model fixtures and demo parsing are not evidence of those live integrations. Optional prompt comparisons and full cross-client injection evaluations remain milestone 3 work.</p>
+    <p>Next step: configure model access later as requested, run the live demonstrations in the MCP checklist, then record client/model versions and actual outcomes before marking milestone 2 fully complete.</p>
+  </article>
+  <article>
+    <h2>Milestone 2 UI refinement — structured replies and loading feedback</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Added safe Markdown-subset rendering for assistant paragraphs, lists, numbered steps, headings, emphasis, and inline code. Added an accessible thinking status with an animated spinner and waiting button label; controls are restored in a finally block, including request failures. Reduced-motion preferences suppress animation.</p>
+    <p>Verification: the full browser smoke test passes, including delayed chat-response fixtures that verify visible loading state, bold text, list structure, inert HTML, and cleanup after successful and rejected requests. Existing approval, availability, chat, and desktop/mobile checks pass. Tests use temporary inventory and do not call a live model or alter saved demonstration loans.</p>
+  </article>
+  <article>
+    <h2>Milestone 2 fix — actionable model failures</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Replaced collapsed provider errors with safe typed categories and numeric HTTP status, distinguished tool-loop exhaustion from network/provider errors, preserved opaque Gemini metadata across tool rounds, and made the default 60-second timeout configurable. Added an explicit user-run model diagnostic with no loan data or raw secret output.</p>
+    <p>Verification: all 39 automated tests pass, including rate limits, authentication, unavailable models/providers, network errors, timeouts, invalid responses, metadata replay, and credential redaction. The live diagnostic was blocked by automatic approval review because exporting the diagnostic payload with a local API key requires specific approval. The reported live failure's provider cause remains unverified; no claim of successful live repair is made.</p>
   </article>
   <p>At the end of each later phase, update its status and append a dated entry with changes, actual verification results, remaining issues, and next steps.</p>
 </body>

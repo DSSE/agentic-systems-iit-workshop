@@ -6,8 +6,11 @@
   "type": "module",
   "engines": { "node": ">=22" },
   "scripts": {
+    "mcp": "node src/mcp.js",
     "start": "node src/server.js",
     "test": "node --test tests/*.test.js",
+    "test:mcp": "node --test tests/mcp.test.js",
+    "check:model": "node scripts/check-model.mjs",
     "test:browser": "node tests/browser.mjs",
     "check:harness": "node scripts/check-harness.mjs"
   }
