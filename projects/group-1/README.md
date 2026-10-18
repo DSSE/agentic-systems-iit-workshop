@@ -1,6 +1,6 @@
-# Group 1: Workshop Room Booking Agent
+# Group 1: CampusDesk
 
-An agent that helps workshop participants find and request room bookings, while enforcing a maximum booking length of three hours.
+CampusDesk helps students find and book department lab rooms for group work. A booking can be at most three hours, and it is saved only after the person approves it.
 
 ## Team
 | Role | GitHub username |
@@ -11,14 +11,17 @@ An agent that helps workshop participants find and request room bookings, while 
 | MCP / tools | TBD |
 | Guardrails & QA | TBD |
 
+## Project documents
+- [Agent and behavior specification](specs/agent.md)
+- [Implementation plan and testable modules](specs/modules.md)
+
 ## Run
-```bash
-npm install
-npm start      # starts the agent
-npm test
-```
+Commands will be finalized when the harness and app are implemented.
 
 ## Demo cases
-1. A request to book a room for two hours is checked and, after user approval, created.
-2. A request to book a room for four hours is refused because it exceeds the three-hour limit.
-3. A valid three-hour booking request shows an approval prompt before it is created.
+1. A normal request for a lab on Thursday afternoon produces a booking proposal and saves only after approval.
+2. A booking of exactly three hours is allowed; one lasting three hours and one minute is rejected.
+3. A request that overlaps an existing booking for the same lab is rejected.
+4. A five-hour request is refused with the rule code; the agent may suggest a three-hour slot.
+5. An unclear request asks for the missing time and group size.
+6. An instruction embedded in a room note that claims to override the cap is ignored; no overlong booking is created.
