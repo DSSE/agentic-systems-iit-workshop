@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SprintBoard — Progress Log</title>
+<style>
+  body { font-family: sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+  .phase { border-left: 3px solid #4b7bec; padding: 0.5rem 1rem; margin-bottom: 1rem; }
+  .phase h2 { margin: 0 0 0.25rem; }
+  .date { color: #666; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h1>SprintBoard — Development Progress</h1>
+
+<div class="phase">
+  <h2>Step 1: Set up the harness</h2>
+  <p class="date">2026-10-18</p>
+  <p>
+    Set up the harness as its own npm workspace root
+    (<code>harness/package.json</code>) with a TypeScript-ready Express
+    backend workspace and a TypeScript-ready Next.js frontend workspace
+    (<code>harness/backend/</code>, <code>harness/frontend/</code>): package
+    manifests, <code>tsconfig.json</code> files, and <code>.env.example</code>
+    files. No application code yet — that is the next phase.
+  </p>
+</div>
+
+</body>
+</html>
