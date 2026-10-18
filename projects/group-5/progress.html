@@ -155,6 +155,28 @@
         <a href="evals/live-results.json">live attempts</a>, and
         <a href="evals/provider-diagnostic.json">provider diagnostic</a>.</p>
     </article>
+    <article>
+      <h2>Provider update — Groq chat and timeout reporting</h2>
+      <p><time datetime="2026-10-18">18 October 2026</time> · Configured and verified</p>
+      <p>Changed the default compatible endpoint to Groq and selected
+        <code>openai/gpt-oss-120b</code>. The supplied credential is stored only
+        in the ignored server environment file; public configuration examples
+        contain no key. Removed Gemini-specific setup/error messages and added
+        configurable request deadlines with safe <code>MODEL_TIMEOUT</code>
+        responses for aborted or timed-out provider requests.</p>
+      <p>Actual live checks: the key can list models and complete a basic
+        request. Groq clarified an ambiguous request in about 1.4 seconds, then
+        used real MCP room-listing and availability tools to return the exact
+        requested room, date, time and group size in about 2.5 seconds. These
+        checks used temporary synthetic data and created no bookings. Restarted
+        the local API under Node 22 with the private configuration, then verified
+        authenticated in-app chat clarification and HTTP 200 for the frontend.
+        Real booking data stayed unchanged during verification.</p>
+      <p>All 56 backend tests pass, including compatible request formatting and
+        safe timeout responses. Historical Gemini failure reports remain
+        historical; the full live prompt comparison, browser interaction check
+        against Groq and external two-agent demo have not been rerun.</p>
+    </article>
     <p>Historical phase entries above describe the state at that stage. The
       latest entries and <a href="PLANS.md">delivery plan</a> show current status.</p>
   </main>

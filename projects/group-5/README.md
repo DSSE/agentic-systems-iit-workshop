@@ -6,7 +6,7 @@ Project statement: [CampusDesk.md](CampusDesk.md). Implementation specification:
 
 The Codex and Claude harness is ready, and Phase 2 (backend/frontend) is
 implemented: an Express API in [server/](server/) and a Next.js UI in
-[web/](web/), plus authenticated MCP, Gemini chat, two agent clients and prompt
+[web/](web/), plus authenticated MCP, Groq-backed chat, two agent clients and prompt
 evaluations. See [HARNESS.md](HARNESS.md) for structure and skill usage,
 [PLANS.md](PLANS.md) for delivery tracking, and [progress.html](progress.html)
 for completed phase evidence.
@@ -45,9 +45,10 @@ npm start              # API :4000 and web :3000, together
 ```
 
 Open http://localhost:3000. The form and staff workflow work without a model.
-Chat requires Gemini API access. The key supplied during development could
-list models, but generation was denied with `403 PERMISSION_DENIED`; it needs
-an enabled Google project before live chat can be verified. See
+Chat defaults to Groq with `openai/gpt-oss-120b`; configure `LLM_API_KEY` (or
+`GROQ_API_KEY`) privately in `server/.env`. The compatible endpoint is
+`https://api.groq.com/openai/v1/`. Live clarification and MCP-generated booking
+previews have been verified with Groq. See
 [DEMO.md](DEMO.md) for model checks, two-agent connections and evaluation steps.
 
 Alternatively, run the apps in separate terminals:
@@ -151,14 +152,21 @@ npm run lint
 npm run build
 npm run test:browser    # install Chromium first: cd web && npx playwright install chromium
 cd server
-npm run model:check    # one live model request; requires an enabled project
+npm run model:check    # one live model request; requires a valid Groq key
 npm run demo:agents    # two separate MCP agent clients; see DEMO.md for credentials
 npm run eval           # live comparison of prompt v1 and v2
 npm run eval -- --offline  # deterministic contract checks; no model requests
 ```
 
-Verification: 53 backend tests, four browser tests, frontend lint/build, and
-14 deterministic evaluation checks. Browser tests use a scripted provider and
-temporary data. Live-model verification is blocked by the provider access
-error; reports in [evals/](evals/) preserve that distinction. No test modifies
-the real booking file. See [DEMO.md](DEMO.md) for exact scenarios and limitations.
+Verification: 56 backend tests, plus the previously recorded browser, lint/build
+and deterministic evaluation checks. Live Groq checks cover basic completion,
+clarification and the real MCP preview flow using temporary data. A full prompt
+comparison and browser chat check have not been rerun with Groq; historical
+reports in [evals/](evals/) retain the earlier Gemini access failures. No test
+modifies the real booking file. See [DEMO.md](DEMO.md) for scenarios and limitations.
+
+Groq configuration follows its [compatible API documentation](https://console.groq.com/docs/openai)
+and [supported models](https://console.groq.com/docs/models). `LLM_TIMEOUT_MS`
+controls each provider request (1000–120000 ms; default 30000). A timeout is
+reported as `MODEL_TIMEOUT` with HTTP 504; provider response bodies and API keys
+are never echoed to the browser. Configuration changes require an API restart.

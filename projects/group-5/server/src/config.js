@@ -30,8 +30,11 @@ export const MAX_DURATION_MINUTES = 180;
 // Staff decisions refer to persisted immutable requests, not this token.
 export const PROPOSAL_TTL_MS = 5 * 60 * 1000;
 
-// Gemini's compatible endpoint is the default; other compatible providers can
+// Groq's compatible endpoint is the default; other compatible providers can
 // override it. Secrets are loaded by Node from .env, never sent to the browser.
-export const LLM_BASE_URL = process.env.LLM_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai/";
-export const LLM_API_KEY = process.env.LLM_API_KEY || process.env.GEMINI_API_KEY || "";
-export const LLM_MODEL = process.env.LLM_MODEL || "gemini-3.8-flash";
+export const LLM_BASE_URL = process.env.LLM_BASE_URL || "https://api.groq.com/openai/v1/";
+export const LLM_API_KEY = process.env.LLM_API_KEY || process.env.GROQ_API_KEY || "";
+export const LLM_MODEL = process.env.LLM_MODEL || "openai/gpt-oss-120b";
+const configuredTimeout = Number(process.env.LLM_TIMEOUT_MS || 30000);
+export const LLM_TIMEOUT_MS = Number.isInteger(configuredTimeout) && configuredTimeout >= 1000 && configuredTimeout <= 120000
+  ? configuredTimeout : 30000;

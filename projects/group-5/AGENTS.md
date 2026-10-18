@@ -43,7 +43,7 @@ Staff's explicit API approval supplies a server-owned review context to the
 MCP create tool; public MCP clients cannot invent it, even with staff credentials.
 The stdio bridge connects to the running API; never run a second file writer.
 
-Gemini is configured only in `server/.env`. Never expose keys in public Next.js
+Groq is configured only in `server/.env`. Never expose keys in public Next.js
 variables. Run `npm run model:check` inside `server/` to check live access;
 `npm run eval` there evaluates both prompts with the model.
 `npm run eval -- --offline` tests contracts with a scripted provider, not model

@@ -52,7 +52,7 @@ export default function ChatPanel({ onSubmitted }) {
     <div className="section-heading spread"><div><span className="eyebrow">A LITTLE HELP FINDING YOUR SPACE</span>
       <h2 id="chat-title">Ask CampusDesk</h2><p>Describe your plans. We’ll help you prepare a request.</p></div>
       <button className="text-button" onClick={reset} disabled={busy}>New chat</button></div>
-    {status && !status.configured && <p className="notice" role="status">The assistant is waiting for its Gemini configuration. You can use the request form below.</p>}
+    {status && !status.configured && <p className="notice" role="status">The assistant is waiting for its model configuration. You can use the request form below.</p>}
     <div className="chat-log" role="log" aria-label="Conversation" aria-live="polite" ref={log}>
       {!messages.length && <div className="chat-welcome"><span aria-hidden="true">✳</span><h3>Good work starts with the right space.</h3>
         <p>Tell me when you’d like to meet, for how long, and how many people are coming. Staff will review your request before it’s booked.</p></div>}

@@ -9,8 +9,9 @@ Ctrl+C stops both processes. To check an optimized local UI, run `npm run build`
 then `npm run start:production`. This is still a local workshop account setup.
 
 If `server/.env` does not exist, copy `server/.env.example` there. Set
-`LLM_API_KEY` (or `GEMINI_API_KEY`) privately. The default model is
-`gemini-3.8-flash`; `LLM_BASE_URL` and `LLM_MODEL` can select another compatible
+`LLM_API_KEY` (or `GROQ_API_KEY`) privately. The default model is
+`openai/gpt-oss-120b` at `https://api.groq.com/openai/v1/`;
+`LLM_BASE_URL` and `LLM_MODEL` can select another compatible
 provider/model. Restart the API after configuration changes. Never put secrets
 in `NEXT_PUBLIC_*` variables, PRs, command-line arguments, or screenshots.
 
@@ -65,7 +66,7 @@ npm run agent -- campusdesk-concierge
 
 The demo opens two independent authenticated Streamable HTTP MCP clients,
 `campusdesk-concierge` and `campusdesk-planner`. Both list all three tools. One
-asks Gemini to find an exact slot; the other asks an unclear booking question.
+asks the configured model to find an exact slot; the other asks an unclear booking question.
 Each runs its own conversation/tool loop. They can preview slots but must
 direct a student to the UI to submit, and staff must independently approve.
 
@@ -102,13 +103,15 @@ requests after an access, authentication, quota or availability error and labels
 remaining scenarios blocked. A successful single live run is still not a
 statistical benchmark.
 
-The supplied key listed models but generation returned
+The earlier Gemini key listed models but generation returned
 `403 PERMISSION_DENIED`: “Your project has been denied access. Please contact
 support.” Both the native and compatible Gemini endpoints returned that error;
-see `evals/provider-diagnostic.json`. Live chat, prompt-quality comparison and
-the live two-agent demonstration remain unverified until this is resolved.
-Replace the key with one from an enabled project and restart; no source changes
-are needed. `npm run model:check` prints a safe status without the key.
+see `evals/provider-diagnostic.json`. This is historical evidence. The current
+Groq configuration passes live completion, clarification and MCP booking-preview
+checks; a full prompt-quality comparison and the live two-agent demonstration
+have not been rerun with Groq. `npm run model:check` prints a safe status without
+the key. `LLM_TIMEOUT_MS` defaults to 30000 and accepts 1000–120000 milliseconds;
+timeouts return a safe `MODEL_TIMEOUT` error rather than exposing provider data.
 
 From `web/`, install the browser once (`npx playwright install chromium`), then
 run `npm run test:browser`. An existing Chromium executable can be selected
@@ -127,6 +130,7 @@ rounds/calls. Student previews expire after five minutes. Submitted requests
 persist; only an independent staff review confirms a booking. Production SSO,
 account administration and a multi-instance datastore are outside this workshop.
 
-Implementation references: [Gemini compatible API](https://ai.google.dev/gemini-api/docs/openai)
+Implementation references: [Groq compatible API](https://console.groq.com/docs/openai),
+[Groq supported models](https://console.groq.com/docs/models)
 and [MCP SDK v1](https://github.com/modelcontextprotocol/typescript-sdk/tree/v1.x).
 The v1 SDK maintenance line is pinned by the lockfile; no preview SDK is used.
