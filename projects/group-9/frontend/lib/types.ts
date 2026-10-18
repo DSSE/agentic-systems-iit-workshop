@@ -68,3 +68,13 @@ export interface BookingInput {
   end: string;
   group_size: number;
 }
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatReply {
+  reply: string;
+  proposals: Proposal[];
+}

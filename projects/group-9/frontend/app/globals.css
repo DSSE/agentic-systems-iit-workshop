@@ -97,3 +97,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .note { margin: 0; font-size: 0.85rem; color: var(--muted); font-style: italic; }
 .slots { gap: 4px; font-size: 0.9rem; }
 .badge { padding: 1px 6px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.8rem; }
+
+.chat-log { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; max-height: 420px; overflow-y: auto; }
+.bubble { padding: 8px 12px; border-radius: 10px; max-width: 85%; display: grid; gap: 8px; }
+.bubble p { margin: 0; white-space: pre-wrap; }
+.bubble.user { justify-self: end; background: var(--accent); color: var(--accent-text); }
+.bubble.assistant { justify-self: start; background: var(--bg); border: 1px solid var(--border); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chips button { font-size: 0.85rem; padding: 4px 10px; }
+.chat-form { display: flex; gap: 8px; }
+.chat-form input { flex: 1; }

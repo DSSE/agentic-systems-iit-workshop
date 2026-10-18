@@ -1,4 +1,13 @@
-import type { Availability, Booking, BookingInput, Proposal, Room, RuleResult } from "@/lib/types";
+import type {
+  Availability,
+  Booking,
+  BookingInput,
+  ChatMessage,
+  ChatReply,
+  Proposal,
+  Room,
+  RuleResult,
+} from "@/lib/types";
 
 export type Outcome<T> = { ok: true; data: T } | { ok: false; refusal: RuleResult };
 
@@ -38,4 +47,5 @@ export const api = {
   pending: () => call<Proposal[]>("/proposals"),
   approve: (id: string) => call<Booking>(`/proposals/${encodeURIComponent(id)}/approve`, post()),
   reject: (id: string) => call<void>(`/proposals/${encodeURIComponent(id)}/reject`, post()),
+  chat: (messages: ChatMessage[]) => call<ChatReply>("/chat", post({ messages })),
 };

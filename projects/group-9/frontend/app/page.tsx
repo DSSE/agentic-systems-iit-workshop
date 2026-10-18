@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import BookingForm from "@/components/BookingForm";
+import Chat from "@/components/Chat";
 import PendingApprovals from "@/components/PendingApprovals";
 import Schedule from "@/components/Schedule";
 import { api } from "@/lib/api";
@@ -33,6 +34,7 @@ export default function Home() {
       <div className="grid">
         <BookingForm rooms={rooms} day={day} onDayChange={setDay} onProposed={refresh} />
         <PendingApprovals version={version} onDecided={refresh} />
+        <Chat onProposed={refresh} onDecided={refresh} />
         <Schedule rooms={rooms} day={day} onDayChange={setDay} version={version} />
       </div>
     </main>
