@@ -49,6 +49,11 @@ MAX_TOOL_ROUNDS = 6
 TURN_TIMEOUT_SECONDS = 25.0
 AGENT_TOOLS = frozenset({"list_rooms", "check_availability", "create_booking"})
 FALLBACK_REPLY = "Sorry, I could not finish that. Please try again."
+# When the turn fails after create_booking already made a proposal, say so instead of "could not finish".
+PROPOSAL_MADE_REPLY = (
+    "I made the proposal below, but could not finish my answer (the language model is busy). "
+    "Check it, then click Approve or Reject."
+)
 
 
 @dataclass(frozen=True)
@@ -133,7 +138,7 @@ class CampusAgent:
                             messages.append({"role": "tool", "tool_call_id": tool_call.id, "content": content})
         except Exception:  # rate limit, timeout, MCP failure: the chat must not crash
             logger.exception("chat agent turn failed")
-        return AgentReply(FALLBACK_REPLY, state.proposal_ids)
+        return AgentReply(PROPOSAL_MADE_REPLY if state.proposal_ids else FALLBACK_REPLY, state.proposal_ids)
 
     async def _call_tool(self, client: Client, tool_call: ToolCall, state: _Turn) -> str:
         if tool_call.name not in AGENT_TOOLS:

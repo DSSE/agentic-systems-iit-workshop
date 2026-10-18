@@ -153,3 +153,13 @@ async def test_a_retry_after_bad_arguments_is_allowed(desk):
     ])
     result = await agent.run(USER, FIXED_NOW)
     assert len(result.proposal_ids) == 1
+
+
+async def test_failure_after_a_proposal_says_the_proposal_is_waiting(desk):
+    # Groq can return 429 after create_booking already made a proposal (seen live).
+    from app.agent import PROPOSAL_MADE_REPLY
+
+    agent, _ = agent_for(desk, [AssistantTurn(None, [call("create_booking", THURSDAY)]), RuntimeError("429 Too Many Requests")])
+    result = await agent.run(USER, FIXED_NOW)
+    assert len(result.proposal_ids) == 1
+    assert result.reply == PROPOSAL_MADE_REPLY
