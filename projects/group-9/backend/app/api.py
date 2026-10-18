@@ -1,12 +1,12 @@
 """REST routes. Every refusal is a RuleResult."""
 
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.domain.booking_rules import (
     BAD_GROUP_MESSAGE,
@@ -113,3 +113,32 @@ def approve_proposal(proposal_id: str, desk: Desk):
 def reject_proposal(proposal_id: str, desk: Desk):
     outcome = desk.reject(proposal_id)
     return refusal(outcome, 404) if outcome else Response(status_code=204)
+
+
+NO_AGENT_REPLY = "The chat agent is not set up yet: add LLM_API_KEY (and LLM_MODEL) to the .env file and restart the backend."
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=4000)
+
+
+class ChatIn(BaseModel):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=40)
+
+
+class ChatOut(BaseModel):
+    reply: str
+    proposals: list[Proposal]
+
+
+@router.post("/chat", response_model=ChatOut, responses={422: {"model": RuleResult}})
+async def chat(body: ChatIn, request: Request):
+    agent = request.app.state.agent
+    desk: CampusDesk = request.app.state.desk
+    if agent is None:
+        return ChatOut(reply=NO_AGENT_REPLY, proposals=[])
+    result = await agent.run([m.model_dump() for m in body.messages], desk.clock())
+    # Proposals come from the store, never from model text, so the UI only shows real ones.
+    pending = {p.proposal_id: p for p in desk.pending()}
+    return ChatOut(reply=result.reply, proposals=[pending[i] for i in result.proposal_ids if i in pending])

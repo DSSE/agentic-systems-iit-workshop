@@ -14,6 +14,7 @@ from string import Template
 from typing import Any, Protocol
 
 from mcp import Client
+from openai import AsyncOpenAI
 
 from app.domain.booking_rules import MAX_DURATION_MINUTES
 
@@ -146,3 +147,22 @@ class CampusAgent:
         if created:
             proposal_ids.append(data["proposal_id"])
         return wrap_tool_data(tool_call.name, payload, result.is_error)
+
+
+class OpenAICompatibleLLM:
+    """Any OpenAI-compatible chat API (Groq by default); the model comes from .env."""
+
+    def __init__(self, base_url: str, api_key: str, model: str) -> None:
+        # max_retries backs off on HTTP 429, which Groq's free tier returns under per-minute limits.
+        self._client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=30, max_retries=2)
+        self.model = model
+
+    async def complete(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> AssistantTurn:
+        response = await self._client.chat.completions.create(
+            model=self.model, messages=messages, tools=tools, temperature=0,
+        )
+        message = response.choices[0].message
+        return AssistantTurn(
+            content=message.content,
+            tool_calls=[ToolCall(c.id, c.function.name, c.function.arguments) for c in message.tool_calls or []],
+        )
