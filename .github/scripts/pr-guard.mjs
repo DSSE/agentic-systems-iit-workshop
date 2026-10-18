@@ -1,9 +1,11 @@
 // Checks a pull request against the workshop rules:
-//   1. The PR targets the default branch and comes from this repo (not a fork).
+//   1. The PR comes from this repo (not a fork).
 //   2. The branch is named group-<N>/<short-name>.
-//   3. The PR author is a member of group N in groups.json.
-//   4. Every changed file is inside projects/group-<N>/.
-// Instructors listed in groups.json skip rules 2-4.
+//   3. The PR targets the group's integration branch group-<N>/feature;
+//      only group-<N>/feature itself may target the default branch.
+//   4. The PR author is a member of group N in groups.json.
+//   5. Every changed file is inside projects/group-<N>/.
+// Instructors listed in groups.json skip rules 2-5.
 //
 // This script runs from the default branch (see pr-guard.yml), so a PR
 // cannot change the rules it is checked against. The PR's commits are only
@@ -27,9 +29,6 @@ const lower = (list) => list.map((u) => u.toLowerCase());
 const errors = [];
 const notes = [];
 
-if (baseRef !== defaultBranch) {
-  errors.push(`This PR targets "${baseRef}". Open it against "${defaultBranch}" instead.`);
-}
 if (isFork) {
   errors.push("This PR comes from a fork. Push your branch to the workshop repo itself and open the PR from there.");
 }
@@ -47,15 +46,25 @@ if (lower(config.instructors).includes(author)) {
     const n = match[1];
     const group = config.groups[n];
     const folder = `projects/group-${n}/`;
+    const featureBranch = `group-${n}/feature`;
+
+    if (group && !lower(group.members).includes(author)) {
+      errors.push(`@${author} is not a member of group ${n}. Use your own group number in the branch name.`);
+    }
+
+    const intoFeature = baseRef === featureBranch && branch !== featureBranch;
+    const featureIntoMain = baseRef === defaultBranch && branch === featureBranch;
+    if (!intoFeature && !featureIntoMain) {
+      errors.push(
+        `This PR goes from "${branch}" into "${baseRef}". Open feature PRs against ` +
+          `"${featureBranch}"; only "${featureBranch}" itself opens a PR into "${defaultBranch}".`
+      );
+    }
 
     if (!group) {
       errors.push(`Group ${n} is not listed in groups.json. Check your group number.`);
-    } else {
-      if (!lower(group.members).includes(author)) {
-        errors.push(`@${author} is not a member of group ${n}. Use your own group number in the branch name.`);
-      }
-
-      const base = git("merge-base", `origin/${defaultBranch}`, prHead);
+    } else if (intoFeature || featureIntoMain) {
+      const base = git("merge-base", `origin/${baseRef}`, prHead);
       const files = git("diff", "--name-only", "--no-renames", base, prHead)
         .split("\n")
         .filter(Boolean);

@@ -33,8 +33,9 @@ for u in $(node -e 'const c=require("./groups.json"); console.log(Object.values(
   invite "$u" push
 done
 
-echo "5/5 Protecting main"
+echo "5/5 Protecting main and each group-<N>/feature branch"
 gh api -X POST "repos/$REPO/rulesets" --input .github/rulesets/protect-main.json >/dev/null
+gh api -X POST "repos/$REPO/rulesets" --input .github/rulesets/protect-group-feature.json >/dev/null
 
 echo
 echo "Done: https://github.com/$REPO"
