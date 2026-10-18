@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SprintBoard · AIDLC Development Progress Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.8) 0px, transparent 100%);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      padding: 2.5rem 1.5rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 2rem 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan), var(--accent-emerald));
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .title-area h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .badge-primary {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .badge-cyan {
+      background: rgba(6, 182, 212, 0.15);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .rule-box {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      color: #fecdd3;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .rule-box strong {
+      color: #ffe4e6;
+      font-weight: 700;
+    }
+
+    /* Overall Progress Bar */
+    .progress-stats {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      background: rgba(255, 255, 255, 0.06);
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 12.5%; /* 1 of 8 phases initialized */
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+      border-radius: 999px;
+      transition: width 0.5s ease;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    /* Phases Grid */
+    .phases-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .phase-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .phase-card:hover {
+      border-color: var(--card-hover-border);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .phase-card.active {
+      border-color: rgba(99, 102, 241, 0.6);
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
+    }
+
+    .phase-card.completed {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.05), var(--card-bg));
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .phase-tag {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+
+    .step-num {
+      background: rgba(255, 255, 255, 0.1);
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .status-in-progress {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-pending {
+      background: rgba(148, 163, 184, 0.1);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .status-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .phase-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    .criteria-box {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      border-left: 3px solid var(--primary);
+    }
+
+    .criteria-box ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .criteria-box li {
+      margin: 0.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #cbd5e1;
+    }
+
+    .criteria-box li::before {
+      content: "•";
+      color: var(--accent-cyan);
+      font-size: 1.2rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 1.5rem;
+      }
+      .title-area h1 {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <div class="title-area">
+          <h1>SprintBoard Dashboard</h1>
+          <div class="badge-group">
+            <span class="badge badge-primary">Group 06 · API Astronauts</span>
+            <span class="badge badge-cyan">AIDLC Framework (AWS Labs)</span>
+            <span class="badge badge-emerald">Milestone-Driven</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-box">
+        <span>🛡️</span>
+        <div>
+          <strong>HARD RULE:</strong> No team member has more than 8 story points. Nothing is committed to <code>data.json</code> until explicit human approval.
+        </div>
+      </div>
+
+      <div class="progress-stats">
+        <div class="progress-header">
+          <span>Overall Development Lifecycle</span>
+          <span id="percent-label">Phase 2 Completed · Phase 3 In Progress (25.0%)</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progress-bar-fill" style="width: 25%;"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="phases-grid">
+      <!-- Phase 1 -->
+      <article class="phase-card completed" id="phase-1">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">01</span>
+            Set up the harness
+          </div>
+          <span class="status-badge status-done">Completed</span>
+        </div>
+        <p class="phase-desc">Set up Node.js ES modules harness, package configuration, seed <code>data.json</code>, integrate AIDLC state steering rules and test harness.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>AIDLC rules & state tracking initialized (.aidlc, aidlc-docs)</li>
+            <li>data.json seeded with 6 backlog tasks and team capacities</li>
+            <li>✅ Automated harness smoke test passing (3/3 assertions in test/harness.test.js)</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 2 -->
+      <article class="phase-card completed" id="phase-2">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">02</span>
+            Build backend and frontend
+          </div>
+          <span class="status-badge status-done">Completed</span>
+        </div>
+        <p class="phase-desc">Implement the pure domain validator (Max 8 pts) in <code>src/domain/rules.js</code>, storage harness, REST API endpoints, and rich interactive web UI with the explicit <strong>[Approve]</strong> button.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Single domain rule module shared across clients (src/domain/rules.js)</li>
+            <li>Tools: list_tasks, check_capacity, assign_task implemented</li>
+            <li>Full-stack web UI with proposal staging and [Approve Proposal] button</li>
+            <li>✅ Automated test suite passing (5/5 assertions in test/phase2.test.js)</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 3 -->
+      <article class="phase-card active" id="phase-3">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">03</span>
+            Test the behaviour
+          </div>
+          <span class="status-badge status-in-progress">In Progress</span>
+        </div>
+        <p class="phase-desc">Write and verify automated tests for Cases 1 to 3: Normal proposal flow, 8-to-9 point boundary test, and refusal of rule-breaking assignments with ERR_MAX_POINTS_EXCEEDED.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Case 1: Proposals stay <= 8 points and save only after Approve</li>
+            <li>Case 2: 8 points succeeds; 9th point throws ERR_MAX_POINTS_EXCEEDED</li>
+            <li>Case 3: "Assign all 6 tasks to Rafi" refused with alternative suggestion</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 4 -->
+      <article class="phase-card" id="phase-4">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">04</span>
+            Make the MCP server and connect any agent
+          </div>
+          <span class="status-badge status-pending">Pending</span>
+        </div>
+        <p class="phase-desc">Implement a Model Context Protocol (MCP) server exposing the 3 tools over stdio/JSON-RPC. Verify connectivity with Claude Code, Gemini CLI, Antigravity, and Cursor.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Standard JSON-RPC MCP server in src/mcp/server.js</li>
+            <li>Tools list_tasks, check_capacity, assign_task registered</li>
+            <li>Multi-agent client validation verified</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 5 -->
+      <article class="phase-card" id="phase-5">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">05</span>
+            Add the agent to the UI
+          </div>
+          <span class="status-badge status-pending">Pending</span>
+        </div>
+        <p class="phase-desc">Incorporate an interactive chat agent drawer into the web UI that leverages the MCP tools. Test Case 1 in plain language and Case 4 for clarifying ambiguous requests.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Model-agnostic agent interface configured via .env</li>
+            <li>Natural language assignment generates proposal in UI</li>
+            <li>Unclear requests ("Assign the remaining tasks") trigger clarification</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 6 -->
+      <article class="phase-card" id="phase-6">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">06</span>
+            Write evals for the prompts
+          </div>
+          <span class="status-badge status-pending">Pending</span>
+        </div>
+        <p class="phase-desc">Build an automated evaluation runner covering all five test cases and quantitatively benchmark two prompt iterations (Base vs. Structured CoT).</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Automated eval suite running Cases 1 through 5</li>
+            <li>Comparison matrix between Prompt Version A and Version B</li>
+            <li>100% capacity rule adherence score verified</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 7 -->
+      <article class="phase-card" id="phase-7">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">07</span>
+            Add guardrails
+          </div>
+          <span class="status-badge status-pending">Pending</span>
+        </div>
+        <p class="phase-desc">Implement input sanitization and context delimiters to block prompt injection payloads in task text (Case 5). Verify across UI, API, MCP, and Agent.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Adversarial payload in data.json handled as inert data</li>
+            <li>Hard rule verified to hold against instruction hijacking</li>
+            <li>Automated injection regression test passing</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Phase 8 -->
+      <article class="phase-card" id="phase-8">
+        <div class="card-top">
+          <div class="phase-tag">
+            <span class="step-num">08</span>
+            Prepare the demo
+          </div>
+          <span class="status-badge status-pending">Pending</span>
+        </div>
+        <p class="phase-desc">Consolidate documentation, rehearse live walkthrough of all 5 demonstration cases, and complete the operational runbook.</p>
+        <div class="criteria-box">
+          <ul>
+            <li>Demo runbook in aidlc-docs/operations/demo-runbook.md</li>
+            <li>All 5 cases live-tested and verified</li>
+            <li>Ready for team and instructor presentation</li>
+          </ul>
+        </div>
+      </article>
+    </main>
+
+    <footer>
+      AIDLC Workflow · SprintBoard Group 06 · IIT Agentic AI Workshop Day 2
+    </footer>
+  </div>
+</body>
+</html>

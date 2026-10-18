@@ -1,0 +1,28 @@
+{
+  "name": "sprintboard-group-06",
+  "version": "1.0.0",
+  "description": "SprintBoard: Backlog task assignment with hard capacity limits and human-in-the-loop approval",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/**/*.test.js",
+    "dev": "node --watch src/server.js",
+    "mcp": "node src/mcp/server.js"
+  },
+  "keywords": [
+    "aidlc",
+    "agentic-ai",
+    "sprintboard",
+    "mcp",
+    "capacity-planning"
+  ],
+  "author": "Group 06 (API Astronauts)",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}

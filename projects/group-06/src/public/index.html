@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SprintBoard · Capacity-Driven Sprint Planning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-content">
+        <div class="brand">
+          <div class="brand-logo">⚡</div>
+          <div>
+            <h1>SprintBoard</h1>
+            <p class="subtitle">AI-Assisted Sprint Planning & Capacity Governor</p>
+          </div>
+        </div>
+
+        <div class="header-meta">
+          <div class="meta-pill">
+            <span class="dot live"></span>
+            <span class="label">Client: Web UI</span>
+          </div>
+          <div class="meta-pill">
+            <span class="label">Hard Limit: <strong>8 Pts / Member</strong></span>
+          </div>
+          <a href="progress.html" class="nav-btn" target="_blank">Lifecycle Dashboard ↗</a>
+        </div>
+      </div>
+
+      <!-- Hard Rule Alert Banner -->
+      <div class="rule-banner">
+        <div class="banner-icon">🛡️</div>
+        <div class="banner-text">
+          <strong>HARD RULE ENFORCED:</strong> No team member may be assigned more than 8 story points. Assignments are staged as proposals and <u>persisted only after explicit human approval</u>.
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="main-content">
+      <!-- Left Column: Team Capacity Gauges -->
+      <section class="team-section">
+        <div class="section-header">
+          <h2>Team Capacity</h2>
+          <span class="badge badge-subtle">Sprint 1</span>
+        </div>
+
+        <div id="members-container" class="members-grid">
+          <!-- Dynamic Member Cards injected by app.js -->
+          <div class="loading-state">Loading team members...</div>
+        </div>
+
+        <!-- Quick Scenario Testing Deck -->
+        <div class="scenario-deck">
+          <div class="deck-title">⚡ Quick Scenario Benchmarks</div>
+          <div class="scenario-buttons">
+            <button class="btn btn-outline" id="btn-demo-case1" title="Assign Login & Payment (8 pts total)">Case 1: Normal (8 pts)</button>
+            <button class="btn btn-outline" id="btn-demo-case2" title="Test 8 pts vs 9 pts boundary">Case 2: Boundary (8 vs 9)</button>
+            <button class="btn btn-outline" id="btn-demo-case3" title="Attempt to assign all tasks to Rafi">Case 3: Rule Break (Rafi)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Backlog & Staged Proposal Area -->
+      <section class="backlog-section">
+        <!-- Active Proposal Review Card (Shown when a proposal is staged) -->
+        <div id="proposal-card" class="proposal-card hidden">
+          <div class="proposal-header">
+            <div class="proposal-title">
+              <span class="pulse-icon">⏳</span>
+              <h3>Staged Assignment Proposal</h3>
+            </div>
+            <span class="badge badge-warning">Awaiting Human Approval</span>
+          </div>
+
+          <div class="proposal-body">
+            <div class="proposal-detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Target Member</span>
+                <span class="detail-value" id="prop-member-name">-</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Selected Tasks</span>
+                <span class="detail-value" id="prop-task-count">0 task(s)</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Proposed Load</span>
+                <span class="detail-value" id="prop-points-added">+0 pts</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Projected Total</span>
+                <span class="detail-value" id="prop-projected-total">0 / 8 pts</span>
+              </div>
+            </div>
+
+            <div class="proposal-tasks" id="prop-tasks-list">
+              <!-- Task summary items -->
+            </div>
+
+            <div class="proposal-actions">
+              <button id="btn-approve-proposal" class="btn btn-success btn-lg">
+                <span class="btn-icon">✓</span> Approve & Save to data.json
+              </button>
+              <button id="btn-cancel-proposal" class="btn btn-ghost">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Backlog Task List Header & Controls -->
+        <div class="section-header">
+          <div>
+            <h2>Sprint Backlog</h2>
+            <p class="section-desc">Select unassigned tasks to stage an allocation proposal.</p>
+          </div>
+
+          <div class="assignment-bar">
+            <label for="select-assignee">Assign to:</label>
+            <select id="select-assignee" class="select-dropdown">
+              <!-- Options populated by app.js -->
+            </select>
+            <button id="btn-stage-proposal" class="btn btn-primary" disabled>
+              Stage Proposal
+            </button>
+          </div>
+        </div>
+
+        <!-- Tasks Table / Cards -->
+        <div id="tasks-container" class="tasks-list">
+          <div class="loading-state">Loading backlog tasks...</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Notification Toast Modal -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
