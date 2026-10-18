@@ -3,7 +3,7 @@
 Proposes assignments of backlog tasks to team members; no member ever goes over 8 story points, and nothing is saved until a person clicks Approve.
 
 ## Commands
-- Run: `npm start` (web app + API on http://localhost:3000)
+- Run: `npm start` (web app + API, from Phase 2)
 - MCP server: `npm run mcp` (from Phase 4)
 - Test: `npm test` (Node built-in `node:test`)
 

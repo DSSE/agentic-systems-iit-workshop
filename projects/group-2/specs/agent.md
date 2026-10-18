@@ -50,11 +50,6 @@ person clicks **Approve**.
 | `TASK_ALREADY_ASSIGNED` | The task already has an assignee (reassigning is out of scope). |
 | `DUPLICATE_TASK` | The same `taskId` appears twice in one batch. |
 | `PROPOSAL_NOT_FOUND` | `approve` with an unknown or already-used `proposalId`. |
-| `INVALID_INPUT` | `assignments` is missing, empty, or has entries without `taskId`/`memberId`. |
-
-Checks run in this order, and the first failure is returned: `INVALID_INPUT`,
-`DUPLICATE_TASK`, `UNKNOWN_TASK`, `UNKNOWN_MEMBER`, `TASK_ALREADY_ASSIGNED`,
-`MAX_POINTS_EXCEEDED`.
 
 `details` for `MAX_POINTS_EXCEEDED`: `{ memberId, current, adding, total, limit }`.
 
@@ -68,9 +63,7 @@ would have to re-plan anyway. The agent may then propose a spread that fits.
 1. `assign_task` validates the batch and creates a pending proposal (in memory, not saved).
 2. The UI shows the proposal with **Approve** / **Reject**.
 3. Only **Approve** calls `approve`, which re-reads `data.json`, re-checks HR-1 and writes.
-4. Pending proposals don't reserve capacity. Approve can still fail if data changed since;
-   a proposal that fails on approve is dropped (the lead proposes again).
-5. **Reject** drops a pending proposal without saving.
+4. Pending proposals don't reserve capacity. Approve can still fail if data changed since.
 
 ## Scenario cases
 | # | Case | Request / setup | Expected |
@@ -85,17 +78,17 @@ would have to re-plan anyway. The agent may then propose a spread that fits.
 IDs are referenced by test names (`AC-n: ...`) so each criterion maps to a test.
 
 ### Milestone 1 (Phases 1–3)
-- [x] AC-1: `list_tasks` returns all tasks and each member's points, limit and remaining.
-- [x] AC-2: `check_capacity` never writes `data.json`.
-- [x] AC-3: `assign_task` creates a proposal and never writes `data.json`.
-- [x] AC-4: Only `approve` writes `data.json`, and only for a known pending proposal.
-- [x] AC-5 (C1): Login (T1) + payment (T2) to two members gives a valid proposal; after approve both are saved.
-- [x] AC-6 (C2): Reaching exactly 8 gives a proposal; reaching 9 fails with `MAX_POINTS_EXCEEDED`.
-- [x] AC-7 (C3): All 6 tasks to Rafi fails with `MAX_POINTS_EXCEEDED` and nothing is saved.
-- [x] AC-8: `assign_task` refuses a rule-breaking batch even if `check_capacity` was skipped.
-- [x] AC-9: `approve` re-checks HR-1 and refuses if data changed so the proposal now breaks it.
-- [x] AC-10: The API returns the same codes as the tools (the rule is not duplicated).
-- [x] AC-11: Cases C1–C3 work in the UI; only the Approve button saves. (API path tested; tick after a manual click-through)
+- [ ] AC-1: `list_tasks` returns all tasks and each member's points, limit and remaining.
+- [ ] AC-2: `check_capacity` never writes `data.json`.
+- [ ] AC-3: `assign_task` creates a proposal and never writes `data.json`.
+- [ ] AC-4: Only `approve` writes `data.json`, and only for a known pending proposal.
+- [ ] AC-5 (C1): Login (T1) + payment (T2) to two members gives a valid proposal; after approve both are saved.
+- [ ] AC-6 (C2): Reaching exactly 8 gives a proposal; reaching 9 fails with `MAX_POINTS_EXCEEDED`.
+- [ ] AC-7 (C3): All 6 tasks to Rafi fails with `MAX_POINTS_EXCEEDED` and nothing is saved.
+- [ ] AC-8: `assign_task` refuses a rule-breaking batch even if `check_capacity` was skipped.
+- [ ] AC-9: `approve` re-checks HR-1 and refuses if data changed so the proposal now breaks it.
+- [ ] AC-10: The API returns the same codes as the tools (the rule is not duplicated).
+- [ ] AC-11: Cases C1–C3 work in the UI; only the Approve button saves.
 
 ### Milestone 2 (Phases 4–5)
 - [ ] AC-12: The MCP server exposes `list_tasks`, `check_capacity`, `assign_task` and calls the domain module.
