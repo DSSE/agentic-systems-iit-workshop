@@ -36,16 +36,36 @@ The implementation specification is [specs/agent.md](specs/agent.md).
 
 ## Implementation and run status
 
-This directory currently contains documentation only. The following structure and commands are the implementation targets; they are not runnable yet.
+Phase 1 (the development harness) is complete. This directory contains project instructions, configuration, demonstration data, and a runnable harness check. The lending application, MCP server, and agent are still pending. See [progress.html](progress.html) for phase status.
+
+Use Node.js 22 or later. Run this check from `projects/group-8/`; no dependency installation, API key, or network connection is required:
+
+```bash
+npm run check:harness
+```
+
+On Windows PowerShell, use `npm.cmd run check:harness` if execution policy blocks `npm.ps1`. The equivalent direct command is `node scripts/check-harness.mjs`.
+
+The check validates project files, JSON configuration, environment placeholders, and demonstration seed records. It does not exercise application behavior or change inventory. `data.json` contains three equipment types and one historical returned loan; no student currently holds equipment in this seed. Tests must use their own isolated fixtures.
+
+Start coding-agent sessions from this group directory. [CLAUDE.md](CLAUDE.md) contains the shared project instructions; [AGENTS.md](AGENTS.md) directs other coding agents to them. `.claude/settings.json` provides Claude-specific tool permissions, while domain code must enforce lending rules.
+
+Present harness files and planned application structure:
 
 ```text
 projects/group-8/
   README.md
   CLAUDE.md
+  AGENTS.md
+  .claude/settings.json
+  .env.example
+  .gitignore
+  package.json
+  scripts/check-harness.mjs
   specs/agent.md
   data.json              # equipment and existing loans
   progress.html          # progress entry after each development phase
-  src/
+  src/                   # planned from phase 2 onward
     domain.js            # shared rules and validation
     tools.js             # list, check, and create operations
     server.js            # API and web app entry point
@@ -58,7 +78,7 @@ projects/group-8/
 
 Use Node.js with ES modules, following the group's `CLAUDE.md` conventions. Agree any new dependencies with the team before adding them.
 
-Planned commands, run from `projects/group-8/` after implementation:
+The following application scripts do not exist yet. Add them alongside their implementations, then run from `projects/group-8/`:
 
 ```bash
 npm install
@@ -68,7 +88,7 @@ npm test            # automated behavior tests
 npm run evals       # five scenarios against two prompt versions
 ```
 
-The model configuration will be read from a local, uncommitted `.env` file. Provide `.env.example` with placeholders when implementing the agent. Set the endpoint and model for the chosen provider; use an API key only when the provider requires one. Never commit credentials.
+The model configuration template is `.env.example`, with empty `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` placeholders and `LAB_TIMEZONE=Asia/Dhaka`. Copy it to an ignored `.env` file when implementing the agent, then set the chosen provider's endpoint and model. Use an API key only when required. The harness does not load `.env`; environment loading belongs with the agent implementation. Never commit credentials. Claude's secret-file deny patterns also cover `.env.example`; the variable names are documented here so the coding agent does not need to read the template.
 
 ## Demo cases
 

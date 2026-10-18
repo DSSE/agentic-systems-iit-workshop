@@ -1,0 +1,9 @@
+{
+  "name": "group-8-lablend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LabLend workshop project: development harness",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": { "check:harness": "node scripts/check-harness.mjs" }
+}
