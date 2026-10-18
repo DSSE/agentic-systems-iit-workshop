@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "clubops": {
+      "command": "node",
+      "args": ["src/mcp/server.js"],
+      "cwd": ".",
+      "env": { "CLUBOPS_CLIENT": "gemini-cli" }
+    }
+  }
+}

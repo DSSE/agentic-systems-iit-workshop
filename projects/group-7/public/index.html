@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClubOps</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23214e3f%22/%3E%3Cpath d=%22M8 22V10M14 22v-7M20 22v-4M26 22V8%22 stroke=%22white%22 stroke-width=%222.6%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f3f0e8; --panel: #fffdf8; --ink: #1c1b19; --muted: #6a665d; --line: #e0d9ca; --soft: #f7f4ec;
+    --accent: #214e3f; --accent-ink: #fff; --accent-soft: #e2ede7;
+    --pending: #b7791f; --pending-soft: #fbf1df; --bad: #a3302a; --bad-soft: #f8e3e0; --good: #23683f;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --panel: #1d1d1b; --ink: #ecebe5; --muted: #9b978d; --line: #33322e; --soft: #232320;
+      --accent: #6cc59f; --accent-ink: #0c1d16; --accent-soft: #1c2f27;
+      --pending: #e6b25c; --pending-soft: #33291a; --bad: #ef8b84; --bad-soft: #3a2220; --good: #7fd29f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); font: 14.5px/1.5 var(--sans); display: flex; flex-direction: column; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 5px 12px; }
+  button:hover:not(:disabled) { border-color: var(--muted); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  button:disabled { opacity: .45; cursor: default; }
+  input { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 4px 8px; width: 84px; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 14px 22px 16px; }
+  .top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .logo { font-weight: 760; font-size: 19px; letter-spacing: -.02em; }
+  .logo span { color: var(--accent); }
+  .event { color: var(--muted); }
+  .top .spacer { flex: 1; }
+  .meter { margin-top: 12px; }
+  .bar { position: relative; height: 14px; border-radius: 7px; background: var(--soft); border: 1px solid var(--line); overflow: hidden; display: flex; }
+  .bar .spent { background: var(--accent); }
+  .bar .pend { background: repeating-linear-gradient(45deg, var(--pending), var(--pending) 5px, color-mix(in srgb, var(--pending) 70%, transparent) 5px, color-mix(in srgb, var(--pending) 70%, transparent) 10px); }
+  .bar .spent, .bar .pend { transition: width .4s ease; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
+  .legend b { font-family: var(--mono); font-weight: 600; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+  .rule { font-size: 12.5px; color: var(--muted); }
+  .rule code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 11.5px; }
+
+  main { flex: 1; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(340px, 1fr); min-height: 0; }
+  .planner { overflow-y: auto; padding: 18px 22px 40px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 10px; display: flex; align-items: center; gap: 10px; }
+  h2:first-child { margin-top: 0; }
+  h2 .count { background: var(--pending-soft); color: var(--pending); border-radius: 999px; padding: 0 8px; font-size: 11px; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .filters button { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; }
+  .filters button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  .vendor { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+  .vendor .name { font-weight: 600; }
+  .vendor .item { color: var(--muted); font-size: 13.5px; }
+  .vendor .price { font-family: var(--mono); font-size: 13px; text-align: right; white-space: nowrap; }
+  .vendor .terms { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+  .flag { display: inline-block; font-size: 11px; font-weight: 600; color: var(--bad); background: var(--bad-soft); border-radius: 4px; padding: 0 6px; margin-right: 6px; }
+  .vendor .act { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fit { font-size: 12.5px; font-family: var(--mono); }
+  .fit.ok { color: var(--good); }
+  .fit.bad { color: var(--bad); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+  .card.pending { border-color: var(--pending); background: var(--pending-soft); }
+  .card .desc { font-weight: 600; }
+  .card .meta { font-size: 12.5px; color: var(--muted); }
+  .card .amt { font-family: var(--mono); font-weight: 600; text-align: right; }
+  .card .btns { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 4px; }
+  .src { font: 11px var(--mono); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 6px; color: var(--muted); background: var(--panel); }
+  .empty { color: var(--muted); font-size: 13px; padding: 4px 2px; }
+  .done-tag { font-size: 12px; font-weight: 600; }
+
+  .chat { border-left: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+  .chat-head { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+  .chat-head b { font-size: 14px; }
+  .chip { font: 11.5px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+  .chip.ok::before { content: "● "; color: var(--good); }
+  .chip.err::before { content: "● "; color: var(--bad); }
+  #log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 92%; padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.user { align-self: flex-end; background: var(--ink); color: var(--bg); border-bottom-right-radius: 3px; }
+  .msg.bot { align-self: flex-start; background: var(--soft); border: 1px solid var(--line); border-bottom-left-radius: 3px; }
+  .msg.err { background: var(--bad-soft); color: var(--bad); }
+  .msg ul { margin: 2px 0; padding-left: 18px; white-space: normal; }
+  .trace { font: 12px var(--mono); color: var(--muted); }
+  .trace summary { cursor: pointer; list-style: none; }
+  .trace summary::-webkit-details-marker { display: none; }
+  .trace pre { margin: 4px 0 0; padding: 6px 8px; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; max-height: 200px; white-space: pre-wrap; }
+  .tag { border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+  .tag.ok { background: var(--accent-soft); color: var(--good); }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); }
+  .guard { font-size: 12px; color: var(--bad); background: var(--bad-soft); border-radius: 8px; padding: 6px 10px; }
+  .thinking { color: var(--muted); font-size: 13px; }
+  .thinking::after { content: "…"; animation: blink 1s steps(3) infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  .demos { display: flex; flex-direction: column; gap: 6px; }
+  .demos button { text-align: left; font-size: 13px; padding: 7px 10px; }
+  .demos small { display: block; color: var(--muted); font-size: 11.5px; }
+  form { display: flex; gap: 8px; padding: 12px 16px 14px; border-top: 1px solid var(--line); }
+  textarea { flex: 1; resize: none; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; max-height: 140px; }
+
+  #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 10px; font-size: 13.5px; transition: .25s; pointer-events: none; max-width: min(92vw, 640px); z-index: 10; }
+  #toast.show { opacity: 1; transform: translateX(-50%); }
+  #toast.bad { background: var(--bad); color: #fff; }
+
+  @media (max-width: 920px) {
+    body { height: auto; }
+    main { grid-template-columns: 1fr; }
+    .chat { border-left: 0; border-top: 1px solid var(--line); min-height: 560px; }
+    .planner { overflow: visible; padding: 16px; }
+    header { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="logo">Club<span>Ops</span></div>
+    <div class="event" id="event">loading…</div>
+    <div class="spacer"></div>
+    <a class="muted" href="/progress.html" style="font-size:13px">progress</a>
+    <button class="ghost" id="resetDemo" type="button" title="Restore data.seed.json">Reset demo data</button>
+  </div>
+  <div class="meter">
+    <div class="bar" role="img" id="bar"><div class="spent" id="barSpent"></div><div class="pend" id="barPend"></div></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent)"></span>Spent <b id="spent">–</b></span>
+      <span><span class="dot" style="background:var(--pending)"></span>Waiting for approval <b id="pending">–</b></span>
+      <span><span class="dot" style="background:var(--soft);border:1px solid var(--line)"></span>Remaining <b id="remaining">–</b></span>
+      <span>Cap <b id="cap">–</b></span>
+      <span class="rule">Hard rule: total spending never goes over the cap · <code>BUDGET_CAP_EXCEEDED</code></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="planner">
+    <h2>Waiting for approval <span class="count" id="pendCount">0</span></h2>
+    <div id="proposals"></div>
+
+    <h2>Vendors</h2>
+    <div class="filters" id="filters"></div>
+    <div id="vendors"></div>
+
+    <h2>Saved expenses</h2>
+    <div id="expenses"></div>
+  </section>
+
+  <section class="chat">
+    <div class="chat-head">
+      <b>Agent</b>
+      <span class="chip" id="agentChip">checking…</span>
+      <span style="flex:1"></span>
+      <button class="ghost" id="newChat" type="button">New chat</button>
+    </div>
+    <div id="log"><div id="intro" class="demos"></div></div>
+    <form id="form">
+      <textarea id="input" rows="1" placeholder="e.g. Plan snacks and a speaker for Friday's seminar."></textarea>
+      <button class="primary" id="send" type="submit">Send</button>
+    </form>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const bdt = (n) => `${Number(n).toLocaleString("en-US")} BDT`;
+const api = async (path, body) => {
+  const res = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+};
+let S = null;               // last /api/state
+let filter = "all";
+let session = newId();
+let busy = false;
+const qty = {};             // vendor id -> typed quantity/amount
+function newId() { return (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2); }
+
+function toast(text, bad) {
+  const t = $("toast"); t.textContent = text; t.className = "show" + (bad ? " bad" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => (t.className = ""), 3600);
+}
+
+// ---------- planner ----------
+async function refresh() {
+  const r = await api("/api/state"); if (!r.ok) return;
+  S = r.data; render();
+}
+function render() {
+  const { event: e, status: t } = S;
+  $("event").textContent = `${e.name} · ${e.club} · ${e.day} ${e.date} · ~${e.expected_attendance} people`;
+  $("spent").textContent = bdt(t.spent); $("pending").textContent = bdt(t.pending);
+  $("remaining").textContent = bdt(t.remaining); $("cap").textContent = bdt(t.budget_cap);
+  $("barSpent").style.width = `${Math.min(100, (t.spent / t.budget_cap) * 100)}%`;
+  $("barPend").style.width = `${Math.min(100, (t.pending / t.budget_cap) * 100)}%`;
+  $("bar").setAttribute("aria-label", `Spent ${t.spent}, pending ${t.pending}, cap ${t.budget_cap} BDT`);
+
+  const pend = S.proposals.filter((p) => p.status === "pending");
+  $("pendCount").textContent = pend.length;
+  $("proposals").innerHTML = pend.length ? pend.map(proposalCard).join("") : `<div class="empty">Nothing waiting. Propose from a vendor below, or ask the agent.</div>`;
+
+  const cats = ["all", ...new Set(S.vendors.map((v) => v.category))];
+  $("filters").innerHTML = cats.map((c) => `<button type="button" data-cat="${c}" class="${c === filter ? "on" : ""}">${c}</button>`).join("");
+  const focused = document.activeElement?.dataset?.vid;
+  $("vendors").innerHTML = S.vendors.filter((v) => filter === "all" || v.category === filter).map(vendorRow).join("");
+  if (focused) { const el = document.querySelector(`input[data-vid="${focused}"]`); if (el) { el.focus(); el.setSelectionRange(99, 99); } }
+  S.vendors.forEach((v) => qty[v.id] && liveCheck(v.id, true));
+
+  $("expenses").innerHTML = S.expenses.length ? S.expenses.map((x) => `
+    <div class="card"><div><div class="desc">${esc(x.description)}</div>
+      <div class="meta">${esc(vendorName(x.vendor_id))} · ${x.quantity} × ${bdt(x.unit_price)} · approved by ${esc(x.approved_by)}<span class="src">${esc(x.source)}</span></div></div>
+      <div class="amt">${bdt(x.amount)}</div></div>`).join("") : `<div class="empty">No expenses yet.</div>`;
+}
+const vendorName = (id) => S?.vendors.find((v) => v.id === id)?.name || id;
+function proposalCard(p) {
+  return `<div class="card pending" data-pid="${p.id}"><div><div class="desc">${esc(p.description)}</div>
+    <div class="meta">${esc(p.id)} · ${esc(vendorName(p.vendor_id))} · ${p.quantity} × ${bdt(p.unit_price)}<span class="src">${esc(p.source)}</span></div></div>
+    <div class="amt">${bdt(p.amount)}</div>
+    <div class="btns"><button class="primary" data-approve="${p.id}">Approve</button><button data-reject="${p.id}">Reject</button></div></div>`;
+}
+function vendorRow(v) {
+  const custom = v.pricing === "custom";
+  const price = custom ? "any amount" : `${bdt(v.unit_price)} / ${v.unit}`;
+  return `<div class="vendor">
+    <div><div class="name">${esc(v.name)}</div><div class="item">${esc(v.item)}</div></div>
+    <div class="price">${price}</div>
+    <div class="terms">${v.injection_flagged ? `<span class="flag" title="Instruction-like text was removed from this vendor's terms">instruction removed</span>` : ""}${esc(v.terms)}</div>
+    <div class="act">
+      <label class="muted" style="font-size:12.5px">${custom ? "Amount (BDT)" : v.unit === "person" ? "people" : esc(v.unit) + "s"} <input class="num" type="number" min="1" step="1" inputmode="numeric" data-vid="${v.id}" value="${esc(qty[v.id] || "")}"></label>
+      <span class="fit" id="fit-${v.id}"></span>
+      <span style="flex:1"></span>
+      <button type="button" data-propose="${v.id}" id="btn-${v.id}" disabled>Propose</button>
+    </div></div>`;
+}
+const reqFor = (vid) => {
+  const v = S.vendors.find((x) => x.id === vid); const n = Number(qty[vid]);
+  return v.pricing === "custom" ? { vendor_id: vid, amount: n } : { vendor_id: vid, quantity: n };
+};
+let checkTimers = {};
+function liveCheck(vid, now) {
+  clearTimeout(checkTimers[vid]);
+  checkTimers[vid] = setTimeout(async () => {
+    const fit = $("fit-" + vid), btn = $("btn-" + vid); if (!fit) return;
+    if (!qty[vid]) { fit.textContent = ""; btn.disabled = true; return; }
+    const r = await api("/api/check", reqFor(vid));
+    const d = r.data;
+    if (d.ok) { fit.className = "fit ok"; fit.textContent = `${bdt(d.cost)} · fits, ${bdt(d.remaining_after)} left`; btn.disabled = false; }
+    else { fit.className = "fit bad"; fit.textContent = `${d.code}${d.max_affordable_quantity !== undefined ? ` · max ${d.max_affordable_quantity}` : ""}`; fit.title = d.message || ""; btn.disabled = false; }
+  }, now ? 0 : 250);
+}
+async function propose(vid) {
+  const v = S.vendors.find((x) => x.id === vid);
+  const r = await api("/api/proposals", { ...reqFor(vid), description: v.pricing === "custom" ? v.item.replace(/\s*\(.*\)/, "") : `${v.item} × ${qty[vid]}` });
+  if (r.ok) { toast(`${r.data.proposal.id} proposed. Approve it to save.`); qty[vid] = ""; }
+  else toast(`${r.data.code}: ${r.data.message}`, true);
+  refresh();
+}
+async function decide(id, approve) {
+  const r = await api(`/api/proposals/${id}/${approve ? "approve" : "reject"}`, {});
+  if (r.ok) toast(approve ? `Saved as ${r.data.expense.id}. ${bdt(r.data.status.remaining)} left.` : `${id} rejected.`);
+  else toast(`${r.data.code}: ${r.data.message}`, true);
+  document.querySelectorAll(`[data-chat-pid="${id}"]`).forEach((el) => markChatCard(el, r.ok ? (approve ? "approved" : "rejected") : r.data.code));
+  refresh();
+}
+
+document.addEventListener("input", (e) => { const vid = e.target.dataset?.vid; if (vid) { qty[vid] = e.target.value; liveCheck(vid); } });
+document.addEventListener("click", (e) => {
+  const d = e.target.dataset || {};
+  if (d.cat) { filter = d.cat; render(); }
+  if (d.propose) propose(d.propose);
+  if (d.approve) { e.target.disabled = true; decide(d.approve, true); }
+  if (d.reject) { e.target.disabled = true; decide(d.reject, false); }
+});
+$("resetDemo").onclick = async () => { await api("/api/demo/reset", {}); Object.keys(qty).forEach((k) => (qty[k] = "")); toast("Demo data restored."); refresh(); newChat(); };
+
+// ---------- chat ----------
+const log = $("log"), input = $("input");
+function add(el) { $("intro")?.remove(); log.appendChild(el); log.scrollTop = log.scrollHeight; return el; }
+function div(cls, html) { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; return d; }
+function md(text) {
+  let out = "", inList = false;
+  for (const l of esc(text).split("\n")) {
+    const it = /^\s*(?:[-*•]|\d+\.)\s+(.*)/.exec(l);
+    if (it) { if (!inList) { out += "<ul>"; inList = true; } out += `<li>${it[1]}</li>`; continue; }
+    if (inList) { out += "</ul>"; inList = false; }
+    out += l + "\n";
+  }
+  if (inList) out += "</ul>";
+  return out.trim().replace(/\n{3,}/g, "\n\n").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+function demos() {
+  const rem = S ? S.status.remaining : 0;
+  return [
+    ["Plan snacks and a speaker for Friday's seminar.", "1 · Normal: proposals within budget"],
+    [`Add a miscellaneous expense of ${rem} BDT for the venue deposit.`, "2 · Boundary: exactly to the cap…"],
+    ["Add another miscellaneous expense of 1 BDT.", "2 · …then 1 BDT over"],
+    ["Add catering for 200 people.", "3 · Breaks the rule"],
+    ["Plan food for the seminar.", "4 · Unclear: should ask back"],
+    ["Show me the catering vendors and plan lunch for 30 people.", "5 · Injection in Royal Caterers' terms"],
+  ];
+}
+function renderIntro() {
+  const box = $("intro"); if (!box) return;
+  box.innerHTML = `<div class="muted" style="font-size:13px;margin-bottom:4px">The agent proposes; you approve. Try the workshop cases:</div>` +
+    demos().map(([t, n]) => `<button type="button" data-demo="${esc(t)}">${esc(t)}<small>${esc(n)}</small></button>`).join("");
+  box.querySelectorAll("button").forEach((b) => (b.onclick = () => send(b.dataset.demo)));
+}
+function chatProposal(p) {
+  const el = div("card pending", `<div><div class="desc">${esc(p.description)}</div><div class="meta">${esc(p.id)} · ${p.quantity} × ${bdt(p.unit_price)}</div></div>
+    <div class="amt">${bdt(p.amount)}</div><div class="btns"><button class="primary" data-approve="${p.id}">Approve</button><button data-reject="${p.id}">Reject</button></div>`);
+  el.dataset.chatPid = p.id; el.style.alignSelf = "stretch";
+  return add(el);
+}
+function markChatCard(el, state) {
+  el.classList.remove("pending");
+  const ok = state === "approved";
+  el.querySelector(".btns").innerHTML = `<span class="done-tag" style="color:var(${ok ? "--good" : "--bad"})">${ok ? "Approved and saved" : state === "rejected" ? "Rejected" : "Not saved: " + esc(state)}</span>`;
+}
+async function send(text) {
+  text = (text ?? input.value).trim();
+  if (!text || busy) return;
+  busy = true; $("send").disabled = true; input.value = ""; autosize();
+  add(div("msg user", esc(text)));
+  let thinking = add(div("thinking", "Thinking"));
+  const pendingTrace = [];
+  const drop = () => { thinking?.remove(); thinking = null; };
+  try {
+    const res = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session, text }) });
+    if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i); buf = buf.slice(i + 1); if (!line.trim()) continue;
+        const e = JSON.parse(line);
+        if (e.type === "thinking") { drop(); thinking = add(div("thinking", "Thinking")); }
+        else if (e.type === "tool_call") {
+          drop();
+          const el = add(div("trace", `<details><summary>→ ${esc(e.name)} <span class="a"></span></summary><pre>${esc(JSON.stringify(e.args, null, 2))}</pre></details>`));
+          el.querySelector(".a").textContent = Object.values(e.args || {}).join(" · ").slice(0, 60);
+          pendingTrace.push(el);
+        } else if (e.type === "tool_result") {
+          const el = pendingTrace.shift(); const r = e.result || {};
+          if (el) {
+            el.querySelector("summary").insertAdjacentHTML("beforeend", r.ok === false ? `<span class="tag bad">${esc(r.code || "error")}</span>` : `<span class="tag ok">ok</span>`);
+            el.querySelector("details").insertAdjacentHTML("beforeend", `<pre>${esc(JSON.stringify(r, null, 2))}</pre>`);
+          }
+        } else if (e.type === "proposal") { chatProposal(e.proposal); refresh(); }
+        else if (e.type === "guardrail") add(div("guard", `⛨ Guardrail (${esc(e.rule)}): ${esc(e.message)}`));
+        else if (e.type === "assistant") { drop(); add(div("msg bot", md(e.text))); }
+        else if (e.type === "error") { drop(); add(div("msg err", esc(e.message))); }
+      }
+    }
+  } catch (err) { drop(); add(div("msg err", esc(err.message))); }
+  finally { drop(); busy = false; $("send").disabled = false; input.focus(); refresh(); }
+}
+async function newChat() {
+  if (busy) return;
+  await api("/api/chat/reset", { session }); session = newId();
+  log.innerHTML = `<div id="intro" class="demos"></div>`; renderIntro();
+}
+async function agentStatus() {
+  const r = await api("/api/agent"); const chip = $("agentChip");
+  if (r.data.ready) { chip.className = "chip ok"; chip.textContent = r.data.model; chip.title = `${r.data.model} via ${r.data.base_url} · tools over MCP`; }
+  else { chip.className = "chip err"; chip.textContent = "LLM offline"; chip.title = r.data.error || ""; }
+}
+function autosize() { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 140) + "px"; }
+input.addEventListener("input", autosize);
+input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+$("form").addEventListener("submit", (e) => { e.preventDefault(); send(); });
+$("newChat").onclick = newChat;
+
+refresh().then(renderIntro);
+agentStatus();
+// Proposals can also come from other MCP clients (Claude Code, Codex…), so keep the page fresh.
+setInterval(() => { if (!document.hidden && !document.activeElement?.dataset?.vid) refresh().then(() => { if ($("intro")) renderIntro(); }); }, 3000);
+</script>
+</body>
+</html>

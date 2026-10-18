@@ -2,4 +2,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.*.example
+projects/group-7/clubops.sqlite3
+projects/group-7/frontend/dist/
 .DS_Store

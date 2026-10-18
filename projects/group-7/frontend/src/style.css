@@ -1,0 +1,6 @@
+:root { font-family: system-ui, sans-serif; color: #172033; background: #f5f7fb; }
+body { margin: 0; } main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+.meter, article { background: white; border: 1px solid #dbe1ec; border-radius: 12px; padding: 1rem; }
+.meter { display: flex; justify-content: space-between; gap: 1rem; margin: 1.5rem 0; }
+.meter strong { color: #087443; } .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: .75rem; }
+article { display: grid; gap: .5rem; } small { color: #667085; }
