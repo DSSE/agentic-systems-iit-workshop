@@ -7,15 +7,19 @@ Specification: [specs/agent.md](specs/agent.md). Phase evidence:
 
 - [x] Phase 1 — Set up the harness: shared instructions, Codex configuration,
   Claude settings, discoverable build/verification skills, and progress log.
-- [ ] Phase 2 — Build backend/frontend: seeded rooms/bookings, shared domain
+- [x] Phase 2 — Build backend/frontend: seeded rooms/bookings, shared domain
   validation, three tools, UI/API, proposal display and verified approval flow.
   Add real run/test scripts and update README and AGENTS when available.
-- [ ] Phase 3 — Test behavior: normal approval, rejection/no write, 180/181-minute
+  Built as `server/` (Express API) + `web/` (Next.js UI).
+- [x] Phase 3 — Test behavior: normal approval, rejection/no write, 180/181-minute
   boundary, five-hour refusal, overlap/adjacency, input/capacity checks, direct
   creates, approval mismatch, stale proposals, and concurrent conflicts.
+  Covered by `server/tests/` (21 automated tests) and a manual curl/UI pass;
+  UI chat clarification (case 4) and injection guardrails (case 5) are not
+  built yet — those land in Phases 5 and 7.
 
 **Basics exit:** workshop cases 1–3 work in the UI and behavior tests pass.
-Harness completion alone does not complete Basics.
+Harness completion alone does not complete Basics. Met.
 
 ## Intermediate
 
@@ -36,4 +40,4 @@ asks for missing details; both connected agents can use the MCP tools.
 
 For each phase, record the date, delivered files/behavior, actual validation,
 and remaining gaps in `progress.html`. Keep these checkboxes aligned with that
-evidence. Next work: Phase 2, backend/frontend implementation.
+evidence. Next work: Phase 4, MCP server.

@@ -1,0 +1,16 @@
+{
+  "rooms": [
+    { "id": "lab-1", "name": "Lab-1", "capacity": 4, "notes": "Whiteboard, no projector." },
+    { "id": "lab-2", "name": "Lab-2", "capacity": 8, "notes": "Projector and 2 whiteboards." },
+    { "id": "lab-3", "name": "Lab-3", "capacity": 12, "notes": "Largest room; shared with the robotics club on Fridays." }
+  ],
+  "bookings": [
+    {
+      "id": "seed-booking-1",
+      "room_id": "lab-2",
+      "start_at": "2026-10-20T10:00:00+06:00",
+      "end_at": "2026-10-20T12:00:00+06:00",
+      "group_size": 5
+    }
+  ]
+}

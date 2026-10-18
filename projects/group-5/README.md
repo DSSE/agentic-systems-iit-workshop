@@ -4,10 +4,11 @@ CampusDesk helps students find and book department lab rooms for group work thro
 
 Project statement: [CampusDesk.md](CampusDesk.md). Implementation specification: [specs/agent.md](specs/agent.md).
 
-The Codex and Claude harness is ready. Start either agent inside this folder;
-see [HARNESS.md](HARNESS.md) for structure and skill usage,
+The Codex and Claude harness is ready, and Phase 2 (backend/frontend) is
+implemented: an Express API in [server/](server/) and a Next.js UI in
+[web/](web/). See [HARNESS.md](HARNESS.md) for structure and skill usage,
 [PLANS.md](PLANS.md) for delivery tracking, and [progress.html](progress.html)
-for completed phase evidence. Application implementation is next.
+for completed phase evidence.
 
 ## Team
 | Role | GitHub username |
@@ -26,20 +27,31 @@ for completed phase evidence. Application implementation is next.
 - Add an MCP server, connect two AI agents, and integrate a chat agent into the UI.
 - Optionally evaluate two prompt versions against all five scenarios and add injection guardrails.
 
-Use Node.js with ES modules. Keep the MCP server independent of a particular model; configure the chat model with `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`. Keep credentials out of version control.
+Backend: Node.js with ES modules (Express). Frontend: Next.js (App Router).
+Keep the MCP server independent of a particular model; configure the chat
+model with `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`. Keep credentials
+out of version control.
 
 ## Run
 
-This is the setup/spec stage; the application, package scripts, and tests are not implemented yet. The planned commands, once implemented, are:
+Two apps, run in separate terminals from `projects/group-5`:
 
 ```bash
-cd projects/group-5     # from the repository root
+# API (list_rooms / check_availability / create_booking), port 4000
+cd server
 npm install
-npm start              # starts the app and its chat agent
-npm test
+npm start              # or: npm run dev (auto-restart)
+npm test               # 21 tests: domain rules, approval binding, concurrency
+
+# UI, port 3000 — talks to the API above via NEXT_PUBLIC_API_URL
+cd web
+npm install
+cp .env.local.example .env.local   # defaults to http://localhost:4000
+npm run dev
 ```
 
-MCP launch and client connection instructions will be added when the server is implemented.
+Then open http://localhost:3000. MCP launch and client connection
+instructions will be added when the MCP server (Phase 4) is implemented.
 
 ## Demo cases
 
