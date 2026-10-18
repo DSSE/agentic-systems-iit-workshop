@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CampusDesk Progress</title>
+<style>
+  :root {
+    --bg: #fafaf9; --card: #ffffff; --text: #1c1917; --muted: #57534e;
+    --border: #e7e5e4; --accent: #0f766e; --done: #15803d; --todo: #a8a29e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917; --card: #292524; --text: #f5f5f4; --muted: #a8a29e;
+      --border: #44403c; --accent: #2dd4bf; --done: #4ade80; --todo: #78716c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px; background: var(--bg); color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 1.8rem; }
+  .sub { margin: 0 0 24px; color: var(--muted); }
+  .phases { list-style: none; padding: 0; margin: 0 0 32px; display: grid; gap: 6px; }
+  .phases li { display: flex; gap: 10px; align-items: baseline; color: var(--muted); }
+  .phases li.done { color: var(--text); }
+  .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--todo); }
+  .done .dot { background: var(--done); }
+  article {
+    background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  article h2 { margin: 0 0 2px; font-size: 1.15rem; }
+  time { color: var(--muted); font-size: 0.9rem; }
+  article h3 { margin: 14px 0 4px; font-size: 0.95rem; }
+  article ul { margin: 0; padding-left: 20px; }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>CampusDesk: progress</h1>
+  <p class="sub">Group 9 · Quantum Architects · one entry per phase</p>
+
+  <ol class="phases">
+    <li class="done"><span class="dot"></span>1. Set up the harness</li>
+    <li><span class="dot"></span>2. Build the backend and the frontend</li>
+    <li><span class="dot"></span>3. Test the behaviour</li>
+    <li><span class="dot"></span>4. Make the MCP server and connect any agent</li>
+    <li><span class="dot"></span>5. Add the agent to the UI</li>
+    <li><span class="dot"></span>6. Write evals for the prompts</li>
+    <li><span class="dot"></span>7. Add guardrails</li>
+    <li><span class="dot"></span>8. Prepare the demo</li>
+  </ol>
+
+  <article>
+    <h2>Phase 1: Set up the harness</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>Created <code>projects/group-9/</code> from the template on branch <code>group-9/setup</code>.</li>
+      <li>Wrote the spec in <code>specs/agent.md</code>: tools, rule codes, API, MCP, agent behaviour, test matrix for the 5 cases.</li>
+      <li>Rewrote <code>CLAUDE.md</code> and <code>.claude/settings.json</code> for Python (FastAPI, uv) and Next.js.</li>
+      <li>Added <code>.env.example</code> for Groq (<code>llama-3.3-70b-versatile</code>) through the OpenAI-compatible API.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li>The rule lives only in <code>backend/app/domain/booking_rules.py</code>; API, MCP and agent all call it.</li>
+      <li>The MCP server is mounted inside the FastAPI app, so every client's proposals land in one approval queue.</li>
+      <li>Approve is a REST endpoint used only by the UI button; there is no approve tool for agents.</li>
+      <li>Partly-valid requests are refused with the rule code and a 3-hour alternative is suggested; never split or auto-shortened.</li>
+    </ul>
+
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 2: domain module, store, REST API, seed <code>data.json</code>, Next.js form, schedule and approvals panel.</li>
+    </ul>
+  </article>
+</main>
+</body>
+</html>
