@@ -1,0 +1,14 @@
+{
+  "name": "clubops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Plans a club event's expenses; total spending never goes over the budget cap.",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

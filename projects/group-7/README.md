@@ -5,11 +5,10 @@ Plans a club event's expenses. Total spending never goes over the budget cap, an
 ## Team
 | Role | GitHub username |
 |---|---|
-| Lead | |
-| Agent core | |
-| Patterns | |
-| MCP / tools | |
-| Guardrails & QA | |
+| Member | SajidAhmed-here |
+| Member | Nahidur-rahman-nahid |
+| Member | mahshin1428 |
+| Member | (add your username) |
 
 ## Run
 ```bash
