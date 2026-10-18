@@ -40,18 +40,22 @@ cd backend && uv run uvicorn app.main:app --reload --port 8000
 cd frontend && npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Book with the form, or ask the Chat panel in plain words ("Book a lab for 3 people Thursday afternoon."). Either way, nothing is saved until you click **Approve**.
 
 ## Connect a coding agent to the MCP server
+With the backend running, start `claude` or `gemini` inside this folder: `.mcp.json` and `.gemini/settings.json` register the `campusdesk` server (Claude Code asks you to approve it once). Manual alternative:
 ```bash
 claude mcp add --transport http campusdesk http://localhost:8000/mcp
 ```
-Other agents (Codex, Gemini CLI, Cursor, Antigravity): add an HTTP MCP server with URL `http://localhost:8000/mcp`.
-Agents can only create proposals; a person approves them in the UI.
+Other agents (Codex, Cursor, Antigravity): add an HTTP MCP server with URL `http://localhost:8000/mcp`.
+Agents can only create proposals (`list_rooms`, `check_availability`, `create_booking`); a person approves them in the UI.
 
 ## Test
 ```bash
 cd backend && uv run pytest                    # rule + API tests, no LLM needed
+# e2e against a throwaway backend (never the real data.json); --chat also calls the LLM:
+cd backend && cp data.seed.json /tmp/cd-e2e.json && DATA_FILE=/tmp/cd-e2e.json uv run uvicorn app.main:app --port 8001 &
+cd backend && E2E_DATA_FILE=/tmp/cd-e2e.json bash e2e/run.sh http://localhost:8001 --chat
 cd backend && uv run python -m evals.run       # agent evals, needs LLM_API_KEY
 ```
 
@@ -59,6 +63,8 @@ cd backend && uv run python -m evals.run       # agent evals, needs LLM_API_KEY
 Start from this folder: `cd projects/group-9 && claude`. Then `/phase 2`, `/phase 3`, … builds the app one phase at a time (plan, build, test, review, log). `/ship` pushes the branch and opens the PR after you approve. The harness lives in `.claude/` (skills, agents, hooks, permissions).
 
 ## Demo cases
+Reset the data first: `cp backend/data.seed.json backend/data.json`.
+
 | # | Case | Try | Expected |
 |---|---|---|---|
 | 1 | Normal | "Book a lab for 3 people Thursday afternoon." | A proposal; saved only after Approve |
