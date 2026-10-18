@@ -5,6 +5,7 @@
 
 export const OVER_BUDGET = 'OVER_BUDGET';
 export const INVALID_AMOUNT = 'INVALID_AMOUNT';
+export const INVALID_PLANNING_INPUT = 'INVALID_PLANNING_INPUT';
 
 export const sum = (list) => list.reduce((total, e) => total + e.amount, 0);
 
@@ -32,4 +33,19 @@ export function checkBudget({ cap, spent, pending = 0 }, amount) {
 export function maxAffordableQuantity(remaining, unitPrice) {
   if (unitPrice <= 0 || remaining <= 0) return 0;
   return Math.floor(remaining / unitPrice);
+}
+
+/** Validate a human-selected event budget before the store makes it active. */
+export function validateBudgetCap({ spent, pending = 0 }, cap) {
+  if (!Number.isInteger(cap) || cap < 1) {
+    return { ok: false, code: INVALID_PLANNING_INPUT, message: 'Budget must be a positive whole number of BDT.' };
+  }
+  const committed = spent + pending;
+  if (committed > cap) {
+    return {
+      ok: false, code: OVER_BUDGET, committed, cap,
+      message: `The budget must be at least ${committed} BDT because that amount is already approved or waiting for approval.`,
+    };
+  }
+  return { ok: true, committed, cap };
 }

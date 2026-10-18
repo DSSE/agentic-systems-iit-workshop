@@ -13,12 +13,12 @@ test('case 1: snacks and a speaker become proposals within budget, saved only af
   assert.equal(a.ok, true); assert.equal(b.ok, true);
   assert.equal(a.status, 'pending_approval');
   let s = store.getState();
-  assert.equal(s.spent, 10000, 'nothing saved yet: only the hall booking');
+  assert.equal(s.spent, 0, 'nothing has been approved yet');
   assert.equal(s.pending.length, 2);
   assert.equal(store.approveProposal(a.proposal.id).ok, true);
   assert.equal(store.approveProposal(b.proposal.id).ok, true);
   s = store.getState();
-  assert.equal(s.spent, 10000 + 4800 + 8000);
+  assert.equal(s.spent, 4800 + 8000);
   assert.ok(s.spent <= s.cap);
 });
 
@@ -26,7 +26,7 @@ test('case 1: rejecting a proposal saves nothing', () => {
   const { store } = tempStore();
   const a = store.proposeExpense({ vendor_id: 'v-snacks', item_id: 'snack-box', quantity: 10 });
   assert.equal(store.rejectProposal(a.proposal.id).ok, true);
-  assert.equal(store.getState().spent, 10000);
+  assert.equal(store.getState().spent, 0);
   assert.equal(store.getState().pending.length, 0);
 });
 
@@ -65,26 +65,26 @@ test('case 3: catering for 200 people is refused with the rule code and a smalle
   assert.equal(r.ok, false);
   assert.equal(r.code, 'OVER_BUDGET');
   assert.equal(r.amount, 90000);
-  assert.equal(r.suggestion.max_quantity, 44); // floor(20000 / 450)
-  assert.ok(r.suggestion.max_amount <= 20000);
+  assert.equal(r.suggestion.max_quantity, 66); // floor(30000 / 450)
+  assert.ok(r.suggestion.max_amount <= 30000);
   assert.equal(store.getState().pending.length, 0);
 });
 
 // ---- More: the rule holds in every corner ----
 test('pending proposals count toward the cap (two that fit alone cannot fit together)', () => {
   const { store } = tempStore();
-  assert.equal(store.proposeExpense({ vendor_id: 'v-catering', item_id: 'full-meal', quantity: 30 }).ok, true); // 13,500
-  assert.equal(store.proposeExpense({ vendor_id: 'v-catering', item_id: 'full-meal', quantity: 30 }).code, 'OVER_BUDGET'); // +13,500 > 20,000
+  assert.equal(store.proposeExpense({ vendor_id: 'v-catering', item_id: 'full-meal', quantity: 40 }).ok, true); // 18,000
+  assert.equal(store.proposeExpense({ vendor_id: 'v-catering', item_id: 'full-meal', quantity: 30 }).code, 'OVER_BUDGET'); // 31,500 > 30,000
 });
 
 test('approve checks the rule again (cap lowered after proposing)', () => {
   const { store, stateFile } = tempStore();
   const a = store.proposeExpense({ vendor_id: 'v-speaker', item_id: 'speaker-fee' });
-  const st = JSON.parse(fs.readFileSync(stateFile, 'utf8')); st.budget_cap = 15000;
+  const st = JSON.parse(fs.readFileSync(stateFile, 'utf8')); st.budget_cap = 7000;
   fs.writeFileSync(stateFile, JSON.stringify(st));
   const r = store.approveProposal(a.proposal.id);
   assert.equal(r.code, 'OVER_BUDGET');
-  assert.equal(store.getState().spent, 10000);
+  assert.equal(store.getState().spent, 0);
 });
 
 test('invalid input is rejected, and the caller cannot set the price', () => {
@@ -102,6 +102,28 @@ test('checkBudget is exact at the edges', () => {
   assert.equal(checkBudget(s, 40).ok, true);
   assert.equal(checkBudget(s, 41).code, 'OVER_BUDGET');
   assert.equal(checkBudget(s, 12.5).code, 'INVALID_AMOUNT');
+});
+
+test('a person can set the event budget and capacity; the budget remains enforced by the domain rule', () => {
+  const { store } = tempStore();
+  const configured = store.setPlanningInputs({ budget: 25000, capacity: 35 });
+  assert.equal(configured.ok, true);
+  const state = store.getState();
+  assert.equal(state.cap, 25000);
+  assert.equal(state.event.expected_attendees, 35);
+  assert.equal(state.planning_inputs_set, true);
+  assert.deepEqual(Object.keys(store.listVendors()), ['vendors']);
+  assert.equal(store.proposeExpense({ vendor_id: 'v-catering', item_id: 'full-meal', quantity: 56 }).code, 'OVER_BUDGET');
+});
+
+test('a selected budget below approved or pending spending is rejected without changing settings', () => {
+  const { store } = tempStore();
+  assert.equal(store.proposeExpense({ vendor_id: 'v-catering', item_id: 'full-meal', quantity: 21 }).ok, true);
+  const configured = store.setPlanningInputs({ budget: 9000, capacity: 35 });
+  assert.equal(configured.ok, false);
+  assert.equal(configured.code, 'OVER_BUDGET');
+  assert.equal(store.getState().cap, 30000);
+  assert.equal(store.getState().planning_inputs_set, false);
 });
 
 // ---- Case 5 building block ----

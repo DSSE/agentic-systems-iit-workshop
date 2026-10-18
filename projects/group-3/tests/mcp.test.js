@@ -24,7 +24,7 @@ test('MCP case 1 and 3: add_expense only proposes, and over the cap is refused w
     const bad = json(await mcp.call('add_expense', { vendor_id: 'v-catering', item_id: 'full-meal', quantity: 200 }));
     assert.equal(bad.code, 'OVER_BUDGET');
     const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
-    assert.equal(state.expenses.length, 1, 'nothing saved by the MCP client');
+    assert.equal(state.expenses.length, 0, 'nothing saved by the MCP client');
     assert.equal(state.pending.length, 1);
   } finally { await mcp.close(); }
 });
@@ -33,8 +33,9 @@ test('MCP check_budget is exact at the edge', async () => {
   const { env } = tempStore();
   const mcp = await connectMcp(env);
   try {
-    assert.equal(json(await mcp.call('check_budget', { amount: 20000 })).ok, true);
-    assert.equal(json(await mcp.call('check_budget', { amount: 20001 })).code, 'OVER_BUDGET');
+    assert.equal(json(await mcp.call('check_budget', { amount: 30000 })).ok, true);
+    assert.equal(json(await mcp.call('check_budget', { amount: 30001 })).code, 'OVER_BUDGET');
+    assert.deepEqual(Object.keys(json(await mcp.call('check_budget', { amount: 0 }))).sort(), ['ok']);
   } finally { await mcp.close(); }
 });
 

@@ -4,7 +4,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { checkBudget, maxAffordableQuantity, sum } from './budget.js';
+import { checkBudget, maxAffordableQuantity, sum, validateBudgetCap, INVALID_PLANNING_INPUT } from './budget.js';
 import { screenUntrustedText, cleanNote } from './guardrails.js';
 import { fileURLToPath } from 'node:url';
 
@@ -16,7 +16,7 @@ export function createStore({
 } = {}) {
   const seed = () => {
     const d = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-    return { ...d, pending: d.pending ?? [], security_events: [], seq: 1 };
+    return { ...d, pending: d.pending ?? [], security_events: [], planning_inputs_set: false, seq: 1 };
   };
   const load = () => {
     if (!fs.existsSync(stateFile)) save(seed());
@@ -43,7 +43,7 @@ export function createStore({
       const f = figures(s);
       return {
         event: s.event, cap: f.cap, spent: f.spent, pending_total: f.pending,
-        remaining: f.cap - f.spent - f.pending,
+        remaining: f.cap - f.spent - f.pending, planning_inputs_set: Boolean(s.planning_inputs_set),
         expenses: s.expenses, pending: s.pending, security_events: s.security_events,
       };
     },
@@ -64,12 +64,27 @@ export function createStore({
         return { id: v.id, name: v.name, category: v.category, terms: screened.text, items: v.items };
       });
       if (changed) save(s);
-      return { event: s.event, vendors };
+      return { vendors };
     },
 
     /** Tool: check_budget. Read only. With no amount it reports the current position. */
     checkBudget(amount = 0) {
       return checkBudget(figures(load()), amount);
+    },
+
+    /** Human-selected event settings. Budget validation and all spend checks stay in budget.js. */
+    setPlanningInputs({ budget, capacity }) {
+      const s = load();
+      const budgetCheck = validateBudgetCap(figures(s), budget);
+      if (!budgetCheck.ok) return budgetCheck;
+      if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100000) {
+        return { ok: false, code: INVALID_PLANNING_INPUT, message: 'Attendee capacity must be a whole number from 1 to 100,000.' };
+      }
+      s.budget_cap = budget;
+      s.event.expected_attendees = capacity;
+      s.planning_inputs_set = true;
+      save(s);
+      return { ok: true, budget, capacity };
     },
 
     /** Tool: add_expense. Creates a PROPOSAL only. Price comes from vendor data, never from the caller. */

@@ -62,16 +62,6 @@
       ]
     }
   ],
-  "expenses": [
-    {
-      "id": "e1",
-      "vendor_id": "v-hall",
-      "item_id": "hall-booking",
-      "description": "Seminar hall booking",
-      "quantity": 1,
-      "amount": 10000,
-      "approved_at": "2026-10-10T09:00:00.000Z"
-    }
-  ],
+  "expenses": [],
   "pending": []
 }

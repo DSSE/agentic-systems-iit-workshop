@@ -10,11 +10,14 @@ async function api(path, body) {
 }
 
 function render(state) {
-  $('event').textContent = `${state.event.name}, ${state.event.date}, about ${state.event.expected_attendees} people`;
+  $('event').textContent = state.planning_inputs_set
+    ? `${state.event.name}, ${state.event.date}, capacity ${state.event.expected_attendees} people`
+    : `${state.event.name}, ${state.event.date} · Tell the assistant your total budget and attendee capacity to start planning.`;
   $('f-spent').textContent = fmt(state.spent);
   $('f-pending').textContent = fmt(state.pending_total);
   $('f-remaining').textContent = fmt(state.remaining);
   $('f-cap').textContent = fmt(state.cap);
+  $('f-cap').parentElement.querySelector('.l').textContent = state.planning_inputs_set ? 'budget, BDT' : 'demo budget, BDT';
   $('seg-spent').style.width = `${(state.spent / state.cap) * 100}%`;
   $('seg-pending').style.width = `${(state.pending_total / state.cap) * 100}%`;
   $('bar').setAttribute('aria-label', `${fmt(state.spent)} approved and ${fmt(state.pending_total)} waiting, out of a ${fmt(state.cap)} BDT cap`);

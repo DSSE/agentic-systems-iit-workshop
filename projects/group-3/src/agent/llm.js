@@ -6,6 +6,8 @@ import { createMockLLM } from './mock-llm.js';
 export function createLLM(env = process.env) {
   if ((env.LLM_PROVIDER || '').toLowerCase() === 'mock') return createMockLLM();
   const { LLM_BASE_URL, LLM_API_KEY, LLM_MODEL } = env;
+  const configuredMaxTokens = Number.parseInt(env.LLM_MAX_TOKENS || '2048', 10);
+  const maxTokens = Number.isSafeInteger(configuredMaxTokens) && configuredMaxTokens > 0 ? configuredMaxTokens : 2048;
   if (!LLM_BASE_URL || !LLM_MODEL) {
     throw new Error('LLM is not configured. Set LLM_BASE_URL, LLM_MODEL (and LLM_API_KEY) in .env, or LLM_PROVIDER=mock.');
   }
@@ -15,7 +17,7 @@ export function createLLM(env = process.env) {
       const res = await fetch(`${LLM_BASE_URL.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', ...(LLM_API_KEY ? { authorization: `Bearer ${LLM_API_KEY}` } : {}) },
-        body: JSON.stringify({ model: LLM_MODEL, messages, tools, tool_choice: 'auto', temperature: 0 }),
+        body: JSON.stringify({ model: LLM_MODEL, messages, tools, tool_choice: 'auto', temperature: 0, max_tokens: maxTokens }),
       });
       if (!res.ok) throw new Error(`LLM error ${res.status}: ${(await res.text()).slice(0, 300)}`);
       const data = await res.json();

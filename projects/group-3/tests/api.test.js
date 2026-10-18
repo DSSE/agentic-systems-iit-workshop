@@ -19,12 +19,12 @@ test('case 1 over HTTP: proposals first, saved only after Approve', async () => 
   const a = await post('/api/proposals', { vendor_id: 'v-snacks', item_id: 'snack-box', quantity: 40 });
   const b = await post('/api/proposals', { vendor_id: 'v-speaker', item_id: 'speaker-fee', quantity: 1 });
   assert.equal(a.status, 201); assert.equal(b.status, 201);
-  assert.equal((await get('/api/state')).body.spent, 10000);
+  assert.equal((await get('/api/state')).body.spent, 0);
   assert.equal((await post(`/api/proposals/${a.body.proposal.id}/approve`)).status, 200);
   assert.equal((await post(`/api/proposals/${b.body.proposal.id}/approve`)).status, 200);
   const s = (await get('/api/state')).body;
-  assert.equal(s.spent, 22800);
-  assert.equal(s.remaining, 7200);
+  assert.equal(s.spent, 12800);
+  assert.equal(s.remaining, 17200);
 });
 
 test('case 3 over HTTP: refused with 422 and the rule code', async () => {
@@ -32,14 +32,14 @@ test('case 3 over HTTP: refused with 422 and the rule code', async () => {
   const r = await post('/api/proposals', { vendor_id: 'v-catering', item_id: 'full-meal', quantity: 200 });
   assert.equal(r.status, 422);
   assert.equal(r.body.code, 'OVER_BUDGET');
-  assert.equal(r.body.suggestion.max_quantity, 44);
+  assert.equal(r.body.suggestion.max_quantity, 66);
   assert.equal((await get('/api/state')).body.pending.length, 0);
 });
 
 test('check endpoint reports the position and the edge', async () => {
   store.reset();
-  assert.equal((await post('/api/check', { amount: 20000 })).body.ok, true);
-  const over = (await post('/api/check', { amount: 20001 })).body;
+  assert.equal((await post('/api/check', { amount: 30000 })).body.ok, true);
+  const over = (await post('/api/check', { amount: 30001 })).body;
   assert.equal(over.code, 'OVER_BUDGET'); assert.equal(over.over_by, 1);
 });
 
