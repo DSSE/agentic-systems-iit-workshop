@@ -6,7 +6,7 @@ Build an electronics lab lending app with a web UI, API, model-independent chat 
 - Use Node.js 22 or later and ES modules. The harness has no third-party dependencies.
 - Harness check: `npm run check:harness` (Windows PowerShell: `npm.cmd run check:harness`). No installation, credentials, or network is required.
 - Milestone 1: `npm start` runs the local UI/API; `npm test` runs domain, tools, storage, and HTTP tests. `npm run test:browser` runs the real-browser smoke test with local Chrome/Edge. Use `npm.cmd` on PowerShell.
-- MCP, the agent, and the eval runner are pending. Add `npm run mcp` and `npm run evals` alongside their real implementations.
+- Milestone 2 implements MCP and UI chat. `npm run test:mcp` verifies independent HTTP and stdio clients. `npm run mcp` starts a stdio bridge to the running app; configure external agents with `node src/mcp.js` directly to avoid npm banners on stdout. Live model/two coding-agent demonstrations remain pending; prompt evals are milestone 3 work.
 - Do not change PowerShell execution policy to run npm; use `npm.cmd`.
 
 ## Structure
@@ -18,7 +18,9 @@ Build an electronics lab lending app with a web UI, API, model-independent chat 
 - `src/store.js`: validated reads and serialized atomic writes; exclusive file lock for competing processes
 - `src/tools.js`: list, check and create tools; in-memory proposals and single-use approval
 - `src/server.js`, `public/`: API and frontend; loopback only, self-declared workshop student IDs
-- `src/mcp.js`, `src/agent.js` (planned): MCP adapter and model tool loop
+- `src/mcp.js`, `src/mcp-protocol.js`, `src/tool-contract.js`: stdio bridge, HTTP/internal MCP protocol, and validated tool schemas
+- `src/agent.js`, `src/model.js`: bounded tool-calling model loop, labeled demo parser, and provider-neutral model adapter
+- `specs/mcp-clients.md`: client setup, external proposal handoff, and remaining live-demo checklist
 - `tests/`: isolated domain, tool, HTTP, and optional real-browser tests
 - `evals/` (planned): prompt evaluations
 
@@ -42,7 +44,7 @@ Build an electronics lab lending app with a web UI, API, model-independent chat 
 - Follow the date, overlap, overdue, error-code, and approval-token contracts in `specs/agent.md`.
 
 ## Configuration and verification
-- Model configuration uses `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`; default `LAB_TIMEZONE` is `Asia/Dhaka`. Environment loading belongs with the future server/agent implementation.
+- Model configuration uses `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`; default `LAB_TIMEZONE` is `Asia/Dhaka`. Entrypoints load this directory's ignored `.env`. Do not print or inspect real keys. Empty model settings select labeled demo mode; partial configuration fails startup. Never claim demo/mocked responses prove a live model or two real coding-agent connections.
 - Never commit, print, or expose credentials. Keep real configuration in ignored `.env` files. Claude's `.env.*` deny rule also covers `.env.example`; variable names are documented in the README.
 - `.claude/settings.json` controls Claude tool permissions only; it does not enforce lending rules or sandbox other agents.
 - Run applicable checks and inspect the diff after changes. The harness check performs no loan writes or LLM calls and does not prove business-rule enforcement.

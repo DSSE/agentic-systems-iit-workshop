@@ -1,5 +1,7 @@
+import { renderAssistantContent } from './chat-format.js';
+
 const $ = (id) => document.getElementById(id);
-const state = { csrf: '', equipment: [], proposal: null, busy: false };
+const state = { csrf: '', equipment: [], proposal: null, busy: false, studentId: '' };
 let shelfRevision = 0;
 const text = (tag, value, className) => {
   const node = document.createElement(tag);
@@ -117,7 +119,12 @@ function updateCount() {
   $('selected-count').textContent = `${count} ${count === 1 ? 'unit' : 'units'}`;
 }
 async function identify() {
-  return api('/api/session', { student_id: $('student-id').value.trim() });
+  const result = await api('/api/session', { student_id: $('student-id').value.trim() });
+  if (state.studentId !== result.student_id) {
+    $('chat-log').replaceChildren(text('p', `Using student ID ${result.student_id}. Which equipment, how many units, and which dates?`, 'chat-assistant'));
+    state.studentId = result.student_id;
+  }
+  return result;
 }
 async function loadLoans() {
   const result = await api('/api/loans');
@@ -148,6 +155,68 @@ function renderProposal(result) {
   }));
   $('proposal-dialog').showModal();
 }
+
+function chatMessage(role, content) {
+  const bubble = text(role === 'assistant' ? 'div' : 'p', '', `chat-message chat-${role}`);
+  if (role === 'assistant') renderAssistantContent(bubble, content);
+  else bubble.textContent = content;
+  $('chat-log').append(bubble);
+  $('chat-log').scrollTop = $('chat-log').scrollHeight;
+}
+function chatLoading(loading) {
+  $('chat-loading').hidden = !loading;
+  $('chat-form').setAttribute('aria-busy', String(loading));
+  $('chat-input').disabled = loading;
+  $('chat-send').textContent = loading ? 'Waiting for reply…' : 'Send message ↗';
+}
+function applyProposal(result) {
+  $('start-date').value = result.proposal.start_date;
+  $('due-date').value = result.proposal.due_date;
+  for (const input of document.querySelectorAll('[data-equipment-id]')) {
+    input.value = result.proposal.items.find((item) => item.equipment_id === input.dataset.equipmentId)?.quantity ?? 0;
+  }
+  updateCount();
+  renderProposal(result);
+}
+$('chat-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  run(async () => {
+    const content = $('chat-input').value.trim();
+    if (!content) return;
+    chatLoading(true);
+    try {
+      await identify();
+      chatMessage('user', content);
+      $('chat-input').value = '';
+      let result;
+      try { result = await api('/api/chat', { message: content }); }
+      catch (error) {
+        chatMessage('assistant', error.violations?.map((entry) => `${entry.code}: ${entry.message}`).join('\n')
+          || 'Unable to reach the assistant. Please check the server and try again.');
+        return;
+      }
+      chatMessage('assistant', result.message);
+      if (result.trace.length) {
+        const activity = text('details', '', 'chat-trace');
+        activity.append(text('summary', 'Tool activity'), text('span', result.trace.map((entry) =>
+          `${entry.name}: ${entry.ok ? 'OK' : entry.codes.join(', ')}`).join(' → ')));
+        $('chat-log').append(activity);
+      }
+      if (result.proposal) applyProposal(result.proposal);
+      await Promise.all([loadLoans(), loadEquipment()]);
+    } finally { chatLoading(false); }
+  });
+});
+for (const [id, content] of [['chat-example-normal', 'I need two Arduino kits for my project next week.'], ['chat-example-unclear', 'I need some sensors.']]) {
+  $(id).addEventListener('click', () => { $('chat-input').value = content; $('chat-form').requestSubmit(); });
+}
+$('review-linked-proposal').addEventListener('click', () => run(async () => {
+  await identify();
+  const proposal_id = new URLSearchParams(location.search).get('proposal');
+  const result = await api('/api/review', { proposal_id });
+  applyProposal(result);
+  await loadEquipment();
+}));
 
 async function cancel() {
   const proposal = state.proposal;
@@ -188,7 +257,17 @@ $('approve-proposal').addEventListener('click', () => run(async () => {
 await run(async () => {
   const session = await api('/api/session');
   state.csrf = session.csrf_token;
+  state.studentId = session.student_id;
   $('student-id').value = session.student_id;
+  $('agent-mode').textContent = session.agent_mode === 'model' ? 'Model configured' : 'Demo mode · no LLM';
+  $('chat-mode-note').textContent = session.agent_mode === 'model'
+    ? 'The model uses the shared MCP tools. Review every proposal; only Approve loan saves it.'
+    : 'Demo mode uses a limited local parser through MCP. Configure LLM_BASE_URL and LLM_MODEL in .env for an AI model. Only Approve loan saves a loan.';
+  const linked = new URLSearchParams(location.search);
+  if (linked.get('proposal')) {
+    $('external-review').hidden = false;
+    if (linked.get('student')) $('student-id').value = linked.get('student');
+  }
   $('start-date').min = session.today;
   $('start-date').value = session.today;
   const due = new Date(`${session.today}T00:00:00Z`);
@@ -196,5 +275,5 @@ await run(async () => {
   $('due-date').value = due.toISOString().slice(0, 10);
   $('date-note').textContent = `Dates use ${session.timezone}. Return date is exclusive: the same weekday next week is 7 days.`;
   await loadEquipment();
-  if (session.student_id) await loadLoans();
+  if (session.student_id && session.student_id === $('student-id').value) await loadLoans();
 });

@@ -4,9 +4,9 @@ import { once } from 'node:events';
 import { createApp } from '../src/server.js';
 import { fixture, CLOCK, request } from './helpers.js';
 
-async function setup(t) {
+async function setup(t, model = null) {
   const f = await fixture(t);
-  const app = createApp({ dataPath: f.dataPath, now: () => CLOCK });
+  const app = createApp({ dataPath: f.dataPath, now: () => CLOCK, model });
   app.listen(0, '127.0.0.1');
   await once(app, 'listening');
   t.after(() => new Promise((resolve) => { app.close(resolve); app.closeAllConnections(); }));
@@ -80,4 +80,29 @@ test('HTTP malformed input and private paths are rejected', async (t) => {
   assert.equal(badJson.status, 400);
   const badType = await f.post('/api/tools/check_stock', request(), { 'Content-Type': 'text/plain' });
   assert.equal(badType.status, 415);
+});
+
+test('HTTP chat clarifies unclear requests and returns a proposal that still needs UI approval', async (t) => {
+  const f = await setup(t);
+  const before = await f.raw();
+  const question = await f.post('/api/chat', { message: 'I need some sensors.' });
+  assert.equal(question.status, 200);
+  assert.match(question.body.message, /which equipment.*how many.*how long/);
+  const answer = await f.post('/api/chat', { message: 'Two ultrasonic sensors for seven days starting 2026-10-19.' });
+  assert.equal(answer.body.proposal.proposal.items[0].quantity, 2);
+  assert.equal(await f.raw(), before);
+  const checked = answer.body.proposal;
+  assert.equal((await f.post('/api/approve', { proposal_id: checked.proposal_id })).status, 200);
+  assert.equal((await f.stored()).loans.length, 1);
+});
+
+test('HTTP model mode returns checked tool proposals without exposing model credentials', async (t) => {
+  const f = await setup(t, async () => ({ role: 'assistant', content: null, tool_calls: [
+    { id: 'check', type: 'function', function: { name: 'check_stock', arguments: JSON.stringify(request()) } },
+  ] }));
+  const response = await f.post('/api/chat', { message: 'Two Arduino kits next week.' });
+  assert.equal(response.body.mode, 'model');
+  assert.equal(response.body.proposal.ok, true);
+  assert.equal((await f.stored()).loans.length, 0);
+  assert.doesNotMatch(JSON.stringify(response.body), /csrf_token|api_key|approval_token/);
 });

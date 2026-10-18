@@ -57,7 +57,8 @@ export function createTools({ dataPath, now = () => new Date(), timezone = 'Asia
     const proposal = { ...checked.proposal, items: checked.proposal.items.map((item) => ({
       ...item, name: checked.availability.find((entry) => entry.equipment_id === item.equipment_id).name,
     })) };
-    proposals.set(proposal_id, { proposal: structuredClone(proposal), session_id: context.session_id, expires });
+    proposals.set(proposal_id, { proposal: structuredClone(proposal), session_id: context.session_id, expires,
+      external: context.client_kind === 'mcp' });
     return { ...checked, proposal, proposal_id, expires_at: new Date(expires).toISOString() };
   });
 
@@ -105,9 +106,23 @@ export function createTools({ dataPath, now = () => new Date(), timezone = 'Asia
     return { ok: true };
   }
 
+  // A human opens an external client's review link and selects the matching workshop ID.
+  const reviewProposal = guard(async (proposal_id, context) => {
+    cleanup();
+    const entry = proposals.get(proposal_id);
+    if (!entry || entry.proposal.student_id !== context.student_id
+        || (!entry.external && !owns(entry, context)) || entry.approval_token) return expired();
+    const result = validateLoan(entry.proposal, await store.load(), today());
+    if (!result.ok) return result;
+    entry.session_id = context.session_id;
+    entry.external = false;
+    return { ...result, proposal: structuredClone(entry.proposal), proposal_id,
+      expires_at: new Date(entry.expires).toISOString() };
+  });
+
   const listLoans = guard(async (context) => {
     const data = await store.load();
     return { ok: true, loans: data.loans.filter((loan) => loan.student_id === context.student_id), equipment: data.equipment };
   });
-  return { list_equipment, check_stock, create_loan, approveProposal, cancelProposal, listLoans, today };
+  return { list_equipment, check_stock, create_loan, approveProposal, cancelProposal, reviewProposal, listLoans, today };
 }

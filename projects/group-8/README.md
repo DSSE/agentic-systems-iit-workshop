@@ -2,7 +2,7 @@
 
 **Team: Debug Detectives | IIT Agentic AI Workshop, Day 2, Project 4**
 
-LabLend lends electronics lab equipment such as Arduino kits and sensors. Milestone 1 provides a web interface for browsing equipment, checking stock, and approving loans. Every loan requires a person's approval before it is saved. The AI assistant and MCP integration are planned for milestone 2.
+LabLend lends electronics lab equipment such as Arduino kits and sensors. Students can browse equipment, check stock, and prepare loans through the form or chat. Every loan requires a person's approval before it is saved. Milestone 2 adds MCP and a configurable model-backed assistant, with an explicitly labeled local demo mode when no model is configured.
 
 ## Hard rule
 
@@ -28,25 +28,26 @@ Confirmed GitHub usernames in the workshop roster: `Yasin1406`, `SamiaRahman22`.
 - `data.json` holds equipment stock and existing loans. Only an approved call to `create_loan` may persist a new loan.
 - Three tools provide the core workflow: `list_equipment`, `check_stock`, and `create_loan`.
 - One domain module validates quantities, dates, student limits, and stock for every client. `create_loan` always validates again before saving.
-- Milestone 2 will expose the tools through MCP, connect two external agent clients, and add a UI chat agent using the same tools.
-- The future agent will support a configurable model provider using `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`.
+- The MCP endpoint and stdio bridge expose the same three tools to external agents. See [external client setup and demo checklist](specs/mcp-clients.md).
+- UI chat uses the same MCP JSON-RPC dispatcher through an internal client. A provider-neutral tool-calling model adapter uses `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`.
 
 The implementation specification is [specs/agent.md](specs/agent.md).
 
 ## Implementation and run status
 
-**Milestone 1 is complete:** the harness, shared lending rules, three tools, full-stack approval UI, and automated coverage for cases 1-3 are implemented. See [progress.html](progress.html) for phase status. MCP, chat, and prompt evaluations remain pending.
+**Milestone 1 is complete. Milestone 2 is implemented with live configuration pending:** MCP, stdio bridging, chat, conversational clarification, and model tool calling are implemented and tested. Two independent protocol clients are tested; two live external coding-agent demonstrations and a live-provider run remain pending until you configure them. Prompt evaluations remain milestone 3 work. See [progress.html](progress.html) for evidence.
 
 Use Node.js 22 or later. From `projects/group-8/`:
 
 ```bash
 npm start             # http://localhost:3000
 npm test              # domain, tools, persistence, and HTTP tests
+npm run test:mcp      # direct HTTP and independent stdio client integration tests
 npm run check:harness
 npm run test:browser  # real UI smoke test; requires local Chrome or Edge
 ```
 
-On Windows PowerShell, use `npm.cmd start`, `npm.cmd test`, and `npm.cmd run check:harness` if execution policy blocks `npm.ps1`. No npm installation, external dependencies, API key, or network service is needed. The app uses Node's built-in HTTP server and listens only on loopback.
+On Windows PowerShell, use `npm.cmd start`, `npm.cmd test`, and `npm.cmd run check:harness` if execution policy blocks `npm.ps1`. No dependency installation, API key, or external service is needed for the form, demo chat, or tests. Model chat requires a configured tool-capable provider. The app uses Node's built-in HTTP server and listens only on loopback.
 
 Enter a workshop student ID, select quantities and exact dates, and click **Check availability**. Review the proposal and click **Approve loan** to save; Cancel or Escape discards it without saving. The UI lists existing loans for the selected ID. Invalid requests show machine-readable rule codes with an explanation. This is a local workshop app with self-declared student IDs, not an authenticated production service.
 
@@ -80,8 +81,11 @@ projects/group-8/
     store.js             # validated reads, serialized atomic writes
     tools.js             # list, check, and create operations
     server.js            # API and web app entry point
-    mcp.js               # planned: MCP server entry point
-    agent.js             # planned: model adapter and chat/tool loop
+    mcp.js               # stdio bridge to the running app's /mcp endpoint
+    mcp-protocol.js      # MCP lifecycle, discovery, and tool dispatcher
+    tool-contract.js     # three tool schemas and argument validation
+    agent.js             # model loop and labeled local demo assistant
+    model.js             # .env loading and provider-neutral HTTP adapter
   public/                # browser interface
   tests/                 # domain, API, tools, and approval tests
   evals/                 # planned: five cases and prompt comparisons
@@ -92,11 +96,28 @@ Use Node.js with ES modules, following the group's `CLAUDE.md` conventions. Agre
 The following scripts remain planned for later milestones:
 
 ```bash
-npm run mcp         # MCP server for external agent clients
 npm run evals       # five scenarios against two prompt versions
 ```
 
-The model configuration template is `.env.example`, with empty `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` placeholders and `LAB_TIMEZONE=Asia/Dhaka`. Copy it to an ignored `.env` file when implementing the agent, then set the chosen provider's endpoint and model. Use an API key only when required. The app reads process environment variables and does not automatically load `.env`; use Node's `--env-file` option if needed. Never commit credentials. Claude's secret-file deny patterns also cover `.env.example`; variable names are documented here.
+The model configuration template is `.env.example`. Copy it to an ignored `.env` in this directory, then set `LLM_BASE_URL` to your provider's API base ending in `/v1` (or its compatible equivalent), `LLM_MODEL` to a tool-capable model, and `LLM_API_KEY` only when required. `npm start` and the stdio bridge automatically load this group's `.env`; existing process environment variables take precedence. Restart after changing configuration. Never commit credentials. Claude's secret-file deny patterns also cover `.env.example`; variable names are documented here.
+
+## Chat and model setup
+
+With both `LLM_BASE_URL` and `LLM_MODEL` empty, **Demo mode · no LLM** appears in the UI. This limited local parser supports the workshop's examples through MCP, asks for missing equipment/quantity/dates, and keeps follow-up details within the current student session. It is not an AI model and does not silently replace a failed model request. In demo mode, “next week” means the next Monday through the following Monday, shown as exact dates before approval. Use YYYY-MM-DD dates for other requests.
+
+To use a model, configure both variables and restart. The adapter uses the provider's `/chat/completions` tool-calling endpoint. Examples include a local [Ollama compatible endpoint](https://docs.ollama.com/api/openai-compatibility) (`http://localhost:11434/v1`) or [Gemini's compatibility endpoint](https://ai.google.dev/gemini-api/docs/openai) (`https://generativelanguage.googleapis.com/v1beta/openai`). Choose an available model that supports tool calling; model names and API access come from your provider. An API key is optional for local providers. Partial configuration fails startup rather than pretending a model is connected.
+
+The mode badge reports **Model configured** when settings are present; it is not a health check. Provider failures return a clear error without saving. The model loop is bounded, discovers the three MCP tools, validates every call, and exposes tool activity. Session cookies, CSRF tokens, approval tokens, API keys, and the trusted approval helper never enter the model context. Chat history is held only in server memory and resets when the student ID changes or the server restarts; reload does not render prior messages. The loop starts a new model context after its history limit.
+
+Assistant replies render paragraphs, bullet lists, numbered steps, headings, bold/emphasized text, and inline code using safe text nodes. Raw HTML remains text. A loading spinner and waiting label stay visible during a chat request, and input controls are restored on both success and failure. Reduced-motion preferences disable spinner rotation.
+
+For model connection diagnostics, run `npm run check:model` (`npm.cmd run check:model` on PowerShell). This explicitly sends a generic greeting and the three tool schemas to the configured provider; it sends no inventory, student IDs, loan records, or conversation history and executes no tools. It prints only success or a sanitized error category and HTTP status, never the key or raw provider response. This may consume a small amount of provider quota.
+
+Model errors distinguish `MODEL_AUTH_ERROR` (check API key/access), `MODEL_NOT_FOUND` (check model and endpoint), `MODEL_RATE_LIMIT` (wait/check quota), `MODEL_UNAVAILABLE` (provider failure), `MODEL_TIMEOUT`, `MODEL_NETWORK_ERROR`, `MODEL_BAD_REQUEST`, and `MODEL_TOOL_LIMIT`. Only prewritten safe messages and numeric provider status codes reach the browser. The default request timeout is 60 seconds; optional `LLM_TIMEOUT_MS` accepts 1000–120000 milliseconds. Restart after changing settings. Gemini metadata is preserved across tool rounds; a signature rejection clears stored model history. Error categories follow the provider's HTTP response; a generic error alone cannot identify its cause. See [Gemini troubleshooting](https://ai.google.dev/gemini-api/docs/troubleshooting).
+
+Try “I need two Arduino kits for my project next week.” Chat returns a proposal for human review. Try “I need some sensors.” It asks which sensor, how many, when, and for how long. In demo mode, reply “Two ultrasonic sensors for seven days starting 2026-10-19” with a valid future date for your actual demo. Every proposal still requires the same explicit **Approve loan** action.
+
+The live-model path is tested using controlled provider responses; no live model has been called, per the decision to configure it later. The separate [MCP client checklist](specs/mcp-clients.md) records the remaining two live external-agent demonstrations. Protocol implementation references are the [MCP transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports), [lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle), and [tool](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) specifications.
 
 ## API and approval boundary
 
@@ -110,8 +131,12 @@ The model configuration template is `.env.example`, with empty `LLM_BASE_URL`, `
 | `POST /api/approve` | Trusted UI approval action: approve the exact proposal, then call `create_loan`. |
 | `POST /api/cancel` | Discard a proposal without saving. |
 | `POST /api/tools/create_loan` | Shared create tool; rejects calls lacking a valid server-held approval token. |
+| `POST /api/chat` | Send one message using server-held conversation state; the assistant calls only MCP tools. |
+| `POST /api/review` | Review and transfer an external MCP proposal to a matching browser student/session; no save. |
+| `POST /mcp` | Initialize, discover tools, and call them through MCP Streamable HTTP. |
+| `DELETE /mcp` | End an MCP session. |
 
-POST requests require JSON, the session cookie, and an `X-CSRF-Token` from `/api/session`. Approval tokens stay on the server and are bound to the proposal, student, and session. All clients must use the shared tool implementation. The human approval route is not an agent tool; the future MCP adapter must expose only the three declared tools, and must not provide the model with the browser session or CSRF token.
+Browser API POST requests require JSON, the session cookie, and an `X-CSRF-Token` from `/api/session`. MCP uses its separate protocol session header, not browser credentials. Approval tokens stay on the server and are bound to the proposal, student, and session. All clients use the shared tool implementation. The MCP adapter exposes only the three declared tools. Opening an external proposal's review URL never approves it; the human must review and click Approve.
 
 Only `create_loan` can persist a loan. It rechecks stock, dates, and student limits inside the serialized write operation and consumes approval once. Changes to stock or eligibility require a fresh checked proposal and human approval. Restarting the server invalidates pending proposals. There is no return-management endpoint in milestone 1; overdue unreturned loans continue to count.
 
