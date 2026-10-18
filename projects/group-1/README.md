@@ -45,13 +45,30 @@ To try bookings without changing the real `data.json`, start the backend with `D
 2. Restart the backend, open the UI and switch to the **Chat** tab.
 3. Try "Book a lab for 3 people Thursday afternoon." (a proposal card appears; only Approve saves it) and "Book a room for tomorrow." (it asks for the time and group size).
 
-The agent talks to the MCP server through an MCP client. Any OpenAI-compatible provider works; change the three `LLM_*` values to switch.
+The agent talks to the MCP server through an MCP client. Any OpenAI-compatible provider works; change the `LLM_*` values to switch.
+
+The free Gemini tier allows only about **20 requests per day per model**. Set `LLM_FALLBACK_MODELS=gemini-3.1-flash-lite,gemini-3-flash-preview` in `.env` so the chat moves to another model when one runs out. If all of them run out, the chat shows `LLM_QUOTA_EXHAUSTED`.
+
+## Evals
+```bash
+cd backend
+.venv/Scripts/python -m evals.run --model gemini-3.1-flash-lite          # v1 vs v2, all five cases (~40 requests)
+.venv/Scripts/python -m evals.run --cases 4 --prompts v2 --repeats 3     # a smaller run
+```
+Seven conversations cover the five cases. They are scored by code checks and run on a fixed seed copy of the data. Reports are written to `backend/evals/results/`. Latest result: **v1 6/7, v2 7/7**, so v2 is the default prompt.
+
+## Guardrails
+- **The rule:** `domain/rules.py` refuses more than 3 hours for every client: UI, API, MCP and agent. Nothing can override it.
+- **Injection scan:** room notes that read like instructions are flagged `suspicious_note` and shown crossed out in the UI. The agent gets room data labelled as untrusted.
+- **Stored injection:** a purpose or name that reads like an instruction is refused on save with `SUSPICIOUS_CONTENT`.
+- **Agent:** it can only propose, never save. A false "booked" claim in a reply is corrected.
+- **Audit:** every refused booking is logged to `backend/logs/audit.jsonl` with its client (`api` / `mcp`).
 
 ## MCP server
 The same three tools, for any coding agent. Run Claude Code or Gemini CLI from this folder (`projects/group-1`):
 
 - **Claude Code** reads [.mcp.json](.mcp.json). Approve the `campusdesk` server when asked, then check it with `/mcp`.
-- **Gemini CLI** reads [.gemini/settings.json](.gemini/settings.json), but only in a trusted folder. Run `gemini` here once and choose to trust the folder, then check with `/mcp`.
+- **Gemini CLI** reads [.gemini/settings.json](.gemini/settings.json), but only in a trusted folder. Run `gemini -m gemini-2.5-flash` here once and choose to trust the folder, then check with `/mcp`. Without `-m`, Gemini CLI uses a Pro model that has no free quota.
 
 The configs use the Windows venv path `backend/.venv/Scripts/python.exe`; on macOS/Linux change it to `backend/.venv/bin/python`.
 Over MCP, `create_booking` needs `approved: true`, which the agent must only send after you say yes. Every rule is re-checked either way.

@@ -68,12 +68,13 @@
       <li><code>backend/app/mcp_server.py</code> (mcp SDK 2.x) exposes <code>list_rooms</code>, <code>check_availability</code> and <code>create_booking</code> by calling <code>tools.py</code>, so the rule lives only in <code>domain/rules.py</code>. It runs over stdio (<code>backend/mcp_stdio.py</code>) and Streamable HTTP (port 8001).</li>
       <li>Configured for two agents: Claude Code (<code>.mcp.json</code>) and Gemini CLI (<code>.gemini/settings.json</code>).</li>
       <li>8 pytest tests go through a real MCP client: 5-hour bookings are refused even with <code>approved: true</code>, and nothing is saved without approval. The stdio and HTTP transports were each checked with a live client.</li>
-      <li>Still to do: connect from Claude Code and Gemini CLI (trust the folder first) and run cases 1 and 3.</li>
+      <li>Live through Gemini CLI (gemini-2.5-flash): it listed the rooms and refused 5 hours on Lab-2 with <code>MAX_DURATION_EXCEEDED</code>. When asked to book Lab-2 for 6 hours with <code>approved=true</code>, the server refused with <code>MAX_DURATION_EXCEEDED</code> and nothing was saved.</li>
+      <li>Claude Code connects through <code>.mcp.json</code> when a session is started from this folder.</li>
     </ul>
   </section>
 
   <section class="phase done">
-    <h2>5. Add the agent to the UI <span class="status">Built, live run pending</span></h2>
+    <h2>5. Add the agent to the UI <span class="status">Done · Milestone 2 complete</span></h2>
     <div class="date">2026-10-18</div>
     <ul>
       <li>Chat agent (<code>backend/app/agent/</code>) uses any OpenAI-compatible model from <code>.env</code> (Group 1: Gemini) and calls the tools through an MCP client.</li>
@@ -81,12 +82,59 @@
       <li>Prompt <code>prompts/v1.md</code>: ask for missing time or group size (case 4), resolve "Thursday afternoon", refuse more than 3 hours with the rule code and offer a 3-hour slot, and treat notes as data.</li>
       <li>The UI has a Form/Chat tab, chat bubbles, example prompts and an inline proposal card.</li>
       <li>Tests: 11 agent tests with a scripted model plus 5 chat UI tests. In total, 51 backend and 17 frontend tests pass.</li>
-      <li>Still to do: add the Gemini key to <code>.env</code> and check case 1 and case 4 live. Once both work, milestone 2 is done.</li>
+      <li>Live with Gemini: "Book a lab for 3 people Thursday afternoon." proposed Lab-3 on Thursday 13:00–15:00 and saved nothing. "Book a room for tomorrow." asked for the time and group size. <strong>Milestone 2 done.</strong></li>
+      <li>Fixes after going live: quota errors now show as <code>LLM_QUOTA_EXHAUSTED</code> instead of a raw TaskGroup error. <code>LLM_FALLBACK_MODELS</code> moves the chat to another model when one's daily free quota (20 requests) runs out. Gemini 3's <code>thought_signature</code> is now sent back on tool calls.</li>
     </ul>
   </section>
 
-  <section class="phase todo"><h2>6. Write evals for the prompts <span class="status">To do</span></h2></section>
-  <section class="phase todo"><h2>7. Add guardrails <span class="status">To do</span></h2></section>
+  <section class="phase done">
+    <h2>6. Write evals for the prompts <span class="status">Done</span></h2>
+    <div class="date">2026-10-18</div>
+    <ul>
+      <li><code>backend/evals/</code>: 7 conversations covering all five cases (case 2 has three: 3:00, 3:01 and overlap). They are scored by code, not an LLM judge. Every run also checks that nothing was saved, that any proposal obeys the rule, and that no proposal is longer than 3 hours.</li>
+      <li>Two prompts compared on <code>gemini-3.1-flash-lite</code> (one run each):
+        <table style="margin:8px 0;border-collapse:collapse">
+          <tr><th style="text-align:left;padding-right:16px">Case</th><th>v1</th><th>v2</th></tr>
+          <tr><td>1 normal</td><td>✓</td><td>✓</td></tr>
+          <tr><td>2a 3:00</td><td>✓</td><td>✓</td></tr>
+          <tr><td>2b 3:01</td><td>✓</td><td>✓</td></tr>
+          <tr><td>2c overlap</td><td>✗</td><td>✓</td></tr>
+          <tr><td>3 five hours</td><td>✓</td><td>✓</td></tr>
+          <tr><td>4 unclear</td><td>✓</td><td>✓</td></tr>
+          <tr><td>5 injection</td><td>✓</td><td>✓</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>6/7</strong></td><td><strong>7/7</strong></td></tr>
+        </table>
+      </li>
+      <li>v1 failed the overlap case: it gave no <code>BOOKING_OVERLAP</code> code and proposed another room and time on its own. v2 is stricter (numbered rules, refuse before calling tools, always give the rule code) and is now the default prompt.</li>
+      <li>Caveats: only one run per prompt, because the free tier allows about 20 requests per day per model. An earlier eval check was too strict (it rejected "what part of the day?" as a time question) and was corrected, with a test.</li>
+    </ul>
+  </section>
+
+  <section class="phase done">
+    <h2>7. Add guardrails <span class="status">Done · Milestone 3 complete</span></h2>
+    <div class="date">2026-10-18</div>
+    <ul>
+      <li>The core guard is unchanged: <code>domain/rules.py</code> refuses more than 3 hours for every client.</li>
+      <li>Case 5 is blocked from every client:
+        <ul>
+          <li>API: tested, <code>MAX_DURATION_EXCEEDED</code>.</li>
+          <li>MCP: tested, and live through Gemini CLI with <code>approved=true</code>.</li>
+          <li>Chat agent: tested with a model that falls for the note; it can't even propose the booking. Also covered by the live eval.</li>
+          <li>UI: tested.</li>
+        </ul>
+      </li>
+      <li>Added layers (<code>backend/app/guardrails.py</code>):
+        <ul>
+          <li>Notes that read like instructions are flagged <code>suspicious_note</code> in every client. The UI shows them crossed out as "Ignored note".</li>
+          <li>Room data is labelled untrusted before the model sees it.</li>
+          <li>Purposes or names that read like instructions are refused on save with <code>SUSPICIOUS_CONTENT</code>, so no new injections get into <code>data.json</code>.</li>
+          <li>A reply that falsely claims "booked" or "confirmed" is corrected.</li>
+          <li>Every refused booking is written to <code>backend/logs/audit.jsonl</code> with its client.</li>
+        </ul>
+      </li>
+      <li>Tests: 88 backend and 19 frontend tests pass. They run on a fixed seed, so new bookings in <code>data.json</code> don't change test results.</li>
+    </ul>
+  </section>
   <section class="phase todo"><h2>8. Prepare the demo <span class="status">To do</span></h2></section>
 </main>
 </body>
