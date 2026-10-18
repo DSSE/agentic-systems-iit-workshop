@@ -42,7 +42,12 @@ describe('chat endpoint', () => {
   it('answers a vague request with the model question', async () => {
     replies = [{ content: 'Which sensor, how many, and for how many days?' }];
     const res = await request(app.getHttpServer()).post('/api/chat').send(user('I need some sensors.')).expect(200);
-    expect(res.body).toEqual({ reply: 'Which sensor, how many, and for how many days?' });
+    expect(res.body).toEqual({
+      reply: 'Which sensor, how many, and for how many days?',
+      toolCalls: [],
+      guardrails: [],
+      promptVersion: 'v2',
+    });
   });
 
   it('returns a proposal from check_stock, and Approve then saves it through the API', async () => {

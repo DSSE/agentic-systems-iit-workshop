@@ -2,6 +2,7 @@ import {
   CheckResult,
   LabData,
   LoanRequest,
+  Suggestion,
   Violation,
 } from './types';
 
@@ -83,9 +84,21 @@ export function checkLoan(input: unknown, data: LabData): CheckResult {
       reason: `Only ${available} of "${item.name}" available.`,
     });
   }
-  if (violations.length) return refuse(violations);
+  if (violations.length) {
+    const refusal = refuse(violations);
+    const suggestion = closestValid(req, MAX_ITEMS - heldByStudent, available);
+    return suggestion && !refusal.ok ? { ...refusal, suggestion } : refusal;
+  }
 
   return { ok: true, proposal: { ...req, itemName: item.name } };
+}
+
+// Partly-valid requests: trim to the limits and the stock, so "4 kits for 14
+// days" suggests 2 kits for 7 days. Null when nothing of this item can be lent.
+function closestValid(req: LoanRequest, itemsLeft: number, available: number): Suggestion | null {
+  const quantity = Math.min(req.quantity, itemsLeft, available);
+  const days = Math.min(req.days, MAX_DAYS);
+  return quantity >= 1 ? { quantity, days } : null;
 }
 
 export function availableStock(data: LabData, itemId: string, stock: number): number {

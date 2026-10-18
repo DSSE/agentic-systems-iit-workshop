@@ -44,6 +44,13 @@ export interface Proposal extends LoanRequest {
   itemName: string;
 }
 
+// The closest request that would pass, offered after a refusal. Only a
+// suggestion: it becomes a proposal only after the student says yes.
+export interface Suggestion {
+  quantity: number;
+  days: number;
+}
+
 export type CheckResult =
   | { ok: true; proposal: Proposal }
-  | { ok: false; code: RuleCode; reason: string; violations: Violation[] };
+  | { ok: false; code: RuleCode; reason: string; violations: Violation[]; suggestion?: Suggestion };

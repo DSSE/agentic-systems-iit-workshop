@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { Proposal } from '../domain/types';
 import { LoansService } from '../loans/loans.service';
 import { createTools, ToolDef } from '../tools/tools';
 import { ChatReply, ChatTurn } from './agent.service';
 import { ChatUnavailable } from './llm';
-import { systemPrompt } from './prompt';
+import { activePromptVersion, systemPrompt } from './prompt';
+import { TurnTracker } from './turn';
 
 // The Claude Agent SDK runs its own agent loop, using the Claude plan the
 // machine is signed in with (no API key). It gets the same two tools as the
@@ -50,7 +50,7 @@ export class ClaudeSdkAgent {
   private readonly defs: ToolDef[];
 
   constructor(
-    loans: LoansService,
+    private readonly loans: LoansService,
     private readonly loadSdk: () => Promise<SdkApi> = () => importEsm('@anthropic-ai/claude-agent-sdk'),
     private readonly model = process.env.CLAUDE_MODEL,
   ) {
@@ -65,22 +65,20 @@ export class ClaudeSdkAgent {
       throw new ChatUnavailable(`The Claude Agent SDK could not be loaded: ${(err as Error).message}`);
     }
 
-    let proposal: Proposal | undefined;
+    const turn = new TurnTracker();
+    const promptVersion = activePromptVersion();
     const tools = this.defs.map((def) =>
       sdk.tool(def.name, def.description, SHAPES[def.name], async (args: Record<string, unknown>) => {
         // The student id comes from the session, never from the model.
         const input = def.name === 'check_stock' ? { ...args, student_id: studentId } : args;
         const result = await def.run(input);
-        if (def.name === 'check_stock') {
-          const r = result as { ok?: boolean; proposal?: Proposal };
-          proposal = r.ok === true ? r.proposal : undefined;
-        }
+        turn.record(def.name, input, result);
         return { content: [{ type: 'text', text: JSON.stringify(result) }] };
       }),
     );
 
     const options: Record<string, unknown> = {
-      systemPrompt: systemPrompt(studentId),
+      systemPrompt: systemPrompt(studentId, promptVersion),
       mcpServers: { [SERVER]: sdk.createSdkMcpServer({ name: SERVER, tools }) },
       strictMcpConfig: true,
       tools: [], // no built-in tools (no Bash, Read, Edit, ...)
@@ -103,13 +101,19 @@ export class ClaudeSdkAgent {
 
     if (!final) throw new ChatUnavailable('The Claude Agent SDK returned no result.');
     if (final.subtype === 'error_max_turns') {
-      return { reply: 'I could not finish that request. Please try again with the item, how many and for how many days.' };
+      return {
+        reply: 'I could not finish that request. Please try again with the item, how many and for how many days.',
+        toolCalls: turn.toolCalls,
+        guardrails: [],
+        promptVersion,
+      };
     }
     if (final.subtype !== 'success' || final.is_error) {
       const why = final.result || final.errors?.join(' ') || final.subtype;
       throw new ChatUnavailable(`The Claude Agent SDK failed: ${why}. Is Claude Code signed in on this machine?`);
     }
-    return { reply: final.result?.trim() || 'Sorry, I have no answer for that.', proposal };
+    const text = final.result?.trim() || 'Sorry, I have no answer for that.';
+    return { ...(await turn.finish(text, this.loans)), promptVersion };
   }
 }
 

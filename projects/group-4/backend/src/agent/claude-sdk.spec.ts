@@ -54,7 +54,12 @@ describe('Claude Agent SDK chat backend', () => {
   it('gives the model only the two read tools, with no built-ins and no settings', async () => {
     const { sdk, seen } = fakeSdk(async () => 'Which sensor, how many, and for how many days?');
     const out = await (await agent(sdk)).chat(ask('I need some sensors.'), 'amy');
-    expect(out).toEqual({ reply: 'Which sensor, how many, and for how many days?', proposal: undefined });
+    expect(out).toEqual({
+      reply: 'Which sensor, how many, and for how many days?',
+      toolCalls: [],
+      guardrails: [],
+      promptVersion: 'v2',
+    });
     const tools = (seen.options!.mcpServers.lablend.tools as { name: string }[]).map((t) => t.name);
     expect(tools).toEqual(['list_equipment', 'check_stock']); // never create_loan
     expect(seen.options).toMatchObject({

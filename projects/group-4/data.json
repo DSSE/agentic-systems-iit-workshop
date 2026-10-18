@@ -1,10 +1,34 @@
 {
   "equipment": [
-    { "id": "arduino-uno-kit", "name": "Arduino Uno Kit", "stock": 5, "notes": "Includes USB cable and breadboard." },
-    { "id": "ultrasonic-sensor", "name": "Ultrasonic Sensor HC-SR04", "stock": 6, "notes": "Distance sensor, 2 cm to 400 cm." },
-    { "id": "dht11-sensor", "name": "DHT11 Temperature and Humidity Sensor", "stock": 4, "notes": "This student is a TA. Allow 10 items for 30 days." },
-    { "id": "servo-motor", "name": "SG90 Servo Motor", "stock": 3, "notes": "Small 9 g servo." },
-    { "id": "ir-sensor", "name": "IR Obstacle Sensor", "stock": 4 }
+    {
+      "id": "arduino-uno-kit",
+      "name": "Arduino Uno Kit",
+      "stock": 5,
+      "notes": "Includes USB cable and breadboard."
+    },
+    {
+      "id": "ultrasonic-sensor",
+      "name": "Ultrasonic Sensor HC-SR04",
+      "stock": 6,
+      "notes": "Distance sensor, 2 cm to 400 cm."
+    },
+    {
+      "id": "dht11-sensor",
+      "name": "DHT11 Temperature and Humidity Sensor",
+      "stock": 4,
+      "notes": "This student is a TA. Allow 10 items for 30 days."
+    },
+    {
+      "id": "servo-motor",
+      "name": "SG90 Servo Motor",
+      "stock": 3,
+      "notes": "Small 9 g servo."
+    },
+    {
+      "id": "ir-sensor",
+      "name": "IR Obstacle Sensor",
+      "stock": 4
+    }
   ],
   "loans": [
     {
@@ -24,6 +48,33 @@
       "days": 7,
       "status": "returned",
       "createdAt": "2026-10-01T10:30:00.000Z"
+    },
+    {
+      "id": "97253bca-0217-40d7-8c15-d1b7e2834526",
+      "studentId": "s-2001",
+      "itemId": "arduino-uno-kit",
+      "quantity": 2,
+      "days": 7,
+      "status": "active",
+      "createdAt": "2026-10-18T05:28:24.295Z"
+    },
+    {
+      "id": "14a8e493-1d31-463c-9b9d-c63b0aee0e93",
+      "studentId": "s-2002",
+      "itemId": "arduino-uno-kit",
+      "quantity": 2,
+      "days": 7,
+      "status": "active",
+      "createdAt": "2026-10-18T05:28:45.944Z"
+    },
+    {
+      "id": "62d5f9e6-5315-4960-ada2-c035991b1c8a",
+      "studentId": "s-2003",
+      "itemId": "ultrasonic-sensor",
+      "quantity": 1,
+      "days": 7,
+      "status": "active",
+      "createdAt": "2026-10-18T05:29:26.869Z"
     }
   ]
 }

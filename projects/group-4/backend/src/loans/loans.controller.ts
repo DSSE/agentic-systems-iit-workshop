@@ -1,10 +1,17 @@
 import { Body, Controller, Get, HttpCode, Post, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
+import { MAX_DAYS, MAX_ITEMS } from '../domain/loan-rules';
 import { LoansService } from './loans.service';
 
 @Controller()
 export class LoansController {
   constructor(private readonly loans: LoansService) {}
+
+  // The limits, from the domain module, so the UI never keeps its own copy.
+  @Get('rules')
+  rules() {
+    return { maxItems: MAX_ITEMS, maxDays: MAX_DAYS };
+  }
 
   @Get('equipment')
   equipment(@Query('query') query?: string) {

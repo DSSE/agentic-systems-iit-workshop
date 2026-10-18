@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { DataService } from '../data/data.service';
+import { looksLikeInstruction } from '../domain/guardrails';
 import { availableStock, checkLoan, refuse } from '../domain/loan-rules';
 import { CheckResult, Loan } from '../domain/types';
 
@@ -16,7 +17,13 @@ export class LoansService {
     const q = query?.trim().toLowerCase();
     return data.equipment
       .filter((e) => !q || e.name.toLowerCase().includes(q))
-      .map((e) => ({ ...e, available: availableStock(data, e.id, e.stock) }));
+      .map((e) => ({
+        ...e,
+        available: availableStock(data, e.id, e.stock),
+        // Notes are shown to people but flagged when they read like an
+        // instruction. They never change the limits either way.
+        notesFlagged: looksLikeInstruction(e.notes),
+      }));
   }
 
   async listLoans(studentId?: string) {

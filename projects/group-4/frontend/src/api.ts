@@ -4,6 +4,8 @@ export interface Equipment {
   stock: number;
   available: number;
   notes?: string;
+  // The note reads like an instruction. It is shown as ignored.
+  notesFlagged?: boolean;
 }
 
 export interface Loan {
@@ -30,9 +32,14 @@ export interface Violation {
 
 export type Proposal = LoanRequest & { itemName: string };
 
+export interface Suggestion {
+  quantity: number;
+  days: number;
+}
+
 export type CheckResult =
   | { ok: true; proposal: Proposal }
-  | { ok: false; code: string; reason: string; violations: Violation[] };
+  | { ok: false; code: string; reason: string; violations: Violation[]; suggestion?: Suggestion };
 
 export type CreateResult = { ok: true; loan: Loan } | Extract<CheckResult, { ok: false }>;
 
@@ -47,6 +54,14 @@ async function send<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// The limits, served from the backend's domain module (never copied here).
+export interface Rules {
+  maxItems: number;
+  maxDays: number;
+}
+
+export const getRules = async (): Promise<Rules> => (await fetch('/api/rules')).json();
+
 export const listEquipment = async (): Promise<Equipment[]> => (await fetch('/api/equipment')).json();
 
 export const listLoans = async (studentId: string): Promise<Loan[]> =>
@@ -54,17 +69,44 @@ export const listLoans = async (studentId: string): Promise<Loan[]> =>
 
 export const checkStock = (req: LoanRequest) => send<CheckResult>('/api/loans/check', req);
 
-export const createLoan = (req: LoanRequest) => send<CreateResult>('/api/loans', { ...req, approved: true });
+// Only called from an Approve button.
+export const createLoan = (req: LoanRequest) =>
+  send<CreateResult>('/api/loans', {
+    studentId: req.studentId,
+    itemId: req.itemId,
+    quantity: req.quantity,
+    days: req.days,
+    approved: true,
+  });
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
   content: string;
 }
 
+export interface ChatSuggestion extends Suggestion {
+  itemId: string;
+  itemName: string;
+}
+
 export interface ChatReply {
   reply: string;
   proposal?: Proposal;
+  refusal?: { code: string; reason: string; violations: Violation[] };
+  suggestion?: ChatSuggestion;
+  toolCalls?: { name: string; ok?: boolean; code?: string }[];
+  guardrails?: string[];
+  promptVersion?: string;
 }
+
+export interface ChatStatus {
+  provider: 'claude-sdk' | 'openai-compatible';
+  model: string | null;
+  configured: boolean;
+  promptVersion: string;
+}
+
+export const chatStatus = async (): Promise<ChatStatus> => (await fetch('/api/chat/status')).json();
 
 export async function chat(messages: ChatTurn[], studentId: string): Promise<ChatReply> {
   const res = await fetch('/api/chat', {

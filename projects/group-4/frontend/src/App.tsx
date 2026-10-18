@@ -1,170 +1,136 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Catalog } from './Catalog';
 import { Chat } from './Chat';
-import { checkStock, createLoan, Equipment, listEquipment, listLoans, Loan, LoanRequest, Proposal, Violation } from './api';
+import { Loans } from './Loans';
+import { RequestSheet } from './RequestSheet';
+import { ChatStatus, chatStatus, Equipment, getRules, listEquipment, listLoans, Loan, Rules } from './api';
+import { BoxIcon, ChatIcon, CheckIcon, ClockIcon, ShieldIcon, UserIcon } from './icons';
 
-const MAX_ITEMS = 2;
-const MAX_DAYS = 7;
+type Tab = 'catalog' | 'assistant' | 'loans';
 
 export function App() {
+  const [rules, setRules] = useState<Rules | null>(null);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
-  const [studentId, setStudentId] = useState('s-1001');
-  const [itemId, setItemId] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [days, setDays] = useState(7);
-  const [proposal, setProposal] = useState<Proposal | null>(null);
-  const [refusal, setRefusal] = useState<Violation[] | null>(null);
-  const [saved, setSaved] = useState<string | null>(null);
+  const [status, setStatus] = useState<ChatStatus | null>(null);
+  const [studentInput, setStudentInput] = useState('s-2001');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [requesting, setRequesting] = useState<Equipment | null>(null);
+  const [prefill, setPrefill] = useState<{ text: string; nonce: number } | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('catalog');
+  const studentId = studentInput.trim();
 
   const refresh = useCallback(async () => {
-    const items = await listEquipment();
-    setEquipment(items);
-    setItemId((current) => current || items[0]?.id || '');
-    if (studentId.trim()) setLoans(await listLoans(studentId.trim()));
+    setEquipment(await listEquipment());
+    setLoans(studentId ? await listLoans(studentId) : []);
   }, [studentId]);
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e.message ?? e)));
+    refresh()
+      .then(() => setError(null))
+      .catch(() => setError('Cannot reach the LabLend server. Is it running?'))
+      .finally(() => setLoading(false));
   }, [refresh]);
 
-  const request = (): LoanRequest => ({ studentId: studentId.trim(), itemId, quantity, days });
+  useEffect(() => {
+    getRules().then(setRules).catch(() => undefined);
+    chatStatus().then(setStatus).catch(() => setStatus(null));
+  }, []);
 
-  const clearResult = () => {
-    setProposal(null);
-    setRefusal(null);
-    setSaved(null);
-    setError(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const saved = (text: string) => {
+    setToast(text);
+    setRequesting(null);
+    void refresh();
   };
 
-  async function onCheck(e: FormEvent) {
-    e.preventDefault();
-    clearResult();
-    setBusy(true);
-    try {
-      const result = await checkStock(request());
-      if (result.ok) setProposal(result.proposal);
-      else setRefusal(result.violations);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  // Only this button saves a loan.
-  async function onApprove() {
-    if (!proposal) return;
-    setBusy(true);
-    try {
-      const result = await createLoan(proposal);
-      setProposal(null);
-      if (result.ok) {
-        setSaved(`Saved: ${proposal.quantity} × ${proposal.itemName} for ${proposal.days} days.`);
-        await refresh();
-      } else {
-        setRefusal(result.violations);
-      }
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const nameOf = (id: string) => equipment.find((e) => e.id === id)?.name ?? id;
-  const active = loans.filter((l) => l.status === 'active');
+  const held = loans.filter((l) => l.status === 'active').reduce((sum, l) => sum + l.quantity, 0);
 
   return (
-    <main>
-      <h1>LabLend</h1>
-      <p className="rule">
-        <strong>Rule:</strong> a student has at most {MAX_ITEMS} items, for at most {MAX_DAYS} days. Nothing is saved until you approve.
-      </p>
+    <div className="app" data-tab={tab}>
+      <header className="topbar">
+        <div className="brand">
+          <div className="logo" aria-hidden>
+            <svg viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M12 4v9L6 25a2 2 0 0 0 2 3h16a2 2 0 0 0 2-3l-6-12V4M10 4h12M9 20h14" />
+            </svg>
+          </div>
+          <div>
+            <h1>LabLend</h1>
+            <p className="muted small">Electronics lab · equipment loans</p>
+          </div>
+        </div>
 
-      <Chat studentId={studentId} onSaved={() => void refresh()} />
-
-      <section>
-        <h2>Equipment</h2>
-        <table>
-          <thead>
-            <tr><th>Item</th><th>Available</th><th>Stock</th><th>Notes</th></tr>
-          </thead>
-          <tbody>
-            {equipment.map((e) => (
-              <tr key={e.id}>
-                <td>{e.name}</td>
-                <td>{e.available}</td>
-                <td>{e.stock}</td>
-                <td>{e.notes}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section>
-        <h2>Request a loan</h2>
-        <form onSubmit={onCheck}>
-          <label>
-            Student ID
-            <input value={studentId} onChange={(e) => { setStudentId(e.target.value); clearResult(); }} required />
-          </label>
-          <label>
-            Item
-            <select value={itemId} onChange={(e) => { setItemId(e.target.value); clearResult(); }}>
-              {equipment.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Quantity
-            <input type="number" min={1} value={quantity} onChange={(e) => { setQuantity(Number(e.target.value)); clearResult(); }} required />
-          </label>
-          <label>
-            Days
-            <input type="number" min={1} value={days} onChange={(e) => { setDays(Number(e.target.value)); clearResult(); }} required />
-          </label>
-          <button type="submit" disabled={busy || !itemId}>Check</button>
-        </form>
-
-        {proposal && (
-          <div className="box ok" role="status">
-            <p>
-              <strong>Loan proposal:</strong> {proposal.quantity} × {proposal.itemName} for {proposal.days} days, for {proposal.studentId}.
-            </p>
-            <button onClick={onApprove} disabled={busy}>Approve</button>{' '}
-            <button className="secondary" onClick={clearResult} disabled={busy}>Cancel</button>
+        {rules && (
+          <div className="rule-card" role="note" aria-label={`The rule: at most ${rules.maxItems} items, for at most ${rules.maxDays} days`}>
+            <span className="rule-chip"><BoxIcon size={15} /> {rules.maxItems} items max</span>
+            <span className="rule-chip"><ClockIcon size={15} /> {rules.maxDays} days max</span>
+            <span className="rule-chip"><CheckIcon size={15} /> you approve</span>
           </div>
         )}
-        {refusal && (
-          <div className="box refused" role="alert">
-            <p><strong>Refused</strong></p>
-            <ul>
-              {refusal.map((v) => (
-                <li key={v.code}><code>{v.code}</code> {v.reason}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {saved && <div className="box ok" role="status">{saved}</div>}
-        {error && <div className="box refused" role="alert">{error}</div>}
-      </section>
 
-      <section>
-        <h2>Loans for {studentId.trim() || '…'}</h2>
-        {active.length === 0 ? (
-          <p>No active loans.</p>
-        ) : (
-          <ul>
-            {active.map((l) => (
-              <li key={l.id}>{l.quantity} × {nameOf(l.itemId)} for {l.days} days</li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+        <label className="student-card">
+          <span className="avatar" aria-hidden><UserIcon size={16} /></span>
+          <span className="student-text">
+            <span className="xsmall muted">Student ID</span>
+            <input value={studentInput} onChange={(e) => setStudentInput(e.target.value)} placeholder="s-2001" aria-label="Student ID" />
+          </span>
+          {rules && studentId && (
+            <span className={`held ${held >= rules.maxItems ? 'full' : ''}`} title="Items held">{held}/{rules.maxItems}</span>
+          )}
+        </label>
+      </header>
+
+      {error && <div className="banner" role="alert"><ShieldIcon size={16} /> {error}</div>}
+
+      <main className="layout">
+        <div className="col-main">
+          <div className="tab-catalog">
+            <Catalog
+              equipment={equipment}
+              loading={loading}
+              onRequest={setRequesting}
+              onAsk={(item) => {
+                setPrefill({ text: `I need 1 ${item.name} for ${rules?.maxDays ?? 7} days.`, nonce: Date.now() });
+                setTab('assistant');
+              }}
+            />
+          </div>
+          <div className="tab-loans">
+            {rules && <Loans studentId={studentId} loans={loans} equipment={equipment} rules={rules} />}
+          </div>
+        </div>
+        <div className="col-side tab-assistant">
+          <Chat key={studentId} studentId={studentId} status={status} prefill={prefill} onSaved={saved} />
+        </div>
+      </main>
+
+      <footer className="footer muted xsmall">
+        <ShieldIcon size={13} /> The server checks the rule for the UI, the API, the MCP server and the assistant. Only an Approve button saves a loan.
+      </footer>
+
+      <nav className="tabbar" aria-label="Sections">
+        <button className={tab === 'catalog' ? 'on' : ''} onClick={() => setTab('catalog')}><BoxIcon /> Equipment</button>
+        <button className={tab === 'assistant' ? 'on' : ''} onClick={() => setTab('assistant')}><ChatIcon /> Assistant</button>
+        <button className={tab === 'loans' ? 'on' : ''} onClick={() => setTab('loans')}><ClockIcon /> My loans</button>
+      </nav>
+
+      {requesting && rules && (
+        <RequestSheet item={requesting} studentId={studentId} held={held} rules={rules} onClose={() => setRequesting(null)} onSaved={saved} />
+      )}
+
+      {toast && (
+        <div className="toast" role="status">
+          <CheckIcon /> {toast}
+        </div>
+      )}
+    </div>
   );
 }
