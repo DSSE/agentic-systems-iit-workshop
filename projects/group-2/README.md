@@ -26,8 +26,8 @@ npm test
 | # | Phase | Status |
 |---|---|---|
 | 1 | Set up the harness | Done |
-| 2 | Build the backend and the frontend | |
-| 3 | Test the behaviour | |
+| 2 | Build the backend and the frontend | Done |
+| 3 | Test the behaviour | Done (cases 1–3) |
 | 4 | Make the MCP server and connect any agent | |
 | 5 | Add the agent to the UI | |
 | 6 | Write evals for the prompts | |

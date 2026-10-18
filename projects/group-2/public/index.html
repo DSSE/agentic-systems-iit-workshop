@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SprintBoard</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>SprintBoard</h1>
+    <p class="rule">Hard rule: no member has more than <strong>8 story points</strong>. Nothing is saved until you click Approve.</p>
+  </header>
+
+  <section>
+    <h2>Team</h2>
+    <div id="members" class="members"></div>
+  </section>
+
+  <section>
+    <h2>Backlog</h2>
+    <form id="assign-form">
+      <table>
+        <thead><tr><th>Task</th><th class="num">Points</th><th>Assign to</th></tr></thead>
+        <tbody id="tasks"></tbody>
+      </table>
+      <div class="actions">
+        <button type="button" id="check-btn" class="secondary">Check capacity</button>
+        <button type="submit" id="propose-btn">Propose</button>
+      </div>
+    </form>
+    <div id="message" class="message" role="status" hidden></div>
+  </section>
+
+  <section>
+    <h2>Pending proposals</h2>
+    <div id="proposals"><p class="empty">No pending proposals.</p></div>
+  </section>
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
