@@ -15,6 +15,8 @@
 ## Conventions
 - Node, ES modules, no new dependencies without asking
 - The create tool re-checks the hard rule itself, even if check was called first
+- Group 8's integration branch is `group-8/development`; create feature branches from it and target all project PRs to it, not `main`
+- Use `group-8/<short-name>` branch names and keep integration changes going through PRs
 
 ## Never do
 - Never edit files outside this folder
