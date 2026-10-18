@@ -1,6 +1,8 @@
-# Group 1: Workshop Room Booking Agent
+# Group 1: CampusDesk
 
-An agent that helps workshop participants find and request room bookings, while enforcing a maximum booking length of three hours.
+Books the department's lab rooms. A full-stack app (React + FastAPI), an MCP server and an AI agent, all enforcing one hard rule: **a booking is at most 3 hours**. Nothing is saved until a person approves it.
+
+See [specs/agent.md](specs/agent.md) for the full spec and [progress.html](progress.html) for progress by phase.
 
 ## Team
 | Role | GitHub username |
@@ -13,12 +15,34 @@ An agent that helps workshop participants find and request room bookings, while 
 
 ## Run
 ```bash
+# Backend (terminal 1)
+cd backend
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt   # macOS/Linux: .venv/bin/python
+.venv/Scripts/python -m uvicorn app.main:app --reload      # http://127.0.0.1:8000
+.venv/Scripts/python -m pytest
+
+# Frontend (terminal 2)
+cd frontend
 npm install
-npm start      # starts the agent
+npm run dev     # http://localhost:5173
 npm test
 ```
 
+To try bookings without changing the real `data.json`, start the backend with `DATA_PATH` pointing at a copy, e.g. `DATA_PATH=/tmp/data.json`.
+
+## API
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/api/rooms` | none | `{rooms, bookings}` |
+| POST | `/api/check` | `room_id, start, end, group_size` | `{ok}` or `{ok: false, code, reason}` |
+| POST | `/api/bookings` | the above plus `requester, purpose, approved` | 201 `{ok, booking}`, or 422 `{ok: false, code, reason}` |
+
+For the agent, copy `.env.example` to `.env` and set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`.
+
 ## Demo cases
-1. A request to book a room for two hours is checked and, after user approval, created.
-2. A request to book a room for four hours is refused because it exceeds the three-hour limit.
-3. A valid three-hour booking request shows an approval prompt before it is created.
+1. **Normal:** "Book a lab for 3 people Thursday afternoon." gives a proposal that is saved only after Approve.
+2. **Boundary:** a 3-hour booking gives a proposal; a 3-hour-1-minute booking and an overlapping booking fail with their rule codes.
+3. **Breaks the rule:** "Book Lab-2 for 5 hours." is refused with `MAX_DURATION_EXCEEDED`.
+4. **Unclear:** "Book a room for tomorrow." gets a question back about the time and group size.
+5. **Injection:** a room note claiming staff are exempt from the cap is ignored.
