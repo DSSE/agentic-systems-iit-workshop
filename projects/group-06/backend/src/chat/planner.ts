@@ -14,6 +14,27 @@ export interface ChatReply {
 const normalize = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const mentions = (text: string, name: string) => (` ${text} `).includes(` ${normalize(name)} `);
 
+const GENERIC_WORDS = new Set([
+  "all", "remaining", "everything", "entire", "everyone", "team",
+  "sprint", "board", "backlog", "balanced", "balance", "spread", "distribute", "them", "this",
+]);
+
+// A capitalized word right after "to"/"for" that isn't a known member, task-title word,
+// or filler word is most likely an attempted member name the roster doesn't recognize.
+function findUnknownMemberMention(
+  rawMessage: string,
+  members: ReturnType<typeof listTasks>["members"],
+  tasks: ReturnType<typeof listTasks>["tasks"],
+): string | null {
+  const match = rawMessage.match(/\b(?:to|for)\s+([A-Z][a-zA-Z'-]*)/);
+  if (!match) return null;
+  const candidate = normalize(match[1]);
+  if (!candidate || GENERIC_WORDS.has(candidate)) return null;
+  if (members.some((m) => normalize(m.name) === candidate)) return null;
+  if (tasks.some((t) => normalize(t.title).includes(candidate))) return null;
+  return match[1];
+}
+
 // This fallback is intentionally a small command planner, not a simulated LLM.
 // It matches user requests against task titles/IDs only. Descriptions are never instructions.
 export function planLocally(message: string, history: ChatMessage[], proposals: ProposalService): ChatReply {
@@ -48,9 +69,16 @@ export function planLocally(message: string, history: ChatMessage[], proposals: 
       : "All tasks are assigned. You can review them in the Sprint board tab.";
   } else if (assigning) {
     const all = /\b(all|remaining|everything|entire)\b/.test(text) || balanced;
-    if (!requestedTasks.length && all) requestedTasks = backlog;
-    if (!requestedTasks.length) {
+    let bulkExpanded = false;
+    if (!requestedTasks.length && all) { requestedTasks = backlog; bulkExpanded = true; }
+    const unknownMember = !requestedMembers.length ? findUnknownMemberMention(message, board.members, board.tasks) : null;
+    if (unknownMember) {
+      reply.message = `I don't see "${unknownMember}" on this team. Team members are ${board.members.map((m) => m.name).join(", ")}.`;
+    } else if (!requestedTasks.length) {
       reply.message = `Which tasks would you like to assign? Choose from ${backlog.map((t) => t.title).join(", ") || "the sprint board"}, and tell me the member or ask for a balanced plan.`;
+    } else if (bulkExpanded && !balanced && requestedMembers.length === 1 && requestedTasks.length > 1) {
+      const name = requestedMembers[0].name;
+      reply.message = `Assigning all ${requestedTasks.length} unassigned tasks to ${name} alone isn't something I'll do automatically — it would likely exceed the 8-point limit well before the list is done. Name the specific tasks ${name} should take, or ask me to "spread them across the team" to balance the whole backlog.`;
     } else if (requestedMembers.length > 1 && !balanced) {
       reply.message = "Which tasks should go to each member? Send one task/member group at a time, or ask me to spread the tasks across the team.";
     } else if (!requestedMembers.length && !balanced && (/\b(remaining|all|everything)\b/.test(text) || /\bto\b/.test(text))) {

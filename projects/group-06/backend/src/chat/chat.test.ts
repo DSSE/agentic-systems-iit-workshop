@@ -43,10 +43,24 @@ describe("local sprint chat", () => {
     expect(readFileSync(dataPath, "utf8")).toBe(before);
   });
   it("proposes exactly 8 points and refuses the next point, including pending capacity", () => {
-    const result = planLocally("Assign all tasks to Rafi", [], createProposalService());
+    const result = planLocally("Assign Login, Payment and Settings to Rafi", [], createProposalService());
     expect(result.proposals.reduce((sum, p) => sum + p.points, 0)).toBe(8);
     expect(result.refusals).toEqual([expect.objectContaining({ taskTitle: "Settings", code: "rule:max-8-points" })]);
     expect(JSON.parse(readFileSync(dataPath, "utf8"))).toEqual(fixture);
+  });
+  it("refuses to bulk-assign the entire backlog to a single member", () => {
+    const result = planLocally("Assign all tasks to Rafi", [], createProposalService());
+    expect(result.proposals).toHaveLength(0);
+    expect(result.refusals).toHaveLength(0);
+    expect(result.message).toContain("Rafi");
+    expect(result.message).toContain("3 unassigned tasks");
+  });
+  it("rejects an assignment request for a name not on the roster", () => {
+    const result = planLocally("Assign the Login task to Zara", [], createProposalService());
+    expect(result.proposals).toHaveLength(0);
+    expect(result.message).toContain("Zara");
+    expect(result.message).toContain("Rafi");
+    expect(result.message).toContain("Afra");
   });
   it("asks for a member on unclear remaining-task requests", () => {
     const service = createProposalService();
