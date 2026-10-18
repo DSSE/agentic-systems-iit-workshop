@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Stop hook: the agent cannot finish while verification fails.
+# Stop hook: the agent cannot finish while verification fails. Uses node, so no python needed.
 input="$(cat)"
-active="$(printf '%s' "$input" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("stop_hook_active", False))' 2>/dev/null)"
-[ "$active" = "True" ] && exit 0
+active="$(printf '%s' "$input" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d).stop_hook_active?"yes":"no")}catch{console.log("no")}})' 2>/dev/null)"
+[ "$active" = "yes" ] && exit 0
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 [ -f package.json ] && [ -d node_modules ] || exit 0
 out="$(npm run -s verify 2>&1)"; rc=$?

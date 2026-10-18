@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# PreToolUse hook. exit 2 = blocked. Also protects main: nobody pushes to main in this repo.
+# PreToolUse hook. exit 2 = blocked. Uses node (not python) so it works on Windows, Mac and Linux.
 input="$(cat)"
-cmd="$(printf '%s' "$input" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))' 2>/dev/null)"
+cmd="$(printf '%s' "$input" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d).tool_input?.command??"")}catch{console.log("")}})' 2>/dev/null)"
 patterns='rm +-rf +(/|~|\*)|git +push +.*(-f|--force)|git +reset +--hard|git +push +[a-z]+ +main|git +push +origin +HEAD:main|chmod +-R +777|curl .*\| *(sh|bash)'
 if printf '%s' "$cmd" | grep -Eiq "$patterns"; then
   echo "ERROR  blocked command: $cmd" >&2

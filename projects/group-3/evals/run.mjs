@@ -11,8 +11,9 @@ import { createLLM } from '../src/agent/llm.js';
 import { connectMcp } from '../src/agent/mcp-client.js';
 import { runAgent } from '../src/agent/agent.js';
 import { PROMPTS, DEFAULT_PROMPT } from '../src/agent/prompts.js';
+import { fileURLToPath } from 'node:url';
 
-const here = path.dirname(new URL(import.meta.url).pathname);
+const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const cases = JSON.parse(fs.readFileSync(path.join(here, 'cases.json'), 'utf8'));
 const argIdx = process.argv.indexOf('--prompts');

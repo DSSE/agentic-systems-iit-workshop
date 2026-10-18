@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import { pathToFileURL } from 'node:url';
 import { createStore } from '../domain/store.js';
 
 const asText = (result) => ({
@@ -39,7 +40,7 @@ export function buildMcpServer(store = createStore()) {
 }
 
 // Run as a program (not when imported by tests)
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const server = buildMcpServer();
   await server.connect(new StdioServerTransport());
   console.error('ClubOps MCP server ready (stdio)');

@@ -6,8 +6,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { checkBudget, maxAffordableQuantity, sum } from './budget.js';
 import { screenUntrustedText, cleanNote } from './guardrails.js';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 export function createStore({
   dataFile = process.env.DATA_FILE || path.join(root, 'data.json'),

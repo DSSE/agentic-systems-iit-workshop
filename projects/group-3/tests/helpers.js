@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createStore } from '../src/domain/store.js';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /** A fresh store on temp files. `patch(data)` can change the seed (e.g. a tiny cap for boundary tests). */
 export function tempStore(patch = (d) => d) {

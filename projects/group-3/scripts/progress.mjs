@@ -3,7 +3,8 @@
 //   npm run progress -- --show
 import fs from 'node:fs';
 import path from 'node:path';
-const file = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'progress.html');
+import { fileURLToPath } from 'node:url';
+const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'progress.html');
 const html = fs.readFileSync(file, 'utf8');
 const re = /(<script id="progress-data" type="application\/json">)([\s\S]*?)(<\/script>)/;
 const data = JSON.parse(html.match(re)[2]);

@@ -2,8 +2,9 @@
 import express from 'express';
 import path from 'node:path';
 import { createStore } from '../domain/store.js';
+import { fileURLToPath } from 'node:url';
 
-const publicDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'public');
+const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'public');
 
 /** @param {{store?: ReturnType<typeof createStore>, chat?: (message:string, history:any[]) => Promise<any>}} deps */
 export function createApp({ store = createStore(), chat } = {}) {
