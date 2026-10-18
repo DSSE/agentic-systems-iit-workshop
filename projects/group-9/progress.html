@@ -105,7 +105,8 @@
 
     <h3>Done</h3>
     <ul>
-      <li>65 pytest tests, all passing, on a temp copy of <code>data.seed.json</code> with a fixed clock. No network, no LLM.</li>
+      <li>71 pytest tests, all passing, on a temp copy of <code>data.seed.json</code> with a fixed clock. No network, no LLM.</li>
+      <li>After code review: approve claims the proposal atomically (a double click saves once and the second click gets <code>PROPOSAL_NOT_FOUND</code>), and malformed requests also get a <code>RuleResult</code> with a rule code.</li>
       <li>Case 1: a proposal is created, <code>data.json</code> stays unchanged, and Approve saves it.</li>
       <li>Case 2: 3:00 passes; 3:01 and 3:00:30 fail with <code>MAX_DURATION_EXCEEDED</code>; overlaps fail with <code>BOOKING_OVERLAP</code>; back-to-back is allowed.</li>
       <li>Case 3: 5 hours in Lab-2 is refused and a 3-hour slot is suggested. Case 5 (6 hours, injected note) is refused by the create tool itself.</li>
