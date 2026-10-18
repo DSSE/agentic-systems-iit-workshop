@@ -94,4 +94,15 @@ Follow the handout's eight phases: (1) set up the harness, (2) build backend and
 
 ## Repository workflow
 
-Only change files inside `projects/group-8/`. Use branches named `group-8/<short-name>` and open a pull request to `main`. A teammate must approve the PR; merge with Squash and merge after `pr-guard` passes. Do not push directly to `main` or modify shared configuration or other groups' files.
+Only change files inside `projects/group-8/`. Use branches named `group-8/<short-name>` and open all project pull requests against `group-8/development`. This is Group 8's integration branch and serves as the main branch for our project. Start new feature branches from the latest `group-8/development`.
+
+A teammate must approve each PR; use Squash and merge after the applicable checks pass. Keep changes flowing through PRs rather than pushing directly to `group-8/development`. Do not target the repository's `main` branch for project PRs or modify shared configuration or other groups' files.
+
+```bash
+git switch group-8/development
+git pull --ff-only origin group-8/development
+git switch -c group-8/<short-name>
+# Make and commit changes inside projects/group-8/.
+git push -u origin group-8/<short-name>
+gh pr create --base group-8/development --head group-8/<short-name> --fill
+```
