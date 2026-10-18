@@ -4,6 +4,11 @@ CampusDesk helps students find and book department lab rooms for group work thro
 
 Project statement: [CampusDesk.md](CampusDesk.md). Implementation specification: [specs/agent.md](specs/agent.md).
 
+The Codex and Claude harness is ready. Start either agent inside this folder;
+see [HARNESS.md](HARNESS.md) for structure and skill usage,
+[PLANS.md](PLANS.md) for delivery tracking, and [progress.html](progress.html)
+for completed phase evidence. Application implementation is next.
+
 ## Team
 | Role | GitHub username |
 |---|---|
