@@ -6,3 +6,4 @@ node_modules/
 *.log
 proposals.json
 *.tmp
+evals/results/

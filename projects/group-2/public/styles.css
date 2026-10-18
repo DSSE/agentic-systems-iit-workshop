@@ -51,3 +51,6 @@ button.secondary { background: transparent; color: var(--fg); border-color: var(
 .chat-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
 .chat-form input { flex: 1; min-width: 0; font: inherit; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
 button:disabled { opacity: .6; cursor: default; }
+.flag { color: var(--err); font-size: .8rem; margin-top: 2px; }
+tr.flagged .desc { font-style: italic; }
+@media (max-width: 560px) { tr.flagged .desc { display: block; } }
