@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { Chat } from './Chat';
 import { checkStock, createLoan, Equipment, listEquipment, listLoans, Loan, LoanRequest, Proposal, Violation } from './api';
 
 const MAX_ITEMS = 2;
@@ -81,6 +82,8 @@ export function App() {
       <p className="rule">
         <strong>Rule:</strong> a student has at most {MAX_ITEMS} items, for at most {MAX_DAYS} days. Nothing is saved until you approve.
       </p>
+
+      <Chat studentId={studentId} onSaved={() => void refresh()} />
 
       <section>
         <h2>Equipment</h2>

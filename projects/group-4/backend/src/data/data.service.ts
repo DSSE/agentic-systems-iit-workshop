@@ -3,11 +3,12 @@ import { promises as fs } from 'fs';
 import { dirname, join } from 'path';
 import { LabData } from '../domain/types';
 
-// data.json is read here and written only by LoansService.createLoan, which
-// runs inside withLock so a check and its write cannot interleave.
+// data.json (in the group folder, whatever the working directory) is read
+// here and written only by LoansService.createLoan, which runs inside
+// withLock so a check and its write cannot interleave.
 @Injectable()
 export class DataService {
-  private readonly file = process.env.DATA_FILE ?? join(process.cwd(), '..', 'data.json');
+  private readonly file = process.env.DATA_FILE ?? join(__dirname, '..', '..', '..', 'data.json');
   private queue: Promise<unknown> = Promise.resolve();
 
   async read(): Promise<LabData> {
