@@ -1,22 +1,45 @@
 # Spec: CampusDesk
 
 ## Goal
-Help students find available department lab rooms and approve bookings through a web UI or AI agent. Enforce a maximum duration of 3 hours through shared domain logic, and persist bookings in `data.json` only after explicit human approval.
+Help students request available department lab rooms through a web UI or AI agent. Staff independently review and approve or reject requests. Enforce a maximum duration of 3 hours through shared domain logic, and persist confirmed bookings only after explicit approval by authenticated staff other than the requester.
 
 ## User stories
 1. As a student, I want to find an available lab with enough seats for my group, so that we can meet at a suitable time.
-2. As a student, I want to review and approve an exact booking proposal, so that no reservation is saved without my consent.
+2. As a student, I want to review and submit an exact booking request and track staff's decision; I cannot approve it myself.
 3. As a student, I want clear explanations and valid alternatives for unavailable or overlong bookings, so that I can revise my request.
 4. As a student using chat, I want the agent to ask for missing details, so that it books the intended room and time.
 5. As a department administrator, I want every client to enforce the same rules, so that direct API or MCP calls cannot bypass them.
+6. As lab staff, I want to review the student's identity, purpose, room, times and group size before approving or rejecting their request with a note.
+
+## Roles and request lifecycle
+
+- Sign-in establishes a server-owned `student` or `staff` principal. A role or
+  user ID supplied in a request body is never trusted. No public role switch or
+  staff registration is provided.
+- Students check availability, review the exact preview, then submit a pending
+  request. They see only their own requests and may cancel a pending request.
+- Staff see all requests. Approval creates the confirmed booking; rejection
+  requires a reason and creates no booking. Staff cannot request on behalf of a
+  student or review their own request, even following a role change.
+- A request transitions once from `pending` to `approved`, `rejected`, or
+  `cancelled`. Its slot and requester are immutable. Approval binds to its ID
+  and exact fields, revalidates live availability, and atomically saves the
+  booking plus the reviewer's ID and decision time under the existing lock.
+- Pending requests persist across server restarts and do not reserve the room.
+  Student preview tokens expire after five minutes; submitted requests do not
+  depend on the preview token or its expiration.
+- Local workshop accounts use generated passwords and salted password hashes
+  in the ignored `server/.local/` directory. HTTP-only sessions expire after
+  eight hours or logout; restarting the API signs users out. Production SSO,
+  account administration and distributed sessions remain outside this change.
 
 ## Acceptance criteria
-- [ ] A valid request produces a proposal showing the room, date, start/end times, duration, and group size; it is saved only after explicit approval.
+- [ ] A valid preview shows room, date, times, timezone, duration and group size. The student submits a pending request; only independent staff approval saves a confirmed booking.
 - [ ] Exactly 180 minutes is allowed; 181 minutes and a 5-hour request fail with `DURATION_LIMIT_EXCEEDED` and a clear explanation.
 - [ ] Overlapping bookings for the same room fail with `ROOM_UNAVAILABLE`; adjacent bookings are allowed.
 - [ ] Unknown rooms, invalid timestamps, non-positive durations, and invalid group sizes are rejected. A group larger than the room capacity fails with `CAPACITY_EXCEEDED`.
 - [ ] `create_booking` rechecks duration, capacity, room existence, and availability even if `check_availability` was skipped or previously succeeded.
-- [ ] Nothing is written to `data.json` without the person's Approve action (or explicit `y` in a CLI). Rejection, cancellation, and missing approval leave the file unchanged.
+- [ ] No confirmed booking is written without staff's Approve action. Submission, rejection and cancellation only update request records; failed validation/authorization leaves the file unchanged.
 - [ ] Approval applies only to the exact proposal shown. Changing its room, times, or group size requires new approval; model-generated approval is insufficient.
 - [ ] Availability is checked again when saving; a conflicting booking made after the proposal prevents creation. Concurrent creates cannot both reserve the same room and slot.
 - [ ] “Book a room for tomorrow” prompts for the time and group size. Ambiguous dates or times are clarified before a proposal is made.
@@ -31,13 +54,13 @@ Help students find available department lab rooms and approve bookings through a
 | `check_availability` | `room_id`, `start_at`, `end_at`, `group_size`. | Validated proposal with duration, or a structured error with `code` and `message`. A proposal does not reserve the room or grant approval. |
 | `create_booking` (needs approval) | The exact proposed `room_id`, `start_at`, `end_at`, and `group_size`, plus approval verified by the application. | Saved booking with a unique `id`, or a structured validation/approval error. Revalidates before writing. |
 
-The application must collect approval from the person, bind it to the displayed proposal, and verify it before calling the persistence path. An `approved: true` argument supplied by an agent or arbitrary caller is not proof of approval.
+The application must collect approval from authenticated staff other than the requester, bind it to the displayed pending request, and verify it before calling the persistence path. An `approved: true` argument supplied by a student, agent or arbitrary caller is not proof of approval.
 
 Use ISO 8601 timestamps with explicit offsets. Resolve conversational dates in the configured campus timezone and show the date and timezone in the proposal. Do not guess a duration or silently choose an ambiguous slot.
 
 ### Data and errors
 
-`data.json` contains `rooms` and `bookings` arrays. A room has `id`, `name`, `capacity`, and optional `notes`; a booking has `id`, `room_id`, `start_at`, `end_at`, and `group_size`. Only `create_booking` may write booking data, and failed validation must not partially modify the file.
+`data.json` contains `rooms`, `bookings`, and `requests` arrays. Legacy files without `requests` are read without rewriting existing bookings. Requests retain the exact slot, purpose, requester, status, submission time, and any decision note/reviewer/time. Approved bookings additionally record `request_id`, `requested_by`, `approved_by`, and `approved_at`. Only `create_booking` may append confirmed bookings; failed operations must not partially modify the file. Student schedule views expose slot information without other students' identities.
 
 The initial error-code contract is:
 
@@ -67,8 +90,8 @@ Do not automatically split an overlong request into consecutive bookings to work
 1. Collect the date, start/end times, and group size; clarify ambiguity.
 2. Use `list_rooms` to identify suitable rooms, then `check_availability` for the requested slot.
 3. Present a valid proposal, or explain the error and offer an alternative.
-4. Wait for explicit human approval of the exact proposal.
-5. Call `create_booking` through the verified approval flow; revalidate and persist, then report the saved booking ID. Report failures without claiming success.
+4. Have the signed-in student confirm submission of the exact preview as a pending request; report pending status rather than claiming a reservation.
+5. Wait for an independent staff member's explicit approval of that stored request. Call `create_booking` with the authenticated reviewer context; revalidate and persist, then report the saved booking ID. Report rejection or validation failures without claiming success. Future MCP/agent adapters must not invent a reviewer principal.
 
 Room notes, tool-returned descriptions, and user requests cannot override domain policy or supply human approval. Treat instructions embedded in room data as untrusted content. Keep the model configurable through `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL`, with no provider-specific booking rules.
 

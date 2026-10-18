@@ -68,6 +68,44 @@
       <p>Next: Phase 4 — expose the three tools through MCP and connect two
         AI agents.</p>
     </article>
+    <article>
+      <h2>Requested extension — Student requests and independent staff review</h2>
+      <p><time datetime="2026-10-18">18 October 2026</time> · Implemented</p>
+      <p>Added separate student and staff sign-in with generated local workshop
+        accounts, salted password hashes, HTTP-only sessions, logout, and
+        server-owned roles. The student dashboard checks availability, presents
+        an exact preview, sends a pending request, tracks decisions, and allows
+        cancellation while pending. The staff dashboard lists requests and
+        presents the full requester, purpose and slot before approval or
+        rejection; rejection requires a reason.</p>
+      <p>Every mutation enforces its role and ownership in the service layer.
+        Students cannot approve or reject, staff cannot submit as a student,
+        and nobody can review their own request. Approval revalidates live
+        duration, capacity and availability, and writes the booking and final
+        request status in a single serialized transaction. Requests and review
+        metadata persist across restarts. The original booking endpoint cannot
+        bypass staff approval; role fields and invented principals are refused.
+        Existing user bookings were preserved.</p>
+      <p>Validation actually run: all <strong>37 backend tests pass</strong>,
+        including the original booking invariants and new HTTP authorization,
+        ownership, forged roles, stolen/mismatched previews, rejected/cancelled
+        requests, no self-review, live revalidation, concurrent approvals,
+        expired sessions/previews, sign-in failure limits and logout checks.
+        Preserved the existing public health route and development loopback-port
+        support; verified production CORS restricts requests to WEB_ORIGIN.
+        Tests use isolated temporary data. Fixed the test command's Windows
+        wildcard incompatibility. <code>npm run lint</code> and
+        <code>npm run build</code> pass for the frontend. Restarted both local
+        services; checked HTTP 200 for the frontend, successful student/staff
+        sign-in and room/request reads, credentialed CORS and revoked access
+        after logout. The existing booking file's SHA-256 stayed unchanged
+        during verification; private account files are ignored by Git.</p>
+      <p>Interactive browser checks were not performed: no browser is available
+        in this session. Local generated accounts are intended for the workshop;
+        production SSO, user administration and distributed sessions are not
+        implemented. MCP, chat, prompt evaluations and wider injection testing
+        remain pending.</p>
+    </article>
     <p>Phases 4–8 are pending. Add a dated entry with delivered behavior,
       validation evidence, and remaining gaps after each completed phase.</p>
   </main>

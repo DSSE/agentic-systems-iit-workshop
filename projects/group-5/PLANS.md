@@ -23,6 +23,24 @@ Harness completion alone does not complete Basics. Met.
 
 ## Intermediate
 
+### Requested extension: role-based booking workflow
+
+- [x] Separate student and staff sign-in with server-owned identities/roles.
+- [x] Students submit and track only their own requests; pending requests can
+  be cancelled. Staff independently approve/reject, with no self-review.
+- [x] Persist requests and review history; atomically bind staff approval to
+  an exact request and recheck the original booking invariants.
+- [x] Verify roles/auth, ownership, forged/direct requests, rejection,
+  cancellation, expired sessions/previews and concurrent approvals in isolated
+  tests. All 37 backend tests pass; frontend lint and production build pass.
+
+The updated API and UI run locally on ports 4000 and 3000. Sign-in, authorized
+reads, logout and HTTP page rendering were checked; interactive browser checks
+were unavailable because this session exposes no browser. Local workshop
+accounts are implemented; production SSO/user administration remain separate.
+
+### MCP and chat (unchanged milestones)
+
 - [ ] Phase 4 — Expose all three tools through MCP and connect two AI agents.
 - [ ] Phase 5 — Add UI chat using the shared tools and approval flow.
 

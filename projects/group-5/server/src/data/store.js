@@ -1,12 +1,13 @@
-// Persistence for data.json plus the in-memory approval-proposal store.
+// Persistence for rooms, confirmed bookings and pending/reviewed requests,
+// plus the in-memory student preview store.
 //
 // - Reads/writes are serialized through a single mutex so a conflict check
 //   and the following write happen atomically: two concurrent creates for
 //   an overlapping slot cannot both succeed.
 // - Writes go to a temp file then rename, so a crash mid-write cannot leave
 //   data.json partially modified.
-// - Proposals returned by check_availability live only in memory and expire
-//   after PROPOSAL_TTL_MS; they are not persisted and are single-use.
+// - Preview tokens expire after PROPOSAL_TTL_MS. Submitting one creates an
+//   immutable persisted request, which remains pending until staff reviews it.
 import { randomUUID } from "node:crypto";
 import { readFile, writeFile, rename } from "node:fs/promises";
 import { DATA_FILE, PROPOSAL_TTL_MS } from "../config.js";
@@ -31,6 +32,7 @@ export async function loadData() {
   const parsed = JSON.parse(raw);
   parsed.rooms ||= [];
   parsed.bookings ||= [];
+  parsed.requests ||= [];
   return parsed;
 }
 
@@ -54,12 +56,13 @@ export function withData(mutate) {
   });
 }
 
-// --- in-memory approval proposals ------------------------------------------
+// --- in-memory student previews (never staff approval) ----------------------
 
 const proposals = new Map();
 
 /** Store a proposal's exact fields and return a single-use token for it. */
 export function createProposal(fields) {
+  for (const [key, entry] of proposals) if (entry.expiresAt <= Date.now()) proposals.delete(key);
   const id = randomUUID();
   proposals.set(id, { fields, expiresAt: Date.now() + PROPOSAL_TTL_MS });
   return id;
@@ -69,7 +72,7 @@ export function createProposal(fields) {
 export function peekProposal(id) {
   const entry = proposals.get(id);
   if (!entry) return null;
-  if (entry.expiresAt < Date.now()) {
+  if (entry.expiresAt <= Date.now()) {
     proposals.delete(id);
     return null;
   }

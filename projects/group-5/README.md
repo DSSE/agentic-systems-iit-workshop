@@ -1,6 +1,6 @@
 # Group 5: CampusDesk
 
-CampusDesk helps students find and book department lab rooms for group work through a web UI and an AI chat agent. Every booking lasts at most 3 hours and is saved only after a person approves the exact proposal.
+CampusDesk helps students request department lab rooms for group work. Students submit requests; lab staff independently approve or reject them. Every booking lasts at most 3 hours and is saved only after staff approves the exact request. UI chat and MCP remain planned.
 
 Project statement: [CampusDesk.md](CampusDesk.md). Implementation specification: [specs/agent.md](specs/agent.md).
 
@@ -34,24 +34,61 @@ out of version control.
 
 ## Run
 
-Two apps, run in separate terminals from `projects/group-5`:
+Two apps, run in separate terminals from the repository root:
 
 ```bash
 # API (list_rooms / check_availability / create_booking), port 4000
-cd server
-npm install
+cd projects/group-5/server
+npm ci
 npm start              # or: npm run dev (auto-restart)
-npm test               # 21 tests: domain rules, approval binding, concurrency
+npm test               # 37 tests: domain rules, roles/auth, approval, concurrency
+```
 
+```bash
 # UI, port 3000 — talks to the API above via NEXT_PUBLIC_API_URL
-cd web
-npm install
-cp .env.local.example .env.local   # defaults to http://localhost:4000
+cd projects/group-5/web
+npm ci
 npm run dev
 ```
 
 Then open http://localhost:3000. MCP launch and client connection
 instructions will be added when the MCP server (Phase 4) is implemented.
+
+### Sign in and try the role-based flow
+
+The first API start in development creates separate student and staff accounts
+with random passwords. Open `server/.local/demo-accounts.txt` for the emails
+and passwords; this directory is ignored by Git. Existing accounts are reused
+on restart. Passwords are hashed in `.local/accounts.json`; no password is
+shipped in source code. `CAMPUSDESK_AUTH_DIR` optionally relocates this private
+directory. Keep both files private.
+
+1. Sign in as `student@campusdesk.local`. Choose a lab, date, time, duration,
+   group size and purpose. Check availability, review the details, then **Send
+   to staff**. The request is pending and does not reserve the room.
+2. Sign out and sign in as `staff@campusdesk.local` (or use a separate private
+   browser window). Select **Review request**, inspect the exact details, then
+   **Approve booking** or **Reject request**. A rejection requires a reason.
+3. Sign back in as the student to see the decision and booking confirmation.
+   Students can cancel their pending requests; they cannot approve or reject.
+
+The API enforces roles and ownership independently of the UI. A student cannot
+view another student's requests or bypass approval using the original booking
+endpoint. Staff cannot submit student requests or review their own requests.
+Approval rechecks live availability and saves the booking plus request status
+atomically; competing overlapping approvals cannot both succeed. Requests and
+review history survive restarts; sessions are in memory and require sign-in
+again after an API restart. Historical bookings are preserved.
+
+This is a local workshop account system. SSO, user administration and shared
+session storage for multiple API instances are not implemented. Development
+account creation is disabled in production. Credentialed HTTP uses a fixed
+`WEB_ORIGIN` (plus localhost/127.0.0.1 ports in development), HTTP-only SameSite
+cookies, JSON write requests, and an origin check; production permits only the
+configured origin and cookies require HTTPS. The API's public health route is
+`GET /`. Implementation references:
+[Node.js crypto](https://nodejs.org/docs/latest-v20.x/api/crypto.html) and
+[Express CORS](https://expressjs.com/en/resources/middleware/cors/).
 
 ## Demo cases
 

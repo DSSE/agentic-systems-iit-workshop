@@ -12,6 +12,7 @@ export const DATA_FILE =
   process.env.CAMPUSDESK_DATA_FILE || path.join(PROJECT_ROOT, "data.json");
 
 export const PORT = Number(process.env.PORT || 4000);
+export const AUTH_DIR = process.env.CAMPUSDESK_AUTH_DIR || path.join(PROJECT_ROOT, ".local");
 
 // Origin of the Next.js frontend, for CORS in development.
 export const WEB_ORIGIN = process.env.WEB_ORIGIN || "http://localhost:3000";
@@ -25,9 +26,8 @@ export const CAMPUS_TZ_NAME = "Asia/Dhaka";
 
 export const MAX_DURATION_MINUTES = 180;
 
-// How long a check_availability proposal stays valid for approval. Keeps
-// "approval applies only to the exact proposal shown" from drifting forever,
-// and bounds the in-memory proposal store.
+// How long a student's availability preview can be submitted as a request.
+// Staff decisions refer to persisted immutable requests, not this token.
 export const PROPOSAL_TTL_MS = 5 * 60 * 1000;
 
 // Model configuration for the future chat agent (not used yet). Keep the
