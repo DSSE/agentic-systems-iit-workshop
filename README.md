@@ -9,8 +9,10 @@ All groups work in this one repo. Each group has its own folder, works on its ow
 | Your folder is `projects/group-<N>/` | `projects/group-3/` |
 | Your branches start with `group-<N>/` | `group-3/add-check-tool` |
 | Branch names are lowercase, no spaces | `group-3/approval-prompt` ✅ `Group3 Approval` ❌ |
+| Your group's integration branch is `group-<N>/feature` | `group-3/feature` |
+| Feature PRs target `group-<N>/feature`; only that branch opens a PR into `main` | |
 | A PR may only change files inside your folder | |
-| Nobody pushes to `main`; everything goes through a PR | |
+| Nobody pushes to `main` or `group-<N>/feature`; everything goes through a PR | |
 | A teammate from your group must approve your PR | You can't approve your own |
 
 Every PR runs a check called **pr-guard**. If it fails, open the check's details: it tells you exactly what is wrong (branch name, wrong group, or files outside your folder).
@@ -22,13 +24,17 @@ Every PR runs a check called **pr-guard**. If it fails, open the check's details
 ```bash
 git clone https://github.com/<owner>/<repo>.git
 cd <repo>
+# 1. Create your group's integration branch from main
+git switch -c group-3/feature
+git push -u origin group-3/feature
+# 2. Add your folder on a branch and open a PR into group-3/feature
 git switch -c group-3/setup
 cp -r projects/_template projects/group-3
 # fill in projects/group-3/README.md and specs/agent.md
 git add projects/group-3
 git commit -m "Group 3: project setup and spec"
 git push -u origin group-3/setup
-gh pr create --base main --fill
+gh pr create --base group-3/feature --fill
 ```
 
 A teammate reviews and approves, then the PR is merged with **Squash and merge**.
@@ -36,14 +42,16 @@ A teammate reviews and approves, then the PR is merged with **Squash and merge**
 **Every feature after that:**
 
 ```bash
-git switch main && git pull
+git switch group-3/feature && git pull
 git switch -c group-3/<short-name>
 cd projects/group-3 && claude      # start the agent from inside your folder
 # ...build, test, read the diff...
 git add . && git commit -m "Group 3: <what you did>"
 git push -u origin group-3/<short-name>
-gh pr create --base main --fill
+gh pr create --base group-3/feature --fill
 ```
+
+**When the group is ready to ship:** open one PR from `group-3/feature` into `main` (`gh pr create --head group-3/feature --base main --fill`). A teammate approves it like any other PR.
 
 Tip: open your PR early as a draft (`gh pr create --draft`) so pr-guard checks your branch name and files right away.
 
@@ -53,6 +61,7 @@ Tip: open your PR early as a draft (`gh pr create --draft`) so pr-guard checks y
 |---|---|
 | Branch is not named correctly | `git branch -m group-<N>/<name>`, push again, and open a new PR |
 | Not a member of group N | You used the wrong group number in the branch name |
+| This PR targets ... | Change the PR's base to `group-<N>/feature` (Edit next to the PR title) |
 | Files outside your folder | Move the changes into your folder, or revert them: `git checkout origin/main -- <file>` |
 | PR comes from a fork | Clone this repo directly (you were invited as a collaborator) and push there |
 
@@ -69,8 +78,9 @@ Tip: open your PR early as a draft (`gh pr create --draft`) so pr-guard checks y
 | Rule | Enforced by |
 |---|---|
 | No direct pushes, force pushes or deletion of `main` | Ruleset `protect-main` |
-| A PR needs one approval from a code owner | Ruleset + `.github/CODEOWNERS` (each group folder is owned by its members) |
-| Branch name, group membership, files only in own folder | `pr-guard` workflow (a required check) |
+| Same for every `group-<N>/feature` branch | Ruleset `protect-group-feature` |
+| A PR needs one approval from a code owner | Rulesets + `.github/CODEOWNERS` (each group folder is owned by its members) |
+| Branch name, group membership, PR base, files only in own folder | `pr-guard` workflow (a required check) |
 | The check can't be edited from a PR | It runs with `pull_request_target`, from `main`; `.github/` is owned by instructors |
 
 Notes:

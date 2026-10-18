@@ -18,6 +18,8 @@ jobs:
       - name: Check out the default branch (trusted rules)
         uses: actions/checkout@v4
         with:
+          # Always the default branch, even for PRs into group-<N>/feature.
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
       - name: Fetch the PR's commits (read only, not executed)

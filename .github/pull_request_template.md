@@ -3,6 +3,7 @@
 
 ## Checklist
 - [ ] Branch is named `group-<N>/<short-name>`
+- [ ] PR targets `group-<N>/feature` (only `group-<N>/feature` itself targets `main`)
 - [ ] All changes are inside `projects/group-<N>/`
 - [ ] I ran the tests / the demo cases locally
 - [ ] I read the full diff myself (not only the AI's summary)
