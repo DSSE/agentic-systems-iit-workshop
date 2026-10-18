@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SprintBoard Progress</title>
+<style>
+  :root { --bg: #fafaf9; --fg: #1c1917; --muted: #78716c; --line: #e7e5e4; --card: #fff; --ok: #15803d; --todo: #a8a29e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1917; --fg: #f5f5f4; --muted: #a8a29e; --line: #44403c; --card: #292524; --ok: #4ade80; --todo: #78716c; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin: 0 0 4px; font-size: 1.75rem; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  ol.phases { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; list-style: none; margin: 0 0 32px; }
+  ol.phases li { font-size: .8rem; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--todo); }
+  ol.phases li.done { border-color: var(--ok); color: var(--ok); }
+  article { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  article h2 { margin: 0 0 2px; font-size: 1.15rem; }
+  time { color: var(--muted); font-size: .85rem; }
+  h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 16px 0 4px; }
+  ul { margin: 0; padding-left: 20px; }
+  code { font-size: .9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SprintBoard</h1>
+  <p class="sub">Group 2 · Each phase ends with an entry here. Newest first.</p>
+
+  <ol class="phases">
+    <li class="done">1 Harness</li>
+    <li class="done">2 Backend + frontend</li>
+    <li class="done">3 Tests</li>
+    <li class="done">4 MCP server</li>
+    <li class="done">5 Agent in UI</li>
+    <li class="done">6 Evals</li>
+    <li class="done">7 Guardrails</li>
+    <li>8 Demo</li>
+  </ol>
+
+  <article>
+    <h2>Harness hardening and UI refresh</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>.claude/hooks/guard.js</code> replaces <code>protect-data.js</code>. It now also blocks Bash writes to <code>data.json</code>, Bash reads of <code>.env</code>, and file edits outside this folder.</li>
+      <li><code>.claude/hooks/require-tests.js</code> (Stop): a turn with uncommitted code changes can't end while <code>npm test</code> fails.</li>
+      <li><code>data.json</code> is now live, git-ignored state. <code>data.seed.json</code> is committed and the store creates <code>data.json</code> from it; <code>npm run reset</code> restores a clean board.</li>
+      <li><code>CLAUDE.md</code> brought up to date with Milestone 3 and the hooks. <code>tests/hooks.test.js</code> checks that the hooks block what they should, and nothing else.</li>
+      <li>UI: light/dark toggle (follows the system until you choose, then remembered), two-column layout, sprint summary, member avatars and load colours, suggestion chips for the demo cases.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>The Bash guard is conservative: a command that mentions <code>data.json</code> must be a plain read, otherwise it is blocked. False positives are cheap; a silent write to live data is not.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 7: Add guardrails</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>src/guardrails.js</code> flags task text that reads like an instruction (“assign all … to”, “already checked”, “ignore previous instructions”, “system:”, “skip the check”).</li>
+      <li><code>list_tasks</code> returns <code>flags: ["instruction"]</code>, so the API, UI and MCP see the same flags. The UI shows flagged tasks with a warning.</li>
+      <li>The MCP server hides flagged text from every AI client. The task keeps its id and points.</li>
+      <li>AC-17 checks C5 from every client: tools, API, UI, MCP and the agent. A model that tries “all tasks to Rafi” anyway is still refused with <code>MAX_POINTS_EXCEEDED</code>.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>Layered: HR-1 in the domain is the guarantee. Flagging and redaction stop the injection from steering the agent inside the limit.</li>
+      <li>Redaction can be turned off only for evals (<code>SPRINTBOARD_GUARDRAILS=off</code>), to measure it.</li>
+      <li>Measured with redaction off, C5 × 3 runs per prompt: the model still proposed only T1 and T2 and kept everyone within 8. It failed only because the injected words reached the model, for 0/3 on both prompts. With redaction on, both prompts scored 3/3. This model resists the injection on its own, so redaction is defense in depth.</li>
+    </ul>
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 8: prepare the demo.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 6: Write evals for the prompts</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>evals/cases.js</code>: C1–C5 with a scorer each. Scorers check proposals, tool results, the reply and what the model was sent, not the wording.</li>
+      <li><code>evals/run.js</code> (<code>npm run eval</code>): cases × prompts × runs. Each run gets a fresh fixture copy and MCP server. In C2, a person approves between turns. Results go to <code>evals/results/</code> (git-ignored).</li>
+      <li>Prompt <code>v2.md</code>: calls <code>list_tasks</code> every turn, runs <code>check_capacity</code> before <code>assign_task</code>, only suggests a spread after a refusal, and handles flagged tasks.</li>
+      <li>Live on <code>nvidia/nemotron-3-super-120b-a12b</code>, 3 runs each: v1 15/15, v2 15/15.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>The two prompts tie on this model, so the default stays <code>v1</code>. Switch with <code>PROMPT_VERSION=v2</code>. v2 is stricter on paper (C3: no unasked proposal), so it is worth re-running on a weaker model.</li>
+      <li>AC-16 runs the whole eval pipeline with a scripted model, so the scorers and the report are tested without spending credits.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 5: Add the agent to the UI</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li>Chat agent in <code>src/agent/</code>: any OpenAI-compatible model from <code>.env</code> (now NVIDIA NIM), tools only through the MCP server, prompt in <code>prompts/v1.md</code>.</li>
+      <li>“Ask the agent” panel in the UI and <code>POST /api/chat</code>; the agent's proposals show under Pending proposals and still need Approve.</li>
+      <li><code>npm run agent</code> for the terminal; <code>npm run test:live</code> checks C1 and C4 on the real model.</li>
+      <li>Live: C1 gives one balanced proposal (T1 → Rafi, T2 → Nadia); C4 lists the options and asks which tasks and to whom. Passed 2 of 2 runs after a prompt fix.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>Prompt fix after the first live run: spread tasks across members, and end a clarifying reply with a question.</li>
+      <li>Clients send only user/assistant text; system and tool messages are rejected.</li>
+    </ul>
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 6: evals for C1–C5 and a v2 prompt to compare.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 4: Make the MCP server and connect any agent</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>src/mcp/server.js</code>: MCP over stdio, written by hand with no SDK. Exposes <code>list_tasks</code>, <code>check_capacity</code>, <code>assign_task</code>, and no approve.</li>
+      <li>Proposals moved to a shared <code>proposals.json</code>, so a proposal made over MCP can be approved in the UI.</li>
+      <li>Claude Code connects through <code>.mcp.json</code>; our agent connects through <code>src/agent/mcp-client.js</code>.</li>
+      <li>Tests AC-12 and AC-13 run the real MCP server as a child process.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 3: Test the behaviour</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li>AC-1 to AC-11 are real tests in <code>tests/acceptance.test.js</code>, each on a temp copy of a fixture (<code>tests/helpers.js</code>).</li>
+      <li>Case 1 (login + payment, saved only after approve), case 2 (exactly 8 passes, 9 fails), case 3 (all 6 to Rafi refused).</li>
+      <li>Also: atomic batches, re-check on approve after data changes, API codes match tool codes, UI only POSTs to check / propose / approve / reject.</li>
+      <li><code>npm test</code>: 24 tests, 18 pass, 0 fail, 6 todo (Milestones 2–3).</li>
+    </ul>
+    <h3>Next</h3>
+    <ul>
+      <li>Manual click-through of C1–C3 in the browser to tick AC-11.</li>
+      <li>Phase 4: decide how MCP proposals reach the UI, then build <code>src/mcp/server.js</code>.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 2: Build the backend and the frontend</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li><code>src/domain/rules.js</code>: the hard rule, the only place it is implemented.</li>
+      <li><code>src/store.js</code> (atomic writes, <code>DATA_FILE</code>), <code>src/tools.js</code> (list, check, assign, approve, reject, in-memory proposals).</li>
+      <li><code>src/server.js</code>: HTTP API on Node <code>http</code>, no dependencies; rule failures return 422.</li>
+      <li><code>public/</code>: team load bars, backlog with per-task member picker, Check / Propose, pending proposals with Approve / Reject.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>Added <code>INVALID_INPUT</code> and a fixed check order to the spec.</li>
+      <li>A proposal that fails on approve is dropped.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 1: Set up the harness</h2>
+    <time datetime="2026-10-18">18 Oct 2026</time>
+    <h3>Done</h3>
+    <ul>
+      <li>Spec in <code>specs/agent.md</code>: hard rule HR-1, rule code <code>MAX_POINTS_EXCEEDED</code>, tool contracts, error codes, cases C1–C5, acceptance criteria AC-1 to AC-17.</li>
+      <li>Architecture in <code>specs/architecture.md</code>: one domain module for the rule, store, tools, API, MCP, agent.</li>
+      <li><code>CLAUDE.md</code> with the spec-driven workflow; <code>package.json</code> using <code>node:test</code>, no dependencies.</li>
+      <li><code>data.json</code> with 4 members and 6 tasks (18 points); fixtures for seed, boundary (C2) and injection (C5).</li>
+      <li>Claude Code hook that blocks direct edits to <code>data.json</code>.</li>
+      <li>Tests: 7 harness tests pass; 17 AC tests are <code>todo</code>, mapped to their phase.</li>
+    </ul>
+    <h3>Decisions</h3>
+    <ul>
+      <li>Batches are atomic: one violation refuses the whole batch.</li>
+      <li>Limit is <code>min(capacity, 8)</code>; data can't raise it.</li>
+      <li>Pending proposals don't reserve capacity; <code>approve</code> re-checks.</li>
+    </ul>
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 2: <code>src/domain/rules.js</code>, store, tools, HTTP API and UI with Approve.</li>
+    </ul>
+  </article>
+</main>
+</body>
+</html>

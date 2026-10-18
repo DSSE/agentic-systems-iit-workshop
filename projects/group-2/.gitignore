@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+*.log
+proposals.json
+*.tmp
+evals/results/
+data.json
