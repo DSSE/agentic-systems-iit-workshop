@@ -110,10 +110,10 @@ export function createApp({ dataPath = defaultData, now = () => new Date(), time
         return;
       }
       if (req.method === 'GET' && url.pathname === '/api/equipment') {
-        const result = await tools.list_equipment({ query: url.searchParams.get('query') ?? '',
-          start_date: url.searchParams.get('start_date') ?? undefined,
-          due_date: url.searchParams.get('due_date') ?? undefined,
-        });
+        const args = { query: url.searchParams.get('query') ?? '' };
+        if (url.searchParams.has('start_date')) args.start_date = url.searchParams.get('start_date');
+        if (url.searchParams.has('due_date')) args.due_date = url.searchParams.get('due_date');
+        const result = await tools.list_equipment(args);
         send(result.ok ? 200 : result.violations.some((entry) => entry.code === 'STORAGE_ERROR') ? 503 : 422, result); return;
       }
       if (req.method === 'GET' && url.pathname === '/api/loans') {
@@ -127,6 +127,13 @@ export function createApp({ dataPath = defaultData, now = () => new Date(), time
           || req.headers['sec-fetch-site'] === 'cross-site') throw new RequestError(403, 'Refresh the page and use the LabLend form.');
       const input = await readJson(req);
       if (!input || typeof input !== 'object' || Array.isArray(input)) throw new RequestError(400, 'A JSON object is required.');
+      const fields = {
+        '/api/session': ['student_id'], '/api/chat': ['message'],
+        '/api/approve': ['proposal_id'], '/api/cancel': ['proposal_id'], '/api/review': ['proposal_id'],
+      }[url.pathname];
+      if (fields && Object.keys(input).some((key) => !fields.includes(key))) {
+        throw new RequestError(400, 'Unexpected request fields. Identity, conversation roles, and approval cannot be overridden.');
+      }
       if (url.pathname === '/api/session') {
         if (typeof input.student_id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.student_id)) {
           throw new RequestError(400, 'Student ID must use 1–64 letters, numbers, underscores, or hyphens.');

@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { TOOL_DEFINITIONS, matchesSchema } from './tool-contract.js';
+import { modelSafeToolResult } from './guardrails.js';
+import { failure } from './domain.js';
 
 export const PROTOCOL_VERSION = '2025-11-25';
 export const VERSIONS = [PROTOCOL_VERSION, '2025-06-18', '2025-03-26'];
@@ -13,7 +15,8 @@ export function createMcpProtocol(tools) {
     if (sessions.size >= 1000) throw new Error('MCP session capacity reached');
     const id = randomUUID();
     const session = { id, initialized: false, ready: false, version: PROTOCOL_VERSION,
-      expires: Date.now() + 12 * 60 * 60 * 1000, context };
+      expires: Date.now() + 12 * 60 * 60 * 1000, context: { session_id: context.session_id,
+        student_id: context.student_id, client_kind: context.client_kind } };
     sessions.set(id, session);
     return session;
   }
@@ -25,7 +28,9 @@ export function createMcpProtocol(tools) {
     const notification = !Object.hasOwn(message, 'id');
     const reply = (result) => notification ? null : { jsonrpc: '2.0', id: message.id, result };
     const error = (code, text) => notification ? null : rpcError(message.id, code, text);
-    if (!session) return error(-32000, 'MCP session unavailable; initialize again');
+    if (!session || sessions.get(session.id) !== session || session.expires <= Date.now()) {
+      return error(-32000, 'MCP session unavailable; initialize again');
+    }
     if (message.method === 'initialize') {
       if (session.initialized) return error(-32600, 'Already initialized');
       if (notification || typeof message.params?.protocolVersion !== 'string' || !message.params?.clientInfo?.name) {
@@ -49,9 +54,15 @@ export function createMcpProtocol(tools) {
     if (!matchesSchema(definition.inputSchema, args)) return error(-32602, 'Arguments do not match the tool input schema');
     const context = session.context;
     // External clients use an explicit workshop student ID, never browser identity or approval.
-    if (context.client_kind === 'mcp' && definition.name === 'check_stock') context.student_id = args.student_id;
+    if (context.client_kind === 'mcp' && definition.name === 'check_stock') {
+      if (context.student_id && context.student_id !== args.student_id) {
+        const refused = failure('IDENTITY_MISMATCH', 'This MCP session is bound to one student. The agent cannot change identity within a session.');
+        return reply({ content: [{ type: 'text', text: JSON.stringify(refused) }], structuredContent: refused, isError: true });
+      }
+      context.student_id = args.student_id;
+    }
     try {
-      const result = await tools[definition.name](args, context);
+      const result = modelSafeToolResult(await tools[definition.name](args, context));
       if (result.ok && result.proposal_id && context.client_kind === 'mcp') {
         result.review_url = `${baseUrl}/?proposal=${encodeURIComponent(result.proposal_id)}&student=${encodeURIComponent(result.proposal.student_id)}`;
       }

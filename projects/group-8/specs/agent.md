@@ -106,6 +106,8 @@ Configure the agent with `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` from env
 - [ ] Case 1 works through UI chat, and two external agents can connect to the MCP server.
 - [ ] Injection text cannot override policy through the UI, API, MCP server, or agent.
 
+Guardrail evidence: automated case 5 and approval-bypass checks now cover all implemented boundaries (direct tools, HTTP, demo chat, a simulated adversarial model, MCP HTTP, and stdio). Browser tests exercise poisoned descriptions through the form and chat. Raw descriptions are removed from MCP/model results; tool arguments and response fields are allowlisted. This does not claim live-provider or two actual coding-agent verification. Details: `specs/guardrails.md`.
+
 Milestone 1 evidence: `npm test` covers domain/tool/API behavior; `npm run test:browser` exercises cases 1-3 and cancellation in a real browser. Both use temporary inventory and a fixed clock. MCP and agent acceptance items remain unchecked until those clients exist and are tested.
 
 Milestone 2 implementation evidence: 36 automated tests cover the MCP HTTP endpoint, an independent stdio subprocess client, human review of external proposals, UI chat, and a controlled tool-calling provider adapter. The UI's internal MCP client uses the same JSON-RPC dispatcher and schemas as the external endpoint. Real-browser checks exercise demo-mode cases 1 and 4 with follow-ups and explicit approval. Live provider configuration is deferred at the user's request; two actual coding-agent demos and a live model run are still required for the remaining composite acceptance item. See `specs/mcp-clients.md` and `progress.html`.

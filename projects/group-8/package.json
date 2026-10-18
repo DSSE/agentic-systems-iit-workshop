@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "test": "node --test tests/*.test.js",
     "test:mcp": "node --test tests/mcp.test.js",
+    "test:guardrails": "node --test tests/guardrails.test.js",
     "check:model": "node scripts/check-model.mjs",
     "test:browser": "node tests/browser.mjs",
     "check:harness": "node scripts/check-harness.mjs"
