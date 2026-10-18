@@ -1,0 +1,118 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f6f2">
+<title>ClubOps ? Event budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="#overview" aria-label="ClubOps home"><span class="brand-icon">c</span><span>club<span class="brand-light">ops</span></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav class="nav-list">
+      <a class="nav-link active" href="#overview"><span class="nav-icon">?</span>Overview</a>
+      <a class="nav-link" id="nav-approvals-link" href="#proposals"><span class="nav-icon">?</span>Approvals<span class="nav-count" id="nav-pending">0</span></a>
+      <a class="nav-link" id="nav-expenses-link" href="#expenses"><span class="nav-icon">?</span>Expenses</a>
+      <a class="nav-link" id="nav-vendors-link" href="#vendors"><span class="nav-icon">?</span>Vendors</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="rule-card"><span class="rule-check">?</span><div><strong>Budget protected</strong><small>Every proposal is checked<br>against your cap.</small></div></div>
+      <div class="profile"><div class="avatar">T</div><div><strong>Event treasurer</strong><small>Club workspace</small></div><span class="profile-dots">???</span></div>
+    </div>
+  </aside>
+
+  <main class="main-content" id="overview">
+    <header class="page-header">
+      <div class="breadcrumb">Workspace <span>/</span> Events <span>/</span> <strong id="breadcrumb-event">No active event</strong></div>
+      <div class="header-row">
+        <div><p class="eyebrow">EVENT WORKSPACE</p><h1 id="event-title">Create your first event</h1><p id="event" class="event-meta">Start with an empty budget. Add expenses only when you plan them.</p></div>
+        <div class="header-actions"><span class="live-pill" id="event-status" hidden><i></i>Planning</span><button id="new-event" class="button button-primary header-create">+ Create event</button><button id="reset" class="button button-quiet" title="Restore the empty starting workspace">Reset workspace</button></div>
+      </div>
+    </header>
+
+    <section id="empty-state" class="onboarding-card" aria-labelledby="onboarding-title" hidden>
+      <div class="onboarding-mark">CO</div>
+      <p class="eyebrow">A CLEAN START</p>
+      <h2 id="onboarding-title">Every event starts with a blank budget.</h2>
+      <p>Create an event to set its date, attendee count, and spending cap. Expenses and proposals start empty.</p>
+      <div class="onboarding-steps"><span><b>01</b> Event details</span><span><b>02</b> Budget cap</span><span><b>03</b> Plan expenses</span></div>
+      <button id="start-event" class="button button-primary">Create your first event <span>&rarr;</span></button>
+      <small>No event, expenses, or proposals are preloaded.</small>
+    </section>
+
+    <div id="event-dashboard" hidden>
+    <section aria-labelledby="budget-h" class="budget-card" id="budget">
+      <div class="budget-topline"><div><p class="eyebrow light">YOUR EVENT BUDGET</p><h2 id="budget-h">Budget overview</h2></div><div class="cap-badge"><span>HARD CAP</span><strong>BDT <span id="f-cap">0</span></strong></div></div>
+      <div class="budget-stats">
+        <div class="budget-stat"><span class="stat-label"><i class="dot dot-spent"></i>Approved spend</span><strong>BDT <span id="f-spent">0</span></strong><small>Already committed</small></div>
+        <div class="budget-stat"><span class="stat-label"><i class="dot dot-pending"></i>Pending approval</span><strong>BDT <span id="f-pending">0</span></strong><small>Waiting for your review</small></div>
+        <div class="budget-stat"><span class="stat-label"><i class="dot dot-remaining"></i>Available to plan</span><strong>BDT <span id="f-remaining">0</span></strong><small>Includes pending proposals</small></div>
+      </div>
+      <div class="budget-meter-wrap"><div class="budget-meter" id="bar" role="img" aria-label="Budget usage"><div class="meter-spent" id="seg-spent"></div><div class="meter-pending" id="seg-pending"></div></div><div class="meter-legend"><span><i class="dot dot-spent"></i>Approved</span><span><i class="dot dot-pending"></i>Pending</span><span class="meter-cap">BDT <span id="meter-cap">0</span> cap</span></div></div>
+    </section>
+
+<div class="content-grid">
+      <div class="primary-column">
+        <section class="panel" aria-labelledby="pend-h" id="proposals">
+          <div class="panel-heading"><div><p class="eyebrow">REVIEW QUEUE</p><h2 id="pend-h">Waiting for approval <span class="count-badge" id="pending-count">0</span></h2><p class="panel-subtitle">Proposals are not saved until you approve them.</p></div></div>
+          <ul id="pending" class="proposal-list"></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="ledger-h" id="expenses">
+          <div class="panel-heading ledger-heading"><div><p class="eyebrow">SPENDING HISTORY</p><h2 id="ledger-h">Approved expenses</h2></div><span class="table-unit">BDT</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Expense</th><th>Qty</th><th class="num">Amount</th></tr></thead><tbody id="ledger"></tbody></table></div>
+        </section>
+
+        <section class="panel vendors-panel" aria-labelledby="vend-h" id="vendors">
+          <div class="panel-heading"><div><p class="eyebrow">YOUR SUPPLIERS</p><h2 id="vend-h">Vendor directory</h2><p class="panel-subtitle">Illustrative quotes. Confirm availability and final rates before booking.</p></div><span class="sample-chip">SAMPLE DATA</span></div>
+          <ul id="vendor-list" class="vendor-grid"></ul>
+        </section>
+      </div>
+
+      <aside class="side-column">
+        <section class="panel propose-panel" aria-labelledby="add-h">
+          <div class="panel-heading"><div><p class="eyebrow">QUICK ACTION</p><h2 id="add-h">New proposal</h2></div><span class="plus-mark">+</span></div>
+          <p class="panel-subtitle">Choose a vendor item. We?ll check it against the remaining budget.</p>
+          <form id="form" class="proposal-form">
+            <label for="item">Vendor item</label><select id="item" required></select>
+            <p class="quote-preview" id="quote-preview" aria-live="polite">Choose an item to see its estimate.</p>
+            <div class="form-bottom"><div class="quantity-wrap"><label for="qty">Quantity</label><input id="qty" type="number" min="1" max="100000" value="1" required></div><button class="button button-primary" type="submit">Check &amp; propose <span>?</span></button></div>
+          </form>
+          <p id="form-msg" class="msg" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="assistant-card" class="assistant-card chat-popover" aria-labelledby="chat-h" hidden>
+          <div class="assistant-heading"><div class="assistant-avatar">?</div><div><p class="eyebrow">CLUBOPS AI</p><h2 id="chat-h">Plan together</h2></div><span class="online-dot" title="Ready"></span><button id="chat-close" class="chat-close" type="button" aria-label="Close assistant">×</button></div>
+          <p class="assistant-intro">Tell me what your event needs. I?ll find options that fit your budget.</p>
+          <div id="log" class="log" aria-live="polite"><div class="assistant-welcome"><span>?</span><p>Hi there! I can help plan snacks, equipment, or a speaker for your seminar.</p></div></div>
+          <form id="chat-form" class="chat-form"><label class="sr-only" for="chat-input">Message the ClubOps assistant</label><input id="chat-input" autocomplete="off" placeholder="Ask me to plan an expense?"><button type="submit" aria-label="Send message">?</button></form>
+          <p class="assistant-footnote">AI can suggest. Only you can approve.</p>
+        </section>
+        <div class="trust-note"><span>?</span><p><strong>Safe by design</strong><br>Every proposal is checked against the event cap before it reaches your queue.</p></div>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>ClubOps <span class="footer-dot">?</span> Club event planning</span><span>Built for budgets that stay on track</span></footer>
+    </div>
+  </main>
+</div>
+<button id="chat-toggle" class="chat-toggle" type="button" aria-label="Open ClubOps AI assistant" aria-controls="assistant-card" aria-expanded="false" hidden><span aria-hidden="true">AI</span></button>
+<dialog id="event-dialog" class="event-dialog" aria-labelledby="event-dialog-title">
+  <form id="event-create-form">
+    <div class="dialog-head"><div><p class="eyebrow">NEW WORKSPACE</p><h2 id="event-dialog-title">Create an event</h2></div><button type="button" id="close-event-dialog" class="dialog-close" aria-label="Close">?</button></div>
+    <p class="dialog-copy">Set the event details and a firm spending cap. Your budget starts at zero spent.</p>
+    <label for="new-event-name">Event name</label><input id="new-event-name" name="name" type="text" maxlength="100" placeholder="e.g. Friday seminar" required>
+    <div class="dialog-row"><div><label for="new-event-date">Event date</label><input id="new-event-date" name="date" type="date" required></div><div><label for="new-event-attendees">Expected attendees</label><input id="new-event-attendees" name="expected_attendees" type="number" min="1" max="10000" placeholder="40" required></div></div>
+    <label for="new-event-cap">Budget cap <span>(BDT)</span></label><input id="new-event-cap" name="budget_cap" type="number" min="1" step="1" placeholder="30000" required>
+    <p id="event-form-msg" class="msg" role="status" aria-live="polite"></p>
+    <div class="dialog-actions"><button type="button" id="cancel-event" class="button button-quiet">Cancel</button><button type="submit" class="button button-primary">Create workspace <span>?</span></button></div>
+  </form>
+</dialog>
+<script src="app.js"></script>
+</body>
+</html>

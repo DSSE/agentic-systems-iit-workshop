@@ -1,0 +1,15 @@
+{
+  "rules": "WIP=1. State: not_started | active | passing | blocked. Only a passing verification command moves a feature to passing; record evidence (commit hash).",
+  "features": [
+    { "id": "F01", "phase": 1, "behavior": "Harness in place: CLAUDE.md, hooks, verify", "verification": "npm run verify", "state": "not_started", "evidence": "" },
+    { "id": "F02", "phase": 2, "behavior": "Domain rule + API: proposals, approve, reject (cases 1 to 3 over HTTP)", "verification": "node --test tests/api.test.js tests/budget.test.js", "state": "not_started", "evidence": "" },
+    { "id": "F03", "phase": 2, "behavior": "UI shows budget bar, proposals with Approve, vendors, propose form", "verification": "npm start, open http://localhost:3000, run cases 1 to 3 by hand", "state": "not_started", "evidence": "" },
+    { "id": "F04", "phase": 3, "behavior": "Tests for cases 1 to 3 pass (exact cap ok, cap+1 refused with OVER_BUDGET)", "verification": "npm test", "state": "not_started", "evidence": "" },
+    { "id": "F05", "phase": 4, "behavior": "MCP server with 3 tools, no approve tool; connected to two coding agents", "verification": "node --test tests/mcp.test.js", "state": "not_started", "evidence": "" },
+    { "id": "F06", "phase": 5, "behavior": "Chat agent in the UI uses MCP tools; case 1 in plain words, case 4 asks a question", "verification": "node --test tests/agent.test.js", "state": "not_started", "evidence": "" },
+    { "id": "F07", "phase": 6, "behavior": "Evals for all five cases; prompt v1 vs v2 compared", "verification": "npm run evals:compare", "state": "not_started", "evidence": "" },
+    { "id": "F08", "phase": 7, "behavior": "Case 5 blocked from every client (UI, API, MCP, agent)", "verification": "npm test && npm run evals", "state": "not_started", "evidence": "" },
+    { "id": "F09", "phase": 8, "behavior": "Demo ready from a clean clone", "verification": "npm run reset && npm run verify && npm run evals", "state": "not_started", "evidence": "" }
+  
+  ]
+}
