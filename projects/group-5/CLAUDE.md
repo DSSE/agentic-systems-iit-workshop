@@ -1,22 +1,11 @@
-# <Project name> (Group <N>)
+# CampusDesk — Claude Code
 
-<One line: what the agent does.>
+@AGENTS.md
 
-## Commands
-- Run: `npm start`
-- Test: `npm test`
+The imported instructions are shared with Codex. Start Claude Code inside
+`projects/group-5/` so the project settings and skills load in the intended scope.
 
-## Structure
-- `data.json`: the data the tools read and write
-- `specs/agent.md`: the spec; build from it
-- `src/tools.js`: list, check and create tools
-- `src/agent.js`: the agent
-
-## Conventions
-- Node, ES modules, no new dependencies without asking
-- The create tool re-checks the hard rule itself, even if check was called first
-
-## Never do
-- Never edit files outside this folder
-- Never write to `data.json` except through the create tool
-- Never weaken or delete a test to make it pass
+Use `/campusdesk-build` for implementation and `/campusdesk-verify` for behavior
+checks. `.claude/skills/` links to the maintained skills in `.codex/skills/`.
+Keep `.claude/settings.json` permissions in force; skills do not grant additional
+tool permissions. See `HARNESS.md` for structure and usage.

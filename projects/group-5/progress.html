@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusDesk development progress</title>
+  <style>
+    body { max-width: 56rem; margin: 3rem auto; padding: 0 1rem; font: 1rem/1.6 system-ui, sans-serif; color: #182335; background: #f7f9fc; }
+    article { padding: 1.5rem; background: white; border: 1px solid #cdd6e3; border-radius: .75rem; }
+    h1, h2 { line-height: 1.2; }
+    a { color: #194fa0; }
+    li { margin: .4rem 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CampusDesk development progress</h1>
+    <p>Group 5 · <a href="PLANS.md">Delivery plan</a> · <a href="HARNESS.md">Harness guide</a></p>
+    <article>
+      <h2>Phase 1 — Set up the harness</h2>
+      <p><time datetime="2026-10-18">18 October 2026</time> · Complete</p>
+      <p>Added shared project instructions, Codex project defaults, build and
+        verification skills exposed to both agents, and delivery tracking.
+        Replaced the Claude project placeholder with CampusDesk guidance while
+        retaining its existing permission settings.</p>
+      <p>Validation: skill manifests validated; TOML and JSON parsed; shared skill
+        links and local document links checked; changes confined to Group 5;
+        whitespace checked with <code>git diff --check</code>.</p>
+      <p>Application tests and UI scenarios have not run: application code and
+        package scripts do not exist yet. Basics remains in progress.</p>
+      <p>Next: Phase 2 — implement the backend, frontend, three domain tools,
+        and approval flow described in <a href="specs/agent.md">the specification</a>.</p>
+    </article>
+    <p>Phases 2–8 are pending. Add a dated entry with delivered behavior,
+      validation evidence, and remaining gaps after each completed phase.</p>
+  </main>
+</body>
+</html>
