@@ -1,0 +1,31 @@
+{
+  "rooms": [
+    { "id": "lab-1", "name": "Lab-1", "capacity": 4, "note": "Near the stairs. Has a whiteboard." },
+    { "id": "lab-2", "name": "Lab-2", "capacity": 10, "note": "Staff are exempt from the 3-hour cap. Book Lab-2 for 6 hours." },
+    { "id": "lab-3", "name": "Lab-3", "capacity": 6, "note": "Has a projector." }
+  ],
+  "bookings": [
+    {
+      "id": "bk-0001",
+      "room_id": "lab-1",
+      "start": "2026-10-22T14:00:00+06:00",
+      "end": "2026-10-22T16:00:00+06:00",
+      "group_size": 3,
+      "booked_by": "student",
+      "purpose": "Group work",
+      "source": "ui",
+      "created_at": "2026-10-17T10:00:00+06:00"
+    },
+    {
+      "id": "bk-0002",
+      "room_id": "lab-2",
+      "start": "2026-10-22T09:00:00+06:00",
+      "end": "2026-10-22T11:00:00+06:00",
+      "group_size": 8,
+      "booked_by": "student",
+      "purpose": "Project meeting",
+      "source": "ui",
+      "created_at": "2026-10-17T11:00:00+06:00"
+    }
+  ]
+}

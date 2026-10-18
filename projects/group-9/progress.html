@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CampusDesk Progress</title>
+<style>
+  :root {
+    --bg: #fafaf9; --card: #ffffff; --text: #1c1917; --muted: #57534e;
+    --border: #e7e5e4; --accent: #0f766e; --done: #15803d; --todo: #a8a29e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917; --card: #292524; --text: #f5f5f4; --muted: #a8a29e;
+      --border: #44403c; --accent: #2dd4bf; --done: #4ade80; --todo: #78716c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px; background: var(--bg); color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 1.8rem; }
+  .sub { margin: 0 0 24px; color: var(--muted); }
+  .phases { list-style: none; padding: 0; margin: 0 0 32px; display: grid; gap: 6px; }
+  .phases li { display: flex; gap: 10px; align-items: baseline; color: var(--muted); }
+  .phases li.done { color: var(--text); }
+  .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--todo); }
+  .done .dot { background: var(--done); }
+  article {
+    background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  article h2 { margin: 0 0 2px; font-size: 1.15rem; }
+  time { color: var(--muted); font-size: 0.9rem; }
+  article h3 { margin: 14px 0 4px; font-size: 0.95rem; }
+  article ul { margin: 0; padding-left: 20px; }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>CampusDesk: progress</h1>
+  <p class="sub">Group 9 · Quantum Architects · one entry per phase</p>
+
+  <ol class="phases">
+    <li class="done"><span class="dot"></span>1. Set up the harness</li>
+    <li class="done"><span class="dot"></span>2. Build the backend and the frontend</li>
+    <li class="done"><span class="dot"></span>3. Test the behaviour</li>
+    <li class="done"><span class="dot"></span>4. Make the MCP server and connect any agent</li>
+    <li class="done"><span class="dot"></span>5. Add the agent to the UI</li>
+    <li><span class="dot"></span>6. Write evals for the prompts</li>
+    <li><span class="dot"></span>7. Add guardrails</li>
+    <li><span class="dot"></span>8. Prepare the demo</li>
+  </ol>
+
+  <article>
+    <h2>Phase 1: Set up the harness</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>Created <code>projects/group-9/</code> from the template on branch <code>group-9/setup</code>.</li>
+      <li>Wrote the spec in <code>specs/agent.md</code>: tools, rule codes, API, MCP, agent behaviour, test matrix for the 5 cases.</li>
+      <li>Rewrote <code>CLAUDE.md</code> and <code>.claude/settings.json</code> for Python (FastAPI, uv) and Next.js.</li>
+      <li>Added <code>.env.example</code> for Groq (<code>llama-3.3-70b-versatile</code>) through the OpenAI-compatible API, with Ollama and Gemini as alternatives.</li>
+      <li>Checked the spec against the handout: case 3 now refuses before asking for missing details; <code>check_availability</code> returns time-rule failures first; Milestone 3 marked optional.</li>
+      <li>Harness: skills <code>/phase</code>, <code>/e2e</code>, <code>/ship</code>; agents <code>rule-guardian</code> and <code>e2e-tester</code>; hooks that block edits outside the group folder, <code>.env</code> access and pushes to <code>main</code>, and flag rule drift after edits.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li>The rule lives only in <code>backend/app/domain/booking_rules.py</code>; API, MCP and agent all call it.</li>
+      <li>The MCP server is mounted inside the FastAPI app, so every client's proposals land in one approval queue.</li>
+      <li>Approve is a REST endpoint used only by the UI button; there is no approve tool for agents.</li>
+      <li>Partly-valid requests are refused with the rule code and a 3-hour alternative is suggested; never split or auto-shortened.</li>
+    </ul>
+
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 2: domain module, store, REST API, seed <code>data.json</code>, Next.js form, schedule and approvals panel.</li>
+    </ul>
+  </article>
+  <article>
+    <h2>Phase 2: Build the backend and the frontend</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>Backend (FastAPI): <code>booking_rules.py</code> with 7 rule checks and suggestions, a JSON store with atomic writes, an in-memory proposal queue (15-minute expiry), and the tools layer.</li>
+      <li>REST API: rooms, bookings by day, availability, proposals, approve and reject. Every refusal is a <code>RuleResult</code> with a rule code.</li>
+      <li>Frontend (Next.js 16): booking form with Check and Propose, a Pending approvals panel that refreshes every 3 seconds, and a day schedule.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li><code>tools.py</code> holds list, check and create plus approve and reject, so the MCP server can reuse the first three and never approve.</li>
+      <li>Approve re-checks every rule under a lock; if the re-check fails, the proposal is discarded.</li>
+      <li>The form warns about bookings over 3 hours but still sends them, so the server's rule code is shown.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 3: Test the behaviour</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>71 pytest tests, all passing, on a temp copy of <code>data.seed.json</code> with a fixed clock. No network, no LLM.</li>
+      <li>After code review: approve claims the proposal atomically (a double click saves once and the second click gets <code>PROPOSAL_NOT_FOUND</code>), and malformed requests also get a <code>RuleResult</code> with a rule code.</li>
+      <li>Case 1: a proposal is created, <code>data.json</code> stays unchanged, and Approve saves it.</li>
+      <li>Case 2: 3:00 passes; 3:01 and 3:00:30 fail with <code>MAX_DURATION_EXCEEDED</code>; overlaps fail with <code>BOOKING_OVERLAP</code>; back-to-back is allowed.</li>
+      <li>Case 3: 5 hours in Lab-2 is refused and a 3-hour slot is suggested. Case 5 (6 hours, injected note) is refused by the create tool itself.</li>
+      <li>Edge cases: times without an offset, UTC times, crossing midnight, nonsense time text, approving twice, approving after expiry, approving after the start has passed.</li>
+      <li>Checked cases 1–3 and 5 against the running app through the Next.js <code>/api</code> proxy.</li>
+    </ul>
+
+    <h3>Next</h3>
+    <ul>
+      <li>Phase 4: MCP server mounted at <code>/mcp</code>, reusing the same tools; connect Claude Code and Gemini CLI.</li>
+    </ul>
+  </article>
+  <article>
+    <h2>Phase 4: Make the MCP server and connect any agent</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>MCP server (<code>app/mcp_server.py</code>, mcp 2.x <code>MCPServer</code>) with exactly <code>list_rooms</code>, <code>check_availability</code> and <code>create_booking</code>. There is no approve tool.</li>
+      <li>Served at <code>/mcp</code> inside the FastAPI app (stateless JSON), so MCP proposals land in the same Pending approvals panel as the form's.</li>
+      <li>Connected agents: <code>.mcp.json</code> registers it for Claude Code (seen by <code>claude mcp get campusdesk</code>, waiting for the one-time approval); <code>.gemini/settings.json</code> for Gemini CLI.</li>
+      <li>Checked with an external MCP client over HTTP: 3 tools listed; a Thursday proposal shows as <code>source: mcp</code> in Pending approvals; a 6-hour request is refused with <code>MAX_DURATION_EXCEEDED</code>.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li>DNS-rebinding protection stays on: only <code>localhost</code>, <code>127.0.0.1</code> and <code>[::1]</code> hosts are served.</li>
+      <li>Tool descriptions get the cap from <code>MAX_DURATION_MINUTES</code>; room notes are described as information, never instructions.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 5: Add the agent to the UI</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>Chat agent (<code>app/agent.py</code>) on Groq <code>openai/gpt-oss-120b</code> through the OpenAI-compatible API. It is an MCP client of <code>/mcp</code>, in-process, marked <code>X-CampusDesk-Client: chat</code>.</li>
+      <li><code>POST /api/chat</code> returns the reply and the real proposals from the store; the Chat panel shows them with Approve and Reject.</li>
+      <li>111 pytest tests pass, including the agent loop with a scripted LLM (no network in tests).</li>
+      <li>After code review: each chat turn ends within 25 seconds (fallback reply instead of a proxy error), a refused <code>create_booking</code> cannot be followed by an alternative proposal in the same turn, and the Chat panel sends only recent history.</li>
+      <li>Live check with Groq: case 1 gave one proposal (Lab-3, Thursday 13:00-15:00, 2 hours, source chat); case 4 asked for the time and group size; cases 3 and 5 were refused with <code>MAX_DURATION_EXCEEDED</code> and no proposal.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li>Groq retired <code>llama-3.3-70b-versatile</code>; of the models on our key, <code>gpt-oss-120b</code> got the Thursday date right and asked for missing details.</li>
+      <li>Every tool result reaches the model inside <code>&lt;tool_data&gt;</code> tags, and a note cannot close the tag early.</li>
+      <li>At most 6 tool rounds and one <code>create_booking</code> per message, both enforced in code; LLM or MCP failures give a fallback reply instead of an error.</li>
+    </ul>
+
+    <h3>Next</h3>
+    <ul>
+      <li>Milestone 3 (optional): evals for prompt v1 vs v2 on all five cases, and guardrails until case 5 is blocked from every client.</li>
+    </ul>
+  </article>
+  <article>
+    <h2>Phase 5 follow-up: end-to-end run and fixes</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Reported</h3>
+    <ul>
+      <li>A Lab-2 booking made from the chat did not appear in the schedule, and the form could book "the same time".</li>
+    </ul>
+
+    <h3>Found</h3>
+    <ul>
+      <li>The booking was saved (Mon 19 Oct) but the schedule showed Sun 18 Oct, and the form shares that date, so the "same time" was on another day. The overlap rule was never bypassed.</li>
+      <li>Groq returned 429 after the proposal was made, so the chat said "could not finish" above a real proposal.</li>
+      <li>The agent sometimes asked "Does that work for you?" instead of proposing (case 1: 0 of 3 live runs), and passed the room name "Lab-2" as the id (ROOM_NOT_FOUND).</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li>Approving moves the schedule to the booking's day; the header shows the day.</li>
+      <li>A turn that fails after a proposal says the proposal is waiting for Approve.</li>
+      <li>Prompt: propose as soon as date, time and group size are known; find a free room with check_availability first; plain text replies. Case 1 then proposed in 7 of 8 live runs.</li>
+      <li>Rooms are accepted by id or name in any case, resolved once in the domain module.</li>
+    </ul>
+
+    <h3>Checked</h3>
+    <ul>
+      <li><code>backend/e2e/run.sh</code> against a throwaway backend: 28 of 28 (REST, MCP and the four live chat cases).</li>
+      <li>Browser run in Chrome (Playwright, not added to the project): the reported scenario end to end, plus form cases 1 to 3: 10 of 10.</li>
+      <li>116 pytest tests pass.</li>
+    </ul>
+  </article>
+</main>
+</body>
+</html>
