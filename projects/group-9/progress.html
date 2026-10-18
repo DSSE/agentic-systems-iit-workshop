@@ -48,8 +48,8 @@
     <li class="done"><span class="dot"></span>1. Set up the harness</li>
     <li class="done"><span class="dot"></span>2. Build the backend and the frontend</li>
     <li class="done"><span class="dot"></span>3. Test the behaviour</li>
-    <li><span class="dot"></span>4. Make the MCP server and connect any agent</li>
-    <li><span class="dot"></span>5. Add the agent to the UI</li>
+    <li class="done"><span class="dot"></span>4. Make the MCP server and connect any agent</li>
+    <li class="done"><span class="dot"></span>5. Add the agent to the UI</li>
     <li><span class="dot"></span>6. Write evals for the prompts</li>
     <li><span class="dot"></span>7. Add guardrails</li>
     <li><span class="dot"></span>8. Prepare the demo</li>
@@ -119,6 +119,49 @@
     <h3>Next</h3>
     <ul>
       <li>Phase 4: MCP server mounted at <code>/mcp</code>, reusing the same tools; connect Claude Code and Gemini CLI.</li>
+    </ul>
+  </article>
+  <article>
+    <h2>Phase 4: Make the MCP server and connect any agent</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>MCP server (<code>app/mcp_server.py</code>, mcp 2.x <code>MCPServer</code>) with exactly <code>list_rooms</code>, <code>check_availability</code> and <code>create_booking</code>. There is no approve tool.</li>
+      <li>Served at <code>/mcp</code> inside the FastAPI app (stateless JSON), so MCP proposals land in the same Pending approvals panel as the form's.</li>
+      <li>Connected agents: <code>.mcp.json</code> registers it for Claude Code (seen by <code>claude mcp get campusdesk</code>, waiting for the one-time approval); <code>.gemini/settings.json</code> for Gemini CLI.</li>
+      <li>Checked with an external MCP client over HTTP: 3 tools listed; a Thursday proposal shows as <code>source: mcp</code> in Pending approvals; a 6-hour request is refused with <code>MAX_DURATION_EXCEEDED</code>.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li>DNS-rebinding protection stays on: only <code>localhost</code>, <code>127.0.0.1</code> and <code>[::1]</code> hosts are served.</li>
+      <li>Tool descriptions get the cap from <code>MAX_DURATION_MINUTES</code>; room notes are described as information, never instructions.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h2>Phase 5: Add the agent to the UI</h2>
+    <time datetime="2026-10-18">2026-10-18</time>
+
+    <h3>Done</h3>
+    <ul>
+      <li>Chat agent (<code>app/agent.py</code>) on Groq <code>openai/gpt-oss-120b</code> through the OpenAI-compatible API. It is an MCP client of <code>/mcp</code>, in-process, marked <code>X-CampusDesk-Client: chat</code>.</li>
+      <li><code>POST /api/chat</code> returns the reply and the real proposals from the store; the Chat panel shows them with Approve and Reject.</li>
+      <li>108 pytest tests pass, including the agent loop with a scripted LLM (no network in tests).</li>
+      <li>Live check with Groq: case 1 gave one proposal (Lab-3, Thursday 13:00-15:00, 2 hours, source chat); case 4 asked for the time and group size; cases 3 and 5 were refused with <code>MAX_DURATION_EXCEEDED</code> and no proposal.</li>
+    </ul>
+
+    <h3>Decisions</h3>
+    <ul>
+      <li>Groq retired <code>llama-3.3-70b-versatile</code>; of the models on our key, <code>gpt-oss-120b</code> got the Thursday date right and asked for missing details.</li>
+      <li>Every tool result reaches the model inside <code>&lt;tool_data&gt;</code> tags, and a note cannot close the tag early.</li>
+      <li>At most 6 tool rounds and one <code>create_booking</code> per message, both enforced in code; LLM or MCP failures give a fallback reply instead of an error.</li>
+    </ul>
+
+    <h3>Next</h3>
+    <ul>
+      <li>Milestone 3 (optional): evals for prompt v1 vs v2 on all five cases, and guardrails until case 5 is blocked from every client.</li>
     </ul>
   </article>
 </main>

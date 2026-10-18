@@ -40,14 +40,15 @@ cd backend && uv run uvicorn app.main:app --reload --port 8000
 cd frontend && npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Book with the form, or ask the Chat panel in plain words ("Book a lab for 3 people Thursday afternoon."). Either way, nothing is saved until you click **Approve**.
 
 ## Connect a coding agent to the MCP server
+With the backend running, start `claude` or `gemini` inside this folder: `.mcp.json` and `.gemini/settings.json` register the `campusdesk` server (Claude Code asks you to approve it once). Manual alternative:
 ```bash
 claude mcp add --transport http campusdesk http://localhost:8000/mcp
 ```
-Other agents (Codex, Gemini CLI, Cursor, Antigravity): add an HTTP MCP server with URL `http://localhost:8000/mcp`.
-Agents can only create proposals; a person approves them in the UI.
+Other agents (Codex, Cursor, Antigravity): add an HTTP MCP server with URL `http://localhost:8000/mcp`.
+Agents can only create proposals (`list_rooms`, `check_availability`, `create_booking`); a person approves them in the UI.
 
 ## Test
 ```bash
