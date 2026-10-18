@@ -9,11 +9,12 @@
 ## Structure
 - `data.json`: the data the tools read and write
 - `specs/agent.md`: the spec; build from it
-- `src/tools.js`: list, check and create tools
-- `src/agent.js`: the agent
+- `backend/`: NestJS API. `src/domain/loan-rules.ts` holds the hard rule; `src/loans/loans.service.ts` has the list, check and create tools
+- `frontend/`: React UI
+- (Milestone 2) the MCP server and the agent
 
 ## Conventions
-- Node, ES modules, no new dependencies without asking
+- Node and TypeScript: NestJS backend (CommonJS), React + Vite frontend (ES modules). No new dependencies without asking
 - The create tool re-checks the hard rule itself, even if check was called first
 
 ## Never do
