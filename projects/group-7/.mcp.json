@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "clubops": {
+      "command": "node",
+      "args": ["src/mcp/server.js"],
+      "env": { "CLUBOPS_CLIENT": "claude-code" }
+    }
+  }
+}
