@@ -92,6 +92,43 @@ try {
   const shelfText = () => evaluate("document.querySelector('[data-stock-id=\"arduino-uno-kit\"]').textContent");
   assert.equal(await shelfText(), '6 available · 6 total');
   const before = await f.raw();
+  await evaluate("document.querySelector('[data-category-filter=sensors]').click()");
+  assert.equal(await evaluate("document.querySelectorAll('.equipment-card:not([hidden])').length"), 2);
+  await evaluate("document.querySelector('[data-category-filter=tools]').click()");
+  assert.equal(await evaluate("document.getElementById('equipment-empty').hidden"), false);
+  await evaluate("document.querySelector('[data-category-filter=kits]').click(); document.querySelector('[data-add-equipment=\"arduino-uno-kit\"]').click()");
+  await waitFor("document.getElementById('equipment-dialog').open && !document.getElementById('save-equipment').disabled");
+  assert.equal(await evaluate("document.getElementById('equipment-quantity').max"), '6');
+  await evaluate("document.getElementById('equipment-quantity').value = '7'; document.getElementById('equipment-quantity').dispatchEvent(new Event('input'))");
+  assert.equal(await evaluate("document.getElementById('save-equipment').disabled"), true, 'Quantity above available stock must be blocked');
+  await evaluate("document.getElementById('equipment-quantity').value = '1.5'; document.getElementById('equipment-quantity').dispatchEvent(new Event('input'))");
+  assert.equal(await evaluate("document.getElementById('save-equipment').disabled"), true, 'Fractional quantities must be blocked');
+  await evaluate("document.getElementById('equipment-quantity').value = '2'; document.getElementById('equipment-quantity').dispatchEvent(new Event('input')); document.getElementById('save-equipment').click()");
+  await waitFor("!document.getElementById('equipment-dialog').open && !document.getElementById('check-button').disabled");
+  assert.equal(await evaluate("document.getElementById('selected-count').textContent"), '2 units');
+  await evaluate("document.querySelector('[data-category-filter=sensors]').click()");
+  assert.equal(await evaluate("document.getElementById('selected-count').textContent"), '2 units', 'Filters must retain selected items');
+  await evaluate("document.querySelector('[data-category-filter=all]').click(); document.querySelector('[data-add-equipment=\"arduino-uno-kit\"]').click()");
+  await waitFor("document.getElementById('equipment-dialog').open && !document.getElementById('save-equipment').disabled");
+  await evaluate("document.getElementById('increase-quantity').click(); document.getElementById('cancel-equipment').click()");
+  assert.equal(await evaluate("document.getElementById('quantity-0').value"), '2', 'Cancel must discard modal changes');
+  assert.equal(await f.raw(), before, 'Selecting equipment must never save a loan');
+  await evaluate(`document.querySelector('[data-add-equipment="arduino-uno-kit"]').click()`);
+  await waitFor("document.getElementById('equipment-dialog').open && !document.getElementById('save-equipment').disabled");
+  await evaluate(`window.stockFetch = window.fetch; window.fetch = async (path, options) => {
+    const response = await window.stockFetch(path, options);
+    if (!String(path).startsWith('/api/equipment?')) return response;
+    const result = await response.json();
+    result.equipment.find(item => item.id === 'arduino-uno-kit').available_quantity = 0;
+    return Response.json(result);
+  }; document.getElementById('save-equipment').click()`);
+  await waitFor("document.getElementById('equipment-quantity').max === '0' && !document.getElementById('remove-equipment').disabled");
+  assert.equal(await evaluate("document.getElementById('equipment-dialog').open && document.getElementById('save-equipment').disabled"), true);
+  assert.equal(await evaluate("document.getElementById('quantity-0').value"), '2', 'Changed stock must not silently reduce a selection');
+  await evaluate("document.getElementById('cancel-equipment').click(); window.fetch = window.stockFetch");
+  assert.equal(await f.raw(), before, 'Changed stock cannot write or reserve inventory');
+  // Deliberately alter the read-only selection fields below to verify server-side rules
+  // still reject invalid requests even when a client bypasses the quantity modal.
   const fill = async (quantity, due, student = 'student-8', sensor = 0) => evaluate(`(() => {
     document.getElementById('student-id').value = ${JSON.stringify(student)};
     document.getElementById('start-date').value = '2026-10-19';
@@ -117,6 +154,11 @@ try {
   assert.equal(await evaluate("document.querySelectorAll('.loan-card').length"), 1);
   assert.equal(await shelfText(), '4 available · 6 total', 'Approved units must immediately reduce displayed availability');
   assert.equal(await evaluate("document.getElementById('quantity-0').value"), '2', 'Refreshing stock must preserve the selected quantity');
+  await evaluate("document.querySelector('[data-add-equipment=\"arduino-uno-kit\"]').click()");
+  await waitFor("document.getElementById('equipment-dialog').open && !document.getElementById('save-equipment').disabled");
+  assert.equal(await evaluate("document.getElementById('equipment-quantity').max"), '4', 'Modal maximum must reflect approved loans');
+  await evaluate("document.getElementById('remove-equipment').click()");
+  assert.equal(await evaluate("document.getElementById('selected-count').textContent"), '0 units');
   await evaluate("document.getElementById('equipment').replaceChildren()");
   await page('Page.reload');
   await waitFor("document.querySelectorAll('.equipment-card').length === 3 && !document.getElementById('check-button').disabled");
@@ -213,6 +255,24 @@ try {
       await writeFile(new URL(`milestone-1-${name}.png`, artifacts), Buffer.from(screenshot.data, 'base64'));
     }
   }
+  await evaluate("document.getElementById('back-to-equipment').click()");
+  await waitFor("location.pathname === '/' && document.querySelectorAll('.equipment-card').length === 3 && !document.getElementById('check-button').disabled");
+  for (const [name, width, height] of [['desktop', 1280, 1000], ['mobile', 390, 844]]) {
+    await page('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 });
+    assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, `${name} shelf must not overflow`);
+    if (screenshots) {
+      const screenshot = await page('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+      await writeFile(new URL(`equipment-${name}.png`, artifacts), Buffer.from(screenshot.data, 'base64'));
+    }
+    await evaluate("document.querySelector('[data-add-equipment=\"temperature-sensor\"]').click()");
+    await waitFor("document.getElementById('equipment-dialog').open && !document.getElementById('save-equipment').disabled");
+    assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, `${name} quantity modal must not overflow`);
+    if (screenshots) {
+      const screenshot = await page('Page.captureScreenshot', { format: 'png' });
+      await writeFile(new URL(`equipment-modal-${name}.png`, artifacts), Buffer.from(screenshot.data, 'base64'));
+    }
+    await evaluate("document.getElementById('cancel-equipment').click()");
+  }
   assert.deepEqual(runtimeErrors, []);
   console.log('Browser smoke passed: normal approval, cancellation, third item, eighth day, and 4-unit/14-day refusal.');
   console.log('Verified desktop/mobile layout, text-only equipment descriptions, and unchanged data for unapproved/invalid requests.');
@@ -220,6 +280,7 @@ try {
   console.log('Verified UI chat: unclear sensor clarification, conversational proposal, cancellation, and explicit approval.');
   console.log('Verified structured Markdown, safe text rendering, and spinner cleanup on success and failure.');
   console.log('Verified poisoned-description/TA override attempts are refused in both form and chat without writes.');
+  console.log('Verified category filters, retained selections, quantity modal stock limits, cancellation, removal, and responsive shelf/modal layouts.');
   await command('Browser.close');
 } finally {
   for (const request of pending.values()) clearTimeout(request.timer);
