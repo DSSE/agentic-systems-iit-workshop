@@ -92,6 +92,11 @@
     <p>Preserved valid requests and the existing human approval flow. All tests use temporary inventory and controlled responses; no live model requests or saved demonstration-loan changes are required. <a href="specs/guardrails.md">Guardrail documentation</a> records boundaries, evidence, and limits.</p>
     <p>Remaining work: live provider/two coding-agent demonstrations and the separate all-five-case comparison of two prompt versions are not completed by these tests. Student IDs remain self-declared; session pinning is not production authentication. Text filtering supplements server enforcement and does not claim universal prompt-injection detection.</p>
   </article>
+  <article>
+    <h2>UI update — dedicated chat page</h2>
+    <p><time datetime="2026-10-18">October 18, 2026</time> (Asia/Dhaka). Branch: <code>group-8/UI</code>. Added homepage Chat agent navigation and a Chat with LabLend launcher. Moved the conversation to <code>/chat</code>, with its own student context, existing loans, safe structured output, loading state, and explicit proposal approval. The main page retains the equipment shelf and form. Both pages use the same session, tools, and shared UI behavior.</p>
+    <p>Verification: browser navigation tests confirm the homepage has no embedded chat form, the selected student ID carries over, chat approval persists a loan, and returning to the equipment shelf shows reduced availability. Existing chat clarification, cancellation, formatting, spinner cleanup, guardrails, and desktop/mobile overflow checks pass. API tests cover direct navigation to <code>/chat</code>. Saved demonstration loans are preserved.</p>
+  </article>
   <p>At the end of each later phase, update its status and append a dated entry with changes, actual verification results, remaining issues, and next steps.</p>
 </body>
 </html>

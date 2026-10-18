@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c32">
+  <title>Chat with LabLend</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="LabLend home"><span class="brand-icon" aria-hidden="true">L</span>LabLend<span class="brand-dot">.</span></a><a id="back-to-equipment" class="secondary nav-button" href="/">← Equipment shelf</a></header>
+  <main class="chat-page">
+    <div class="chat-page-intro"><p class="eyebrow">YOUR LAB ASSISTANT</p><h1>Let’s plan your next build.</h1><p class="lede">Tell LabLend what you need. Review the details before you borrow.</p></div>
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+    <div class="chat-workspace">
+      <section class="chat-section" aria-labelledby="chat-heading">
+        <div class="section-heading"><h2 id="chat-heading">Ask LabLend</h2><span id="agent-mode" class="pill">Loading assistant…</span></div>
+        <div id="chat-log" class="chat-log" role="log" aria-live="polite" aria-label="Conversation with LabLend"><p class="chat-assistant">Which equipment do you need, how many units, and for which dates?</p></div>
+        <div id="chat-loading" class="chat-loading" role="status" aria-live="polite" hidden><span class="chat-spinner" aria-hidden="true"></span><span>LabLend is thinking…</span></div>
+        <div class="chat-examples"><button type="button" id="chat-example-normal" class="secondary">Two Arduino kits next week</button><button type="button" id="chat-example-unclear" class="secondary">I need some sensors</button></div>
+        <form id="chat-form" class="chat-form"><label for="chat-input">Your message</label><textarea id="chat-input" name="message" maxlength="4000" rows="3" required placeholder="e.g. I need two Arduino kits for next week"></textarea><button id="chat-send" type="submit" class="primary">Send message ↗</button></form>
+        <p id="chat-mode-note" class="field-note">The assistant can prepare a proposal. Only your Approve loan action can save it.</p>
+      </section>
+      <aside class="chat-sidebar">
+        <section class="request-panel" aria-labelledby="chat-student-heading"><p class="eyebrow">YOUR WORKSPACE</p><h2 id="chat-student-heading">Borrowing as</h2><label for="student-id">Student ID</label><input id="student-id" name="student_id" placeholder="e.g. student-08" required pattern="[a-zA-Z0-9_-]{1,64}" maxlength="64" autocomplete="username"><p class="field-note">Enter your workshop student ID before sending a message. Changing it starts a new conversation.</p><div class="chat-rule-summary"><strong>2 units · 7 days</strong><p>Existing loans count toward your limit. No role exceptions. Only your approval saves a loan.</p></div></section>
+        <section class="chat-loans" aria-labelledby="loans-heading"><div class="section-heading"><h2 id="loans-heading">Your loans</h2><button id="refresh-loans" type="button" class="text-button">Refresh ↻</button></div><p id="loan-note" class="muted">Your loans appear after choosing a student ID.</p><div id="loans" class="loan-list"></div></section>
+      </aside>
+    </div>
+  </main>
+  <footer><span class="brand">LabLend.</span><span>Take care of the tools. Make room for the next idea.</span><span>GROUP 08 · IIT WORKSHOP</span></footer>
+  <dialog id="proposal-dialog" aria-labelledby="proposal-heading"><div class="dialog-top"><span class="eyebrow">ONE LAST LOOK</span><button id="close-proposal" class="icon-button" type="button" aria-label="Close proposal">×</button></div><h2 id="proposal-heading">Ready to borrow?</h2><p class="muted">Review your proposal. Equipment is reserved only after approval succeeds.</p><dl id="proposal-details"></dl><ul id="proposal-items" class="proposal-items"></ul><p class="field-note">Proposals expire after 10 minutes. We’ll check stock and your borrowing limit again when you approve.</p><div class="dialog-actions"><button id="cancel-proposal" type="button" class="secondary">Cancel</button><button id="approve-proposal" type="button" class="primary">Approve loan ↗</button></div></dialog>
+  <noscript><p class="message">Enable JavaScript to chat and review loan proposals.</p></noscript>
+</body>
+</html>

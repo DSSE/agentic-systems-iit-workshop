@@ -103,6 +103,8 @@ The model configuration template is `.env.example`. Copy it to an ignored `.env`
 
 ## Chat and model setup
 
+Use **Chat agent** in the homepage header or **Chat with LabLend** below the equipment shelf to open the dedicated `/chat` page. A typed student ID carries over, and the existing server session is shared between pages. Chat proposals are reviewed and approved on the chat page; **Equipment shelf** takes you back to the main page, where stock is recalculated from saved loans. The main page keeps equipment selection and form-based borrowing without an embedded conversation panel.
+
 With both `LLM_BASE_URL` and `LLM_MODEL` empty, **Demo mode · no LLM** appears in the UI. This limited local parser supports the workshop's examples through MCP, asks for missing equipment/quantity/dates, and keeps follow-up details within the current student session. It is not an AI model and does not silently replace a failed model request. In demo mode, “next week” means the next Monday through the following Monday, shown as exact dates before approval. Use YYYY-MM-DD dates for other requests.
 
 To use a model, configure both variables and restart. The adapter uses the provider's `/chat/completions` tool-calling endpoint. Examples include a local [Ollama compatible endpoint](https://docs.ollama.com/api/openai-compatibility) (`http://localhost:11434/v1`) or [Gemini's compatibility endpoint](https://ai.google.dev/gemini-api/docs/openai) (`https://generativelanguage.googleapis.com/v1beta/openai`). Choose an available model that supports tool calling; model names and API access come from your provider. An API key is optional for local providers. Partial configuration fails startup rather than pretending a model is connected.

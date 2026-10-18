@@ -27,7 +27,13 @@ test('HTTP normal flow: inspect proposal, approve, list saved loan', async (t) =
   const page = await fetch(f.base);
   assert.equal(page.status, 200);
   assert.match(page.headers.get('content-security-policy'), /frame-ancestors 'none'/);
-  assert.match(await page.text(), /Approve loan/);
+  const home = await page.text();
+  assert.match(home, /Approve loan/);
+  assert.match(home, /id="open-chat"/);
+  assert.doesNotMatch(home, /id="chat-form"/);
+  const chatPage = await fetch(`${f.base}/chat`);
+  assert.equal(chatPage.status, 200);
+  assert.match(await chatPage.text(), /id="chat-form"/);
   assert.equal((await (await fetch(`${f.base}/api/equipment`)).json()).equipment.length, 3);
   const checked = await f.post('/api/tools/check_stock', request());
   assert.equal(checked.status, 200);
